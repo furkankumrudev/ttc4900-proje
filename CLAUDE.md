@@ -50,7 +50,8 @@ Amaç hem öğrenmek hem portfolyo oluşturmak.
   seçimi, early stopping (`Trainer`'ın `eval_dataset`'i ve `load_best_model_at_end` dahil),
   cross-validation ve temperature scaling **yalnızca train içinde** yapılır (CV fold'ları ya da
   train'den ayrılan validation parçası).
-- Train/test verisi yalnızca `ttc4900.data.load_train_test()` ile okunur (varsayılan v2).
+- Model geliştirme (CV, seçim, denetim) train verisini yalnızca `ttc4900.data.load_train()` ile okur;
+  test metni belleğe hiç alınmaz. `load_train_test()` (varsayılan v2) yalnızca final değerlendirmede.
   Başka hiçbir yerde `train_test_split` ile ayrım yeniden yapılmaz.
 - TF-IDF gibi veriden öğrenen dönüşümler `sklearn.pipeline.Pipeline` içinde, sadece train
   fold'unda fit edilir.

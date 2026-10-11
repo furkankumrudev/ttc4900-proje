@@ -12,3 +12,4 @@ Hiçbirinde test seti kullanılmadı.
 | `preds/cv_*.npz` | 8ab6911 / ec0c2e6 | Zaman damgasız tahmin dosyaları (json ile eşleşmesi doğrulanamaz). |
 
 Yeniden koşularda CV skorları aynı kalmalıdır (deterministik; aynı grid, aynı fold'lar).
+| `phase2_summary_20261011-194634.json` | b80dcdc | `p_table` (ham / N-B / N-B+Holm) ve `grid_edges` alanlarından önce. Sayılar yenisiyle (`phase2_summary_20261011-221201.json`, dfbdc13) birebir aynı; yalnızca alan eklendi. |

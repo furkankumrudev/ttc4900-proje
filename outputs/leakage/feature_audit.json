@@ -1,0 +1,897 @@
+{
+  "experiment": "feature_audit",
+  "phase": 2,
+  "timestamp": "2026-10-11T22:14:13+00:00",
+  "git_commit": "3660c9b-dirty",
+  "split": "split_v2",
+  "scope": "Yalnızca train; Faz 2 final parametreleriyle tüm train'de fit. Test yok.",
+  "top_k": 20,
+  "rules": {
+    "category_name": "özellik (char için örnek kelimesi) bir kategori adıyla başlıyor / içeriyor",
+    "source_signature": "kelime ajans/kaynak listesinde: ['aa', 'afp', 'anka', 'ap', 'bbc', 'cihan', 'cnn', 'com', 'dha', 'foto', 'haber_merkezi', 'http', 'https', 'iha', 'ihlas', 'kaynak', 'muhabir', 'ntv', 'reuters', 'www']",
+    "template": "sınıf belgelerinin >= 30% kadarında ilk/son 5 kelimede geçiyor",
+    "encoding_artifact": "özellik C1 kontrol karakteri (U+0080-U+009F) içeriyor",
+    "concentrated": "df'nin >= 0.95 oranı tek sınıfta ve toplam df >= 20"
+  },
+  "models": {
+    "char_lr": {
+      "source_metrics": "phase2_char_lr_20261011-192701.json",
+      "best_params": {
+        "clf__C": 100.0,
+        "tfidf__ngram_range": [
+          2,
+          4
+        ]
+      },
+      "n_features": 52502,
+      "n_top": 140,
+      "n_flagged": 31,
+      "flag_counts": {
+        "category_name": 14,
+        "concentrated": 2,
+        "encoding_artifact": 6,
+        "source_signature": 9
+      },
+      "flagged": [
+        {
+          "class": "dunya",
+          "rank": 2,
+          "feature": "ihan",
+          "coef": 3.253232513587992,
+          "df_in_class": 111,
+          "df_other": 124,
+          "share_in_class": 0.4723404255319149,
+          "boundary_share_in_class": 0.1992619926199262,
+          "flags": "source_signature",
+          "example_words": "cihan cihan_haber_ajansı neslihan"
+        },
+        {
+          "class": "dunya",
+          "rank": 3,
+          "feature": " aa ",
+          "coef": 2.89926760317916,
+          "df_in_class": 137,
+          "df_other": 238,
+          "share_in_class": 0.36533333333333334,
+          "boundary_share_in_class": 0.2066420664206642,
+          "flags": "source_signature",
+          "example_words": "aa"
+        },
+        {
+          "class": "dunya",
+          "rank": 4,
+          "feature": " aa",
+          "coef": 2.8017122981581837,
+          "df_in_class": 137,
+          "df_other": 249,
+          "share_in_class": 0.3549222797927461,
+          "boundary_share_in_class": 0.2066420664206642,
+          "flags": "source_signature",
+          "example_words": "aa aaa aankoop"
+        },
+        {
+          "class": "dunya",
+          "rank": 5,
+          "feature": "aa ",
+          "coef": 2.7419730301301617,
+          "df_in_class": 138,
+          "df_other": 259,
+          "share_in_class": 0.34760705289672544,
+          "boundary_share_in_class": 0.2066420664206642,
+          "flags": "source_signature",
+          "example_words": "aa matbaa inşaa"
+        },
+        {
+          "class": "dunya",
+          "rank": 6,
+          "feature": "han ",
+          "coef": 2.437863249395021,
+          "df_in_class": 121,
+          "df_other": 278,
+          "share_in_class": 0.3032581453634085,
+          "boundary_share_in_class": 0.1974169741697417,
+          "flags": "source_signature",
+          "example_words": "cihan oğuzhan gökhan"
+        },
+        {
+          "class": "dunya",
+          "rank": 9,
+          "feature": " cih",
+          "coef": 2.296194115097637,
+          "df_in_class": 118,
+          "df_other": 277,
+          "share_in_class": 0.29873417721518986,
+          "boundary_share_in_class": 0.1992619926199262,
+          "flags": "source_signature",
+          "example_words": "cihan cihaz cihazın"
+        },
+        {
+          "class": "dunya",
+          "rank": 10,
+          "feature": "ciha",
+          "coef": 2.256128375905178,
+          "df_in_class": 118,
+          "df_other": 288,
+          "share_in_class": 0.29064039408866993,
+          "boundary_share_in_class": 0.1992619926199262,
+          "flags": "source_signature",
+          "example_words": "cihan cihaz cihazın"
+        },
+        {
+          "class": "dunya",
+          "rank": 15,
+          "feature": "aa",
+          "coef": 2.1753299412093936,
+          "df_in_class": 262,
+          "df_other": 1020,
+          "share_in_class": 0.20436817472698907,
+          "boundary_share_in_class": 0.22140221402214022,
+          "flags": "source_signature",
+          "example_words": "saat aa inşaat"
+        },
+        {
+          "class": "ekonomi",
+          "rank": 1,
+          "feature": "  ",
+          "coef": 7.6322088146987,
+          "df_in_class": 280,
+          "df_other": 525,
+          "share_in_class": 0.34782608695652173,
+          "boundary_share_in_class": 0.20471014492753623,
+          "flags": "encoding_artifact",
+          "example_words": ""
+        },
+        {
+          "class": "ekonomi",
+          "rank": 2,
+          "feature": " ",
+          "coef": 7.598868052711911,
+          "df_in_class": 280,
+          "df_other": 526,
+          "share_in_class": 0.34739454094292804,
+          "boundary_share_in_class": 0.20471014492753623,
+          "flags": "encoding_artifact",
+          "example_words": " "
+        },
+        {
+          "class": "ekonomi",
+          "rank": 3,
+          "feature": " ",
+          "coef": 7.577756620552146,
+          "df_in_class": 280,
+          "df_other": 526,
+          "share_in_class": 0.34739454094292804,
+          "boundary_share_in_class": 0.20471014492753623,
+          "flags": "encoding_artifact",
+          "example_words": "  "
+        },
+        {
+          "class": "ekonomi",
+          "rank": 13,
+          "feature": " ",
+          "coef": 2.5879044365257777,
+          "df_in_class": 260,
+          "df_other": 538,
+          "share_in_class": 0.3258145363408521,
+          "boundary_share_in_class": 0.014492753623188406,
+          "flags": "encoding_artifact",
+          "example_words": " # "
+        },
+        {
+          "class": "ekonomi",
+          "rank": 14,
+          "feature": "  ",
+          "coef": 2.5866935200812566,
+          "df_in_class": 260,
+          "df_other": 538,
+          "share_in_class": 0.3258145363408521,
+          "boundary_share_in_class": 0.014492753623188406,
+          "flags": "encoding_artifact",
+          "example_words": ""
+        },
+        {
+          "class": "ekonomi",
+          "rank": 15,
+          "feature": " ",
+          "coef": 2.5866935200812566,
+          "df_in_class": 260,
+          "df_other": 538,
+          "share_in_class": 0.3258145363408521,
+          "boundary_share_in_class": 0.014492753623188406,
+          "flags": "encoding_artifact",
+          "example_words": ""
+        },
+        {
+          "class": "saglik",
+          "rank": 7,
+          "feature": "ağlı",
+          "coef": 3.772316907523378,
+          "df_in_class": 348,
+          "df_other": 462,
+          "share_in_class": 0.42962962962962964,
+          "boundary_share_in_class": 0.08498023715415019,
+          "flags": "category_name",
+          "example_words": "sağlık bağlı sağlıklı"
+        },
+        {
+          "class": "saglik",
+          "rank": 8,
+          "feature": "ğlı",
+          "coef": 3.771283765023802,
+          "df_in_class": 349,
+          "df_other": 467,
+          "share_in_class": 0.42769607843137253,
+          "boundary_share_in_class": 0.08695652173913043,
+          "flags": "category_name",
+          "example_words": "sağlık bağlı sağlıklı"
+        },
+        {
+          "class": "saglik",
+          "rank": 9,
+          "feature": "ğlık",
+          "coef": 3.56696981309472,
+          "df_in_class": 261,
+          "df_other": 176,
+          "share_in_class": 0.597254004576659,
+          "boundary_share_in_class": 0.07114624505928854,
+          "flags": "category_name",
+          "example_words": "sağlık sağlıklı sağlık_bakanlığı"
+        },
+        {
+          "class": "saglik",
+          "rank": 10,
+          "feature": "sağl",
+          "coef": 2.9227741084696937,
+          "df_in_class": 366,
+          "df_other": 749,
+          "share_in_class": 0.32825112107623317,
+          "boundary_share_in_class": 0.1007905138339921,
+          "flags": "category_name",
+          "example_words": "sağlık sağlıklı sağlığı"
+        },
+        {
+          "class": "saglik",
+          "rank": 12,
+          "feature": "sağ",
+          "coef": 2.801216983887932,
+          "df_in_class": 370,
+          "df_other": 819,
+          "share_in_class": 0.31118587047939444,
+          "boundary_share_in_class": 0.1007905138339921,
+          "flags": "category_name",
+          "example_words": "sağlık sağlıklı sağlığı"
+        },
+        {
+          "class": "saglik",
+          "rank": 14,
+          "feature": " sağ",
+          "coef": 2.719526696920846,
+          "df_in_class": 362,
+          "df_other": 799,
+          "share_in_class": 0.31180017226528856,
+          "boundary_share_in_class": 0.09683794466403162,
+          "flags": "category_name",
+          "example_words": "sağlık sağlıklı sağlığı"
+        },
+        {
+          "class": "saglik",
+          "rank": 18,
+          "feature": "ağl",
+          "coef": 2.438923930300043,
+          "df_in_class": 405,
+          "df_other": 1145,
+          "share_in_class": 0.26129032258064516,
+          "boundary_share_in_class": 0.10474308300395258,
+          "flags": "category_name",
+          "example_words": "sağlık bağlı sağlıklı"
+        },
+        {
+          "class": "spor",
+          "rank": 1,
+          "feature": " maç",
+          "coef": 5.423928598987321,
+          "df_in_class": 330,
+          "df_other": 16,
+          "share_in_class": 0.953757225433526,
+          "boundary_share_in_class": 0.08070866141732283,
+          "flags": "concentrated",
+          "example_words": "maç maçında maçı"
+        },
+        {
+          "class": "spor",
+          "rank": 2,
+          "feature": "spor",
+          "coef": 5.356104854095366,
+          "df_in_class": 253,
+          "df_other": 106,
+          "share_in_class": 0.7047353760445683,
+          "boundary_share_in_class": 0.14173228346456693,
+          "flags": "category_name",
+          "example_words": "spor trabzonspor bursaspor"
+        },
+        {
+          "class": "spor",
+          "rank": 3,
+          "feature": "spo",
+          "coef": 5.127099328816392,
+          "df_in_class": 255,
+          "df_other": 131,
+          "share_in_class": 0.6606217616580311,
+          "boundary_share_in_class": 0.1437007874015748,
+          "flags": "category_name",
+          "example_words": "spor trabzonspor bursaspor"
+        },
+        {
+          "class": "spor",
+          "rank": 5,
+          "feature": "por",
+          "coef": 4.073623986659677,
+          "df_in_class": 280,
+          "df_other": 417,
+          "share_in_class": 0.4017216642754663,
+          "boundary_share_in_class": 0.1437007874015748,
+          "flags": "category_name",
+          "example_words": "spor trabzonspor bursaspor"
+        },
+        {
+          "class": "spor",
+          "rank": 6,
+          "feature": "por ",
+          "coef": 3.7292395465262,
+          "df_in_class": 191,
+          "df_other": 97,
+          "share_in_class": 0.6631944444444444,
+          "boundary_share_in_class": 0.09055118110236221,
+          "flags": "category_name",
+          "example_words": "spor trabzonspor bursaspor"
+        },
+        {
+          "class": "spor",
+          "rank": 7,
+          "feature": "maçı",
+          "coef": 3.58533087004245,
+          "df_in_class": 263,
+          "df_other": 7,
+          "share_in_class": 0.9740740740740741,
+          "boundary_share_in_class": 0.047244094488188976,
+          "flags": "concentrated",
+          "example_words": "maçında maçı maçın"
+        },
+        {
+          "class": "spor",
+          "rank": 8,
+          "feature": "sp",
+          "coef": 3.5418519924280814,
+          "df_in_class": 302,
+          "df_other": 637,
+          "share_in_class": 0.32161874334398294,
+          "boundary_share_in_class": 0.1515748031496063,
+          "flags": "category_name",
+          "example_words": "spor tespit ispanya"
+        },
+        {
+          "class": "spor",
+          "rank": 9,
+          "feature": " spo",
+          "coef": 3.497953891938145,
+          "df_in_class": 161,
+          "df_other": 115,
+          "share_in_class": 0.5833333333333334,
+          "boundary_share_in_class": 0.051181102362204724,
+          "flags": "category_name",
+          "example_words": "spor spor_toto_süper_lig sporcu"
+        },
+        {
+          "class": "spor",
+          "rank": 10,
+          "feature": " sp",
+          "coef": 3.30973765212046,
+          "df_in_class": 176,
+          "df_other": 220,
+          "share_in_class": 0.4444444444444444,
+          "boundary_share_in_class": 0.05511811023622047,
+          "flags": "category_name",
+          "example_words": "spor spor_toto_süper_lig sporcu"
+        },
+        {
+          "class": "teknoloji",
+          "rank": 11,
+          "feature": " ap",
+          "coef": 2.930962738794303,
+          "df_in_class": 93,
+          "df_other": 63,
+          "share_in_class": 0.5961538461538461,
+          "boundary_share_in_class": 0.05405405405405406,
+          "flags": "source_signature",
+          "example_words": "apple app_store ap"
+        }
+      ]
+    },
+    "word_lr": {
+      "source_metrics": "phase2_word_lr_20261011-193915.json",
+      "best_params": {
+        "clf__C": 100.0,
+        "tfidf__ngram_range": [
+          1,
+          1
+        ]
+      },
+      "n_features": 46945,
+      "n_top": 140,
+      "n_flagged": 24,
+      "flag_counts": {
+        "category_name": 5,
+        "concentrated": 14,
+        "source_signature": 5
+      },
+      "flagged": [
+        {
+          "class": "siyaset",
+          "rank": 4,
+          "feature": "kılıçdaroğlu",
+          "coef": 7.586385159960808,
+          "df_in_class": 52,
+          "df_other": 0,
+          "share_in_class": 1.0,
+          "boundary_share_in_class": 0.05253623188405797,
+          "flags": "concentrated",
+          "example_words": ""
+        },
+        {
+          "class": "siyaset",
+          "rank": 8,
+          "feature": "mhp",
+          "coef": 5.945745748729406,
+          "df_in_class": 66,
+          "df_other": 3,
+          "share_in_class": 0.9565217391304348,
+          "boundary_share_in_class": 0.025362318840579712,
+          "flags": "concentrated",
+          "example_words": ""
+        },
+        {
+          "class": "siyaset",
+          "rank": 10,
+          "feature": "bdp",
+          "coef": 5.2991921261194275,
+          "df_in_class": 71,
+          "df_other": 1,
+          "share_in_class": 0.9861111111111112,
+          "boundary_share_in_class": 0.02355072463768116,
+          "flags": "concentrated",
+          "example_words": ""
+        },
+        {
+          "class": "siyaset",
+          "rank": 13,
+          "feature": "anka",
+          "coef": 4.5411070160843865,
+          "df_in_class": 64,
+          "df_other": 15,
+          "share_in_class": 0.810126582278481,
+          "boundary_share_in_class": 0.11413043478260869,
+          "flags": "source_signature",
+          "example_words": ""
+        },
+        {
+          "class": "siyaset",
+          "rank": 17,
+          "feature": "chp_genel_başkanı_kemal_kılıçdaroğlu",
+          "coef": 3.678606140872388,
+          "df_in_class": 49,
+          "df_other": 0,
+          "share_in_class": 1.0,
+          "boundary_share_in_class": 0.009057971014492754,
+          "flags": "concentrated",
+          "example_words": ""
+        },
+        {
+          "class": "siyaset",
+          "rank": 18,
+          "feature": "arınç",
+          "coef": 3.669773260027597,
+          "df_in_class": 32,
+          "df_other": 1,
+          "share_in_class": 0.9696969696969697,
+          "boundary_share_in_class": 0.025362318840579712,
+          "flags": "concentrated",
+          "example_words": ""
+        },
+        {
+          "class": "dunya",
+          "rank": 1,
+          "feature": "cihan",
+          "coef": 8.230261824509082,
+          "df_in_class": 108,
+          "df_other": 89,
+          "share_in_class": 0.5482233502538071,
+          "boundary_share_in_class": 0.1974169741697417,
+          "flags": "source_signature",
+          "example_words": ""
+        },
+        {
+          "class": "dunya",
+          "rank": 2,
+          "feature": "aa",
+          "coef": 7.828975521165336,
+          "df_in_class": 137,
+          "df_other": 238,
+          "share_in_class": 0.36533333333333334,
+          "boundary_share_in_class": 0.2066420664206642,
+          "flags": "source_signature",
+          "example_words": ""
+        },
+        {
+          "class": "dunya",
+          "rank": 11,
+          "feature": "bbc",
+          "coef": 3.734986293652404,
+          "df_in_class": 14,
+          "df_other": 16,
+          "share_in_class": 0.4666666666666667,
+          "boundary_share_in_class": 0.00922509225092251,
+          "flags": "source_signature",
+          "example_words": ""
+        },
+        {
+          "class": "kultur",
+          "rank": 7,
+          "feature": "kültür",
+          "coef": 5.293902325936809,
+          "df_in_class": 76,
+          "df_other": 62,
+          "share_in_class": 0.5507246376811594,
+          "boundary_share_in_class": 0.015486725663716814,
+          "flags": "category_name",
+          "example_words": ""
+        },
+        {
+          "class": "kultur",
+          "rank": 9,
+          "feature": "yönetmen",
+          "coef": 5.078457778906109,
+          "df_in_class": 63,
+          "df_other": 1,
+          "share_in_class": 0.984375,
+          "boundary_share_in_class": 0.017699115044247787,
+          "flags": "concentrated",
+          "example_words": ""
+        },
+        {
+          "class": "saglik",
+          "rank": 2,
+          "feature": "sağlık",
+          "coef": 6.2424255597960645,
+          "df_in_class": 150,
+          "df_other": 116,
+          "share_in_class": 0.5639097744360902,
+          "boundary_share_in_class": 0.01383399209486166,
+          "flags": "category_name",
+          "example_words": ""
+        },
+        {
+          "class": "saglik",
+          "rank": 6,
+          "feature": "sağlık_bakanlığı",
+          "coef": 4.618022236905091,
+          "df_in_class": 46,
+          "df_other": 19,
+          "share_in_class": 0.7076923076923077,
+          "boundary_share_in_class": 0.017786561264822136,
+          "flags": "category_name",
+          "example_words": ""
+        },
+        {
+          "class": "saglik",
+          "rank": 8,
+          "feature": "sağlıklı",
+          "coef": 3.950038494824568,
+          "df_in_class": 117,
+          "df_other": 40,
+          "share_in_class": 0.7452229299363057,
+          "boundary_share_in_class": 0.021739130434782608,
+          "flags": "category_name",
+          "example_words": ""
+        },
+        {
+          "class": "saglik",
+          "rank": 15,
+          "feature": "hastalıkları",
+          "coef": 3.505853191015979,
+          "df_in_class": 102,
+          "df_other": 4,
+          "share_in_class": 0.9622641509433962,
+          "boundary_share_in_class": 0.003952569169960474,
+          "flags": "concentrated",
+          "example_words": ""
+        },
+        {
+          "class": "spor",
+          "rank": 1,
+          "feature": "spor",
+          "coef": 6.993243082400947,
+          "df_in_class": 54,
+          "df_other": 52,
+          "share_in_class": 0.5094339622641509,
+          "boundary_share_in_class": 0.003937007874015748,
+          "flags": "category_name",
+          "example_words": ""
+        },
+        {
+          "class": "spor",
+          "rank": 2,
+          "feature": "maçında",
+          "coef": 6.612184000284356,
+          "df_in_class": 151,
+          "df_other": 0,
+          "share_in_class": 1.0,
+          "boundary_share_in_class": 0.013779527559055118,
+          "flags": "concentrated",
+          "example_words": ""
+        },
+        {
+          "class": "spor",
+          "rank": 3,
+          "feature": "maç",
+          "coef": 6.224002891301934,
+          "df_in_class": 127,
+          "df_other": 1,
+          "share_in_class": 0.9921875,
+          "boundary_share_in_class": 0.015748031496062992,
+          "flags": "concentrated",
+          "example_words": ""
+        },
+        {
+          "class": "spor",
+          "rank": 6,
+          "feature": "maçı",
+          "coef": 5.580793509340684,
+          "df_in_class": 127,
+          "df_other": 5,
+          "share_in_class": 0.9621212121212122,
+          "boundary_share_in_class": 0.023622047244094488,
+          "flags": "concentrated",
+          "example_words": ""
+        },
+        {
+          "class": "spor",
+          "rank": 11,
+          "feature": "bahçe",
+          "coef": 4.582492119516249,
+          "df_in_class": 50,
+          "df_other": 1,
+          "share_in_class": 0.9803921568627451,
+          "boundary_share_in_class": 0.023622047244094488,
+          "flags": "concentrated",
+          "example_words": ""
+        },
+        {
+          "class": "spor",
+          "rank": 13,
+          "feature": "gol",
+          "coef": 4.471488272124794,
+          "df_in_class": 78,
+          "df_other": 1,
+          "share_in_class": 0.9873417721518988,
+          "boundary_share_in_class": 0.01968503937007874,
+          "flags": "concentrated",
+          "example_words": ""
+        },
+        {
+          "class": "spor",
+          "rank": 17,
+          "feature": "maçta",
+          "coef": 4.317766286541291,
+          "df_in_class": 110,
+          "df_other": 2,
+          "share_in_class": 0.9821428571428571,
+          "boundary_share_in_class": 0.001968503937007874,
+          "flags": "concentrated",
+          "example_words": ""
+        },
+        {
+          "class": "teknoloji",
+          "rank": 11,
+          "feature": "microsoft",
+          "coef": 4.608441710861319,
+          "df_in_class": 34,
+          "df_other": 1,
+          "share_in_class": 0.9714285714285714,
+          "boundary_share_in_class": 0.017374517374517374,
+          "flags": "concentrated",
+          "example_words": ""
+        },
+        {
+          "class": "teknoloji",
+          "rank": 20,
+          "feature": "com",
+          "coef": 3.7924596156975214,
+          "df_in_class": 55,
+          "df_other": 99,
+          "share_in_class": 0.35714285714285715,
+          "boundary_share_in_class": 0.017374517374517374,
+          "flags": "source_signature",
+          "example_words": ""
+        }
+      ]
+    }
+  },
+  "artifact_by_class": {
+    "src:anka": {
+      "dunya": 0.024,
+      "ekonomi": 0.0,
+      "kultur": 0.0,
+      "saglik": 0.002,
+      "siyaset": 0.1159,
+      "spor": 0.002,
+      "teknoloji": 0.0
+    },
+    "src:cihan": {
+      "dunya": 0.1993,
+      "ekonomi": 0.0018,
+      "kultur": 0.0221,
+      "saglik": 0.0791,
+      "siyaset": 0.0525,
+      "spor": 0.0138,
+      "teknoloji": 0.0039
+    },
+    "src:com": {
+      "dunya": 0.0,
+      "ekonomi": 0.0453,
+      "kultur": 0.0774,
+      "saglik": 0.0257,
+      "siyaset": 0.0054,
+      "spor": 0.0453,
+      "teknoloji": 0.1062
+    },
+    "src:dha": {
+      "dunya": 0.0148,
+      "ekonomi": 0.0145,
+      "kultur": 0.0111,
+      "saglik": 0.0237,
+      "siyaset": 0.0797,
+      "spor": 0.0,
+      "teknoloji": 0.0019
+    },
+    "src:www": {
+      "dunya": 0.0,
+      "ekonomi": 0.0091,
+      "kultur": 0.0487,
+      "saglik": 0.0198,
+      "siyaset": 0.0036,
+      "spor": 0.002,
+      "teknoloji": 0.0463
+    },
+    "src:http": {
+      "dunya": 0.0,
+      "ekonomi": 0.0018,
+      "kultur": 0.0288,
+      "saglik": 0.004,
+      "siyaset": 0.0,
+      "spor": 0.0,
+      "teknoloji": 0.0212
+    },
+    "src:bbc": {
+      "dunya": 0.0258,
+      "ekonomi": 0.0036,
+      "kultur": 0.0044,
+      "saglik": 0.0119,
+      "siyaset": 0.0018,
+      "spor": 0.002,
+      "teknoloji": 0.0077
+    },
+    "c1_chars": {
+      "dunya": 0.0461,
+      "ekonomi": 0.6105,
+      "kultur": 0.5288,
+      "saglik": 0.3024,
+      "siyaset": 0.1703,
+      "spor": 0.3228,
+      "teknoloji": 0.3089
+    },
+    "src:ntv": {
+      "dunya": 0.0092,
+      "ekonomi": 0.0,
+      "kultur": 0.0,
+      "saglik": 0.0,
+      "siyaset": 0.0127,
+      "spor": 0.002,
+      "teknoloji": 0.0019
+    },
+    "src:aa": {
+      "dunya": 0.2528,
+      "ekonomi": 0.058,
+      "kultur": 0.0442,
+      "saglik": 0.1601,
+      "siyaset": 0.1014,
+      "spor": 0.0748,
+      "teknoloji": 0.0212
+    },
+    "src:ap": {
+      "dunya": 0.0111,
+      "ekonomi": 0.0036,
+      "kultur": 0.0022,
+      "saglik": 0.0,
+      "siyaset": 0.0,
+      "spor": 0.0,
+      "teknoloji": 0.0
+    },
+    "src:https": {
+      "dunya": 0.0,
+      "ekonomi": 0.0,
+      "kultur": 0.0022,
+      "saglik": 0.0,
+      "siyaset": 0.0,
+      "spor": 0.0,
+      "teknoloji": 0.0077
+    },
+    "src:reuters": {
+      "dunya": 0.0055,
+      "ekonomi": 0.0072,
+      "kultur": 0.0,
+      "saglik": 0.0,
+      "siyaset": 0.0,
+      "spor": 0.0,
+      "teknoloji": 0.0039
+    },
+    "src:muhabir": {
+      "dunya": 0.0,
+      "ekonomi": 0.0,
+      "kultur": 0.0066,
+      "saglik": 0.0,
+      "siyaset": 0.0018,
+      "spor": 0.0,
+      "teknoloji": 0.0039
+    },
+    "src:afp": {
+      "dunya": 0.0018,
+      "ekonomi": 0.0,
+      "kultur": 0.0,
+      "saglik": 0.0059,
+      "siyaset": 0.0,
+      "spor": 0.0,
+      "teknoloji": 0.0
+    },
+    "src:kaynak": {
+      "dunya": 0.0203,
+      "ekonomi": 0.0344,
+      "kultur": 0.0111,
+      "saglik": 0.0119,
+      "siyaset": 0.0145,
+      "spor": 0.0059,
+      "teknoloji": 0.0174
+    },
+    "src:cnn": {
+      "dunya": 0.0055,
+      "ekonomi": 0.0018,
+      "kultur": 0.0,
+      "saglik": 0.0,
+      "siyaset": 0.0,
+      "spor": 0.0,
+      "teknoloji": 0.0
+    },
+    "src:iha": {
+      "dunya": 0.0037,
+      "ekonomi": 0.0,
+      "kultur": 0.0,
+      "saglik": 0.0,
+      "siyaset": 0.0018,
+      "spor": 0.0,
+      "teknoloji": 0.0
+    },
+    "src:foto": {
+      "dunya": 0.0,
+      "ekonomi": 0.0,
+      "kultur": 0.0022,
+      "saglik": 0.0,
+      "siyaset": 0.0036,
+      "spor": 0.0,
+      "teknoloji": 0.0
+    }
+  },
+  "boundary_max_share": {
+    "first": 0.009057971014492754,
+    "last": 0.034420289855072464
+  },
+  "note": "Yalnızca rapor: işaret = insan incelemesine aday, sızıntı kanıtı değil."
+}
