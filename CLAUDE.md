@@ -15,23 +15,40 @@ Amaç hem öğrenmek hem portfolyo oluşturmak.
 - `load_dataset` her zaman `revision=<commit SHA>` ile çağrılır. SHA, `ttc4900.data` içinde
   tek bir sabit olarak tutulur.
 - Ham veride sınıflar tam dengeli (700/sınıf). Tam tekrar temizliğinden sonra 4538 örnek kalır
-  (sınıf başına 566–690). `split_v1`: train 3630, test 908 (sınıf başına 113–138).
-  Ayrıntı: `outputs/data_report.json`.
+  (sınıf başına 566–690). Resmî split `split_v2`: train 3630, test 908 (test oranı 0.2001,
+  sınıf başına 114–138). Ayrıntı: `outputs/data_report.json`.
 
 ## Kurallar
 
 ### Split ve sızıntı
-- Split: stratified, `test_size=0.2`, `random_state=42`.
-- Split **bir kez** üretilir ve indeksleri `outputs/splits/split_v1.json` dosyasına kaydedilir.
-  Bundan sonra tüm modeller split'i yalnızca bu dosyadan okur. Böylece hepsi aynı test örnekleri
-  üzerinde değerlendirilir; McNemar ve paired bootstrap gibi eşleştirilmiş testler bunu gerektirir.
+- **Resmî split: `outputs/splits/split_v2.json`** (grup-bilinçli). Yakın tekrarlar (TF-IDF
+  kosinüs > 0.8) bir graf oluşturur. Bu grafın bağlı bileşenleri grup sayılır ve hiçbir grup
+  bölünmez. Split, `StratifiedGroupKFold(n_splits=5, shuffle=True, random_state=42)` ile
+  üretilir ve fold 0 test olur. Test oranı ≈ 0.2'dir, tam değil.
+  - Neden v2: düz stratified `split_v1`'de aynı haberin yeniden yazılmış sürümleri train ile
+    test arasına bölünmüştü. 0.9 eşiğinde bu 88 çift ve 78 test satırıydı (testin %8.6'sı).
+    Model bu satırları genellemeden, ezberleyerek doğru bilebiliyordu. v2'de bölünmüş çift
+    sayısı 0. Eşik başta 0.9'du. (0.8, 0.9] aralığında da aynı haberin sürümleri bulununca
+    0.8'e indirildi. En büyük grup yine 5 satır, stratifikasyon bozulmuyor.
+  - `split_v1.json` silinmez ve değiştirilmez. Yalnızca Faz 2'deki tek "sızıntı etkisi"
+    baseline'ı için kullanılır. Ana sonuçlar v1'de raporlanmaz.
+- Split **bir kez** üretilir ve dosyaya yazılır. Bundan sonra tüm modeller split'i yalnızca bu
+  dosyadan okur. Böylece hepsi aynı test örnekleri üzerinde değerlendirilir; McNemar ve paired
+  bootstrap gibi eşleştirilmiş testler bunu gerektirir. Her `outputs/metrics/*.json` dosyası
+  hangi split'i kullandığını `"split": "split_v2"` alanıyla belirtir.
 - Tekrar eden (ve neredeyse aynı) metinler split'ten **önce** kontrol edilir.
+- **CV her zaman `ttc4900.data.make_cv(train)` ile yapılır.** Bu fonksiyon
+  `StratifiedGroupKFold` ile split_v2 gruplarını döndürür. `groups=g` parametresi `cross_validate`,
+  `GridSearchCV.fit` ve `cross_val_predict` çağrılarına verilir. Düz `StratifiedKFold`, `KFold`
+  ya da `cv=5` kullanılmaz; bunlar yakın tekrarları fold'lara böler ve CV skorunu sessizce
+  şişirir. Train'den ayrılacak bir validation parçası (BERT early stopping, temperature scaling)
+  da `train_test_split` ile değil, `make_cv` fold'larından biriyle ayrılır.
 - **Test seti yalnızca final değerlendirmede, bir kez kullanılır.** Hiperparametre araması, model
   seçimi, early stopping (`Trainer`'ın `eval_dataset`'i ve `load_best_model_at_end` dahil),
   cross-validation ve temperature scaling **yalnızca train içinde** yapılır (CV fold'ları ya da
   train'den ayrılan validation parçası).
-- Train/test verisi yalnızca `ttc4900.data.load_train_test()` ile okunur. Başka hiçbir yerde
-  `train_test_split` ile train/test ayrımı yeniden yapılmaz.
+- Train/test verisi yalnızca `ttc4900.data.load_train_test()` ile okunur (varsayılan v2).
+  Başka hiçbir yerde `train_test_split` ile ayrım yeniden yapılmaz.
 - TF-IDF gibi veriden öğrenen dönüşümler `sklearn.pipeline.Pipeline` içinde, sadece train
   fold'unda fit edilir.
 

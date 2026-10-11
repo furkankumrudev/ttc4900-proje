@@ -11,6 +11,8 @@ import pandas as pd  # noqa: E402
 import seaborn as sns  # noqa: E402
 
 from ttc4900.data import (  # noqa: E402
+    SPLIT_V1_PATH,
+    SPLIT_V2_PATH,
     drop_exact_duplicates,
     load_raw,
     load_train_test,
@@ -42,7 +44,8 @@ def main() -> None:
     sns.set_theme(style="whitegrid", font_scale=1.0)
     raw = load_raw()
     clean, _ = drop_exact_duplicates(raw)
-    train, test = load_train_test()
+    train, test = load_train_test(SPLIT_V2_PATH)  # resmî split (v2)
+    train1, test1 = load_train_test(SPLIT_V1_PATH)
     order = sorted(raw["category"].unique())
 
     # 1) ham vs temiz sınıf dağılımı
@@ -53,34 +56,42 @@ def main() -> None:
     sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))  # çubukların üstüne binmesin
     _save(fig, "eda_class_distribution.png")
 
-    # 2) train vs test sınıf oranları
-    props = pd.DataFrame(
-        {
-            "train": train["category"].value_counts(normalize=True),
-            "test": test["category"].value_counts(normalize=True),
-        }
-    ).loc[order]
-    long = props.reset_index(names="category").melt("category", var_name="split", value_name="oran")
-    fig, ax = plt.subplots(figsize=(9, 5))
-    sns.barplot(data=long, x="category", y="oran", hue="split", ax=ax)
-    ax.set(title="Sınıf oranları: train vs test", xlabel="Sınıf", ylabel="Oran")
-    sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
-    _save(fig, "eda_split_balance.png")
+    # 2) train vs test sınıf oranları (v1 ve v2)
+    for tr_, te_, tag, fname in [
+        (train1, test1, "v1", "eda_split_balance.png"),
+        (train, test, "v2", "eda_split_balance_v2.png"),
+    ]:
+        props = pd.DataFrame(
+            {
+                "train": tr_["category"].value_counts(normalize=True),
+                "test": te_["category"].value_counts(normalize=True),
+            }
+        ).loc[order]
+        long = props.reset_index(names="category").melt(
+            "category", var_name="split", value_name="oran"
+        )
+        fig, ax = plt.subplots(figsize=(9, 5))
+        sns.barplot(data=long, x="category", y="oran", hue="split", ax=ax)
+        ax.set(title=f"Sınıf oranları: train vs test ({tag})", xlabel="Sınıf", ylabel="Oran")
+        sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
+        _save(fig, fname)
 
-    # 3) kelime sayısı (yalnızca train)
+    # 3) kelime sayısı (yalnızca resmî split'in train'i)
     tr = train.assign(n_words=train["text"].str.split().str.len(), n_chars=train["text"].str.len())
     fig, ax = plt.subplots(figsize=(9, 5))
     sns.boxplot(data=tr, x="category", y="n_words", order=order, ax=ax)
     ax.set_yscale("log")
-    ax.set(title="Sınıf başına kelime sayısı (train, log ölçek)", xlabel="Sınıf", ylabel="Kelime")
+    ax.set(
+        title="Sınıf başına kelime sayısı (train v2, log ölçek)", xlabel="Sınıf", ylabel="Kelime"
+    )
     _save(fig, "eda_text_length.png")
 
     update_report(
         {
             "eda": {
                 "scope_note": (
-                    "Metin uzunluğu istatistikleri yalnızca train'den hesaplandı; "
-                    "test'ten yalnızca sınıf sayıları (eda_split_balance) kullanıldı."
+                    "Metin uzunluğu istatistikleri yalnızca resmî split'in (v2) train'inden "
+                    "hesaplandı; test'ten yalnızca sınıf sayıları (eda_split_balance*) kullanıldı."
                 ),
                 "n_train": len(tr),
                 "n_words": _summary(tr["n_words"]),
