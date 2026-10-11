@@ -13,11 +13,15 @@ from ttc4900.paths import METRICS_DIR, PROJECT_ROOT
 
 
 def git_commit() -> str:
-    """Kısa HEAD hash'i; çalışma ağacı kirliyse '-dirty' eki. git yoksa 'unknown'."""
+    """Kısa HEAD hash'i; izlenen dosyalarda değişiklik varsa '-dirty' eki. git yoksa 'unknown'.
+
+    İzlenmeyen dosyalar sayılmaz: paralel deneylerin yeni çıktıları birbirini kirli göstermesin.
+    """
     try:
         run = dict(cwd=PROJECT_ROOT, capture_output=True, text=True, check=True)
         sha = subprocess.run(["git", "rev-parse", "--short", "HEAD"], **run).stdout.strip()
-        dirty = subprocess.run(["git", "status", "--porcelain"], **run).stdout.strip()
+        status = ["git", "status", "--porcelain", "--untracked-files=no"]
+        dirty = subprocess.run(status, **run).stdout.strip()
     except (OSError, subprocess.CalledProcessError):
         return "unknown"
     return f"{sha}-dirty" if dirty else sha
