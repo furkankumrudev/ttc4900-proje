@@ -1,0 +1,13 @@
+# Sadece araç ayarları. Bağımlılıklar requirements.txt'de, burada TEKRARLANMAZ.
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

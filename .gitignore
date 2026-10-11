@@ -1,0 +1,27 @@
+# Ortam
+.venv/
+.env
+
+# Python önbellekleri
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Model ve checkpoint'ler (HF Hub'a gider, git'e değil)
+outputs/models/
+checkpoint-*/
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.ckpt
+wandb/
+runs/
+
+# HF önbelleği (proje içine düşerse)
+.cache/
+
+# Claude Code kişisel ayarları
+.claude/settings.local.json

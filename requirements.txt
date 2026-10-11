@@ -1,0 +1,27 @@
+# Bağımlılıkların TEK kaynağı burası (pyproject.toml paket listesi içermez).
+# Yerel:  uv pip install -r requirements.txt   (ya da pip install -r requirements.txt)
+# Colab:  !pip install -q -r requirements.txt
+# Sadece alt sınır (>=) kullanılır; Colab'daki hazır paketleri gereksiz yere değiştirmemek için.
+
+# Veri ve modeller
+datasets>=3.0
+transformers>=4.45
+accelerate>=1.0          # transformers.Trainer için zorunlu
+torch                    # bilinçli olarak sürümsüz: Colab'da önceden kurulu gelir
+
+# Klasik ML ve istatistik
+scikit-learn>=1.5
+scipy>=1.13              # McNemar (chi2 / binom), bootstrap yardımcıları
+numpy>=1.26
+pandas>=2.2
+
+# Görselleştirme
+matplotlib>=3.9
+seaborn>=0.13
+
+# Demo
+gradio>=5.0
+
+# Geliştirme araçları
+ruff>=0.6
+pytest>=8.0

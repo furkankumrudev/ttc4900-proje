@@ -1,0 +1,5 @@
+# Windows ve Colab (Linux) arasinda tutarli satir sonlari
+* text=auto eol=lf
+*.ipynb text eol=lf
+*.png binary
+*.npz binary
