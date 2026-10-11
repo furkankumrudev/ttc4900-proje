@@ -1,0 +1,138 @@
+{
+  "experiment": "phase2_summary",
+  "phase": 2,
+  "timestamp": "2026-10-11T19:18:17+00:00",
+  "git_commit": "ec0c2e6-dirty",
+  "split": "split_v2",
+  "ranking": [
+    {
+      "model": "char_lr",
+      "display": "Karakter TF-IDF + LR",
+      "macro_f1_mean": 0.905353426991854,
+      "macro_f1_std": 0.0106843429658876,
+      "accuracy_mean": 0.904315886134068,
+      "selection_bias": 0.0027987992447049415,
+      "final_params": {
+        "clf__C": 100.0,
+        "tfidf__ngram_range": [
+          2,
+          4
+        ]
+      },
+      "source": "phase2_char_lr_20261011-190355.json"
+    },
+    {
+      "model": "word_svc",
+      "display": "Kelime TF-IDF + LinearSVC",
+      "macro_f1_mean": 0.901746255348979,
+      "macro_f1_std": 0.009383925053526912,
+      "accuracy_mean": 0.9006427915518824,
+      "selection_bias": 0.0025683216310630197,
+      "final_params": {
+        "clf__C": 1.0,
+        "tfidf__ngram_range": [
+          1,
+          1
+        ]
+      },
+      "source": "phase2_word_svc_20261011-183327.json"
+    },
+    {
+      "model": "word_lr",
+      "display": "Kelime TF-IDF + LR",
+      "macro_f1_mean": 0.8977358448121285,
+      "macro_f1_std": 0.009959591655093263,
+      "accuracy_mean": 0.8964187327823692,
+      "selection_bias": 0.0026357562077800045,
+      "final_params": {
+        "clf__C": 100.0,
+        "tfidf__ngram_range": [
+          1,
+          1
+        ]
+      },
+      "source": "phase2_word_lr_20261011-190400.json"
+    },
+    {
+      "model": "word_cnb",
+      "display": "Kelime TF-IDF + ComplementNB",
+      "macro_f1_mean": 0.8947697246065537,
+      "macro_f1_std": 0.012002917074886576,
+      "accuracy_mean": 0.8938475665748392,
+      "selection_bias": 0.006205134569290283,
+      "final_params": {
+        "clf__alpha": 0.1,
+        "tfidf__ngram_range": [
+          1,
+          1
+        ]
+      },
+      "source": "phase2_word_cnb_20261011-183332.json"
+    }
+  ],
+  "paired_vs_best": [
+    {
+      "a": "char_lr",
+      "b": "word_svc",
+      "mean_diff": 0.0036071716428749696,
+      "std_diff": 0.006504262893673117,
+      "se_corrected": 0.0036601531844315085,
+      "se_naive": 0.0016793934577700562,
+      "ci95": [
+        -0.0042430761828336876,
+        0.011457419468583627
+      ],
+      "t": 0.9855247748149186,
+      "df": 14,
+      "p": 0.3410931859473155,
+      "n_folds_positive": 11,
+      "J": 15,
+      "p_holm": 0.3410931859473155
+    },
+    {
+      "a": "char_lr",
+      "b": "word_lr",
+      "mean_diff": 0.007617582179725501,
+      "std_diff": 0.008012359512101599,
+      "se_corrected": 0.004508806556935982,
+      "se_naive": 0.002068782330279739,
+      "ci95": [
+        -0.002052846101987301,
+        0.017288010461438304
+      ],
+      "t": 1.6894896872448943,
+      "df": 14,
+      "p": 0.11326187754874911,
+      "n_folds_positive": 12,
+      "J": 15,
+      "p_holm": 0.3236483277888603
+    },
+    {
+      "a": "char_lr",
+      "b": "word_cnb",
+      "mean_diff": 0.01058370238530048,
+      "std_diff": 0.010949493903680465,
+      "se_corrected": 0.006161624404581389,
+      "se_naive": 0.0028271471692236055,
+      "ci95": [
+        -0.0026316676135951494,
+        0.02379907238419611
+      ],
+      "t": 1.717680548238402,
+      "df": 14,
+      "p": 0.10788277592962012,
+      "n_folds_positive": 13,
+      "J": 15,
+      "p_holm": 0.3236483277888603
+    }
+  ],
+  "val_train_ratio": 0.25,
+  "method": "Eşleştirilmiş fold farkları (aynı dış fold'lar, doğrulandı), Nadeau-Bengio düzeltmeli t aralığı, Holm düzeltmesi; keşifsel, test seti kullanılmadı",
+  "selected_for_test": "char_lr",
+  "not_distinguishable_from_best": [
+    "word_svc",
+    "word_lr",
+    "word_cnb"
+  ],
+  "test": null
+}

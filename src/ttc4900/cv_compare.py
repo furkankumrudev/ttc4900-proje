@@ -1,13 +1,23 @@
 """Faz 2 karşılaştırması: CV skorları, eşleştirilmiş fold farkları ve grafik (test seti yok).
 
-Bütün modeller aynı dış fold'ları kullanır (aynı make_cv random_state'leri). Bu yüzden fold
-bazında fark d_j = skor_A,j - skor_B,j eşleştirilmiştir; iki ayrı ortalama ± std aralığının
-örtüşmesine bakmaktan daha güçlüdür.
+Bütün modeller aynı dış fold'ları kullanır (aynı make_cv random_state'leri; npz'lerden
+doğrulanır). Bu yüzden fold bazında fark d_j = skor_A,j - skor_B,j eşleştirilmiştir: iki
+modelin fold skorları güçlü korelasyonlu olduğundan Var(d) << Var(A) + Var(B).
 
-Fold skorları bağımsız değildir (train parçaları ~%75 örtüşür), düz t-testi varyansı küçük
-gösterir. Nadeau & Bengio (2003) düzeltmesi:
+Fold skorları bağımsız değildir (tekrar içinde train parçaları %75, tekrarlar arasında ~%80
+örtüşür); düz t-testi varyansı küçük gösterir. Düzeltilmiş tekrarlı k-fold testi
+(Nadeau & Bengio 2003; tekrarlı k-fold uyarlaması Bouckaert & Frank 2004):
 
     Var(d̄) ≈ (1/J + n_val/n_train) · s_d²,   t = d̄ / sqrt(Var(d̄)),   sd = J - 1
+
+Varsayımlar ve sınırlar:
+- Düzeltme sezgiseldir (fold'lar arası korelasyon ≈ n_val/n varsayımı; rastgele alt örnekleme
+  için türetilmiştir, k-fold'a uygulanması yaygın ama yaklaşıktır).
+- Kaybın örnekler üzerinde toplanabilir olduğunu varsayar; macro-F1 toplanabilir değildir.
+- Karşılaştırılan, ayarlama DAHİL öğrenme prosedürüdür; donmuş final konfigürasyonlar değil.
+- "En iyi" aynı CV'den argmax ile seçilip ona karşı test edilir (en iyiyle çoklu karşılaştırma,
+  Hsu MCB): p-değerleri ilke olarak biraz iyimserdir.
+- ci95 aralıkları marjinaldir (çoklu karşılaştırma düzeltmesiz); p_holm ise Holm düzeltmelidir.
 
 Bu fazdaki p-değerleri keşifseldir; model seçimine yardım eder, "A, B'den iyidir" iddiası
 final test fazındaki McNemar / paired bootstrap ile kurulur.
@@ -33,6 +43,29 @@ DISPLAY = {
     "word_cnb": "Kelime TF-IDF + ComplementNB",
 }
 
+SELECTION_RULE = (
+    "Birincil klasik baseline = dış CV macro-F1 ortalaması en yüksek model. Farklar CV'de "
+    "ayırt edilemese de CV'si en güçlü olan seçilir (BERTurk karşılaştırmasında 'saman adam' "
+    "eleştirisini önlemek için tutucu tercih). Kural testten ÖNCE donar; test sonucuna göre "
+    "'en iyi klasik' değiştirilmez."
+)
+TEST_PLAN = {
+    "primary": "BERTurk vs birincil klasik baseline (McNemar + paired bootstrap, ayrı aile)",
+    "secondary": (
+        "Dört klasik modelin donmuş final.best_params konfigürasyonları betimsel raporlanır; "
+        "birincil modele karşı 3 karşılaştırma ayrı bir Holm ailesi"
+    ),
+    "power_warning": (
+        "908 test örneğiyle klasik modeller arası 0.004-0.01'lik farkların McNemar ile "
+        "yakalanması beklenmez; anlamsız sonuç eşdeğerlik kanıtı sayılmaz"
+    ),
+    "expectation_note": (
+        "CV skoru 2904 satırla eğitimi ölçer, final model 3630 satırla eğitilir; ayrıca seçilen "
+        "modelin CV skoru 4 adayın maksimumudur (kazananın laneti). Test skorunun CV'den "
+        "farklı çıkması tek başına anomali değildir."
+    ),
+}
+
 
 def latest_phase2(metrics_dir: Path = METRICS_DIR) -> dict[str, dict]:
     """Her model için en son phase2_<model>_<ts>.json (zaman damgası ada gömülü)."""
@@ -46,11 +79,14 @@ def latest_phase2(metrics_dir: Path = METRICS_DIR) -> dict[str, dict]:
     return out
 
 
-def check_same_folds(names: list[str], metrics_dir: Path = METRICS_DIR) -> None:
-    """Eşleştirme varsayımı: her modelde her satır aynı (tekrar, fold)'da doğrulanmış olmalı."""
+def check_same_folds(metrics: dict[str, dict], metrics_dir: Path = METRICS_DIR) -> None:
+    """Eşleştirme varsayımı: her modelde her satır aynı (tekrar, fold)'da doğrulanmış olmalı.
+
+    npz, json'daki `preds_file` alanından okunur (aynı koşunun tahminleri).
+    """
     ref = None
-    for name in names:
-        z = np.load(Path(metrics_dir) / "preds" / f"cv_{name}.npz")
+    for name, m in metrics.items():
+        z = np.load(Path(metrics_dir) / m["preds_file"])
         order = np.argsort(z["row_id"])
         cur = (z["row_id"][order], z["fold_id"][:, order])
         if ref is None:
@@ -59,27 +95,41 @@ def check_same_folds(names: list[str], metrics_dir: Path = METRICS_DIR) -> None:
             raise ValueError(f"{name} farklı dış fold'lar kullanmış; eşleştirilmiş fark geçersiz.")
 
 
+def _nb_scale(J: int, val_train_ratio: float) -> float:
+    return float(np.sqrt(1 / J + val_train_ratio))
+
+
 def nadeau_bengio(d: np.ndarray, val_train_ratio: float, alpha: float = 0.05) -> dict:
     """Düzeltilmiş tekrarlı-CV t aralığı ve iki yönlü p-değeri (d: J fold farkı)."""
     d = np.asarray(d, dtype=float)
     J = len(d)
     mean, s2 = d.mean(), d.var(ddof=1)
-    se = np.sqrt((1 / J + val_train_ratio) * s2)
-    se_naive = np.sqrt(s2 / J)
+    se = _nb_scale(J, val_train_ratio) * np.sqrt(s2)
     tcrit = stats.t.ppf(1 - alpha / 2, J - 1)
-    t = mean / se if se > 0 else np.inf * np.sign(mean)
+    if se > 0:
+        t = mean / se
+    else:  # tüm farklar aynı: fark 0 ise t=0, değilse sonsuz
+        t = 0.0 if mean == 0 else np.inf * np.sign(mean)
     return {
         "mean_diff": float(mean),
         "std_diff": float(np.sqrt(s2)),
         "se_corrected": float(se),
-        "se_naive": float(se_naive),
+        "se_naive": float(np.sqrt(s2 / J)),
         "ci95": [float(mean - tcrit * se), float(mean + tcrit * se)],
         "t": float(t),
         "df": J - 1,
         "p": float(2 * stats.t.sf(abs(t), J - 1)),
-        "n_folds_positive": int((d > 0).sum()),
+        "n_folds_positive": int((d > 0).sum()),  # betimsel; fold'lar bağımsız değil
         "J": J,
     }
+
+
+def nb_mean_ci(scores: np.ndarray, val_train_ratio: float, alpha: float = 0.05) -> list[float]:
+    """Tek model için N-B mantığıyla düzeltilmiş ortalama CI: x̄ ± t·sqrt(1/J + oran)·s."""
+    x = np.asarray(scores, dtype=float)
+    J = len(x)
+    half = stats.t.ppf(1 - alpha / 2, J - 1) * _nb_scale(J, val_train_ratio) * x.std(ddof=1)
+    return [float(x.mean() - half), float(x.mean() + half)]
 
 
 def holm(pvals: list[float]) -> list[float]:
@@ -95,6 +145,11 @@ def holm(pvals: list[float]) -> list[float]:
 
 
 def summarize(metrics: dict[str, dict]) -> dict:
+    splits = {m["split"] for m in metrics.values()}
+    if len(splits) != 1:
+        raise ValueError(f"Modeller farklı split'lerde: {splits}")
+    any_m = next(iter(metrics.values()))
+    ratio = float(np.mean([f["n_val"] / f["n_train"] for f in any_m["cv"]["folds"]]))
     rows = sorted(
         (
             {
@@ -102,11 +157,13 @@ def summarize(metrics: dict[str, dict]) -> dict:
                 "display": DISPLAY[name],
                 "macro_f1_mean": m["cv"]["macro_f1_mean"],
                 "macro_f1_std": m["cv"]["macro_f1_std"],
+                "macro_f1_nb_ci95": nb_mean_ci(m["cv"]["macro_f1_folds"], ratio),
+                "macro_f1_repeat_means": m["cv"]["macro_f1_repeat_means"],
                 "accuracy_mean": m["cv"]["accuracy_mean"],
-                # aynı eğitim boyutu (5 fold, train'in %80'i): seçim yanlılığının tahmini
-                "selection_bias": m["final"]["cv_best_score_optimistic"] - m["cv"]["macro_f1_mean"],
+                "selection_bias": m["cv"]["selection_bias"],
                 "final_params": m["final"]["best_params"],
                 "source": m["_file"],
+                "git_commit": m["git_commit"],
             }
             for name, m in metrics.items()
         ),
@@ -114,18 +171,16 @@ def summarize(metrics: dict[str, dict]) -> dict:
     )
     best = rows[0]["model"]
     fb = np.array(metrics[best]["cv"]["macro_f1_folds"])
-    folds = metrics[best]["cv"]["folds"]
-    ratio = float(np.mean([f["n_val"] / f["n_train"] for f in folds]))
     comps = []
     for r in rows[1:]:
-        d = fb - np.array(metrics[r["model"]]["cv"]["macro_f1_folds"])
-        comps.append({"a": best, "b": r["model"], **nadeau_bengio(d, ratio)})
+        fo = np.array(metrics[r["model"]]["cv"]["macro_f1_folds"])
+        c = {"a": best, "b": r["model"], **nadeau_bengio(fb - fo, ratio)}
+        c["fold_corr"] = float(np.corrcoef(fb, fo)[0, 1])  # eşleştirmenin kazancı
+        c["std_diff_if_unpaired"] = float(np.sqrt(fb.var(ddof=1) + fo.var(ddof=1)))
+        comps.append(c)
     for c, p in zip(comps, holm([c["p"] for c in comps]), strict=True):
         c["p_holm"] = p
     tied = [c["b"] for c in comps if c["ci95"][0] <= 0]
-    splits = {m["split"] for m in metrics.values()}
-    if len(splits) != 1:
-        raise ValueError(f"Modeller farklı split'lerde: {splits}")
     return {
         "experiment": "phase2_summary",
         "phase": 2,
@@ -135,12 +190,31 @@ def summarize(metrics: dict[str, dict]) -> dict:
         "ranking": rows,
         "paired_vs_best": comps,
         "val_train_ratio": ratio,
+        "notes": {
+            "macro_f1_std": "fold skorlarının dağılımı (ddof=1); ortalamanın belirsizliği DEĞİL",
+            "macro_f1_nb_ci95": "N-B düzeltmeli ortalama CI: x̄ ± t14·sqrt(1/15 + oran)·s",
+            "repeat_means": (
+                "tekrar ortalamalarının yakınlığı yalnızca bölümleme gürültüsünün küçük olduğunu "
+                "gösterir; CI olarak kullanılmaz"
+            ),
+            "ci95": "marjinal %95 (çoklu karşılaştırma düzeltmesiz); p_holm Holm düzeltmeli",
+            "not_distinguishable_from_best": (
+                "'ayırt edilemedi' demektir, 'eşdeğer' değil; ci95[1] dışlanamayan en büyük açık"
+            ),
+            "grid_history": (
+                "LR grid'leri iç CV seçimleri kenarda yığıldığı için bir kez genişletildi "
+                "(superseded/); dış skorlar değişmedi. char_lr'de (2,4) yeni grid'in kenarında "
+                "ama (3,5) ilk grid'de denenip 4/15'te kalmıştı. Test kullanılmadı."
+            ),
+        },
         "method": (
-            "Eşleştirilmiş fold farkları (aynı dış fold'lar, doğrulandı), Nadeau-Bengio düzeltmeli "
-            "t aralığı, Holm düzeltmesi; keşifsel, test seti kullanılmadı"
+            "Eşleştirilmiş fold farkları (aynı dış fold'lar, npz'den doğrulandı), Nadeau-Bengio / "
+            "Bouckaert-Frank düzeltmeli t, Holm; keşifsel, test seti kullanılmadı"
         ),
+        "selection_rule": SELECTION_RULE,
         "selected_for_test": best,
         "not_distinguishable_from_best": tied,
+        "test_plan": TEST_PLAN,
         "test": None,
     }
 
@@ -156,7 +230,7 @@ def plot(summary: dict, metrics: dict[str, dict], path: Path) -> None:
     rows = summary["ranking"]
     names = [r["model"] for r in rows][::-1]  # en iyi en üstte
     fig, (ax1, ax2) = plt.subplots(
-        1, 2, figsize=(11, 3.6), gridspec_kw={"width_ratios": [1.3, 1]}, facecolor=surf
+        1, 2, figsize=(13.5, 3.9), gridspec_kw={"width_ratios": [1.2, 1]}, facecolor=surf
     )
     rng = np.random.default_rng(0)
     for y, name in enumerate(names):
@@ -170,7 +244,10 @@ def plot(summary: dict, metrics: dict[str, dict], path: Path) -> None:
                      ha="center", fontsize=8.5, color=ink2)  # fmt: skip
     ax1.set_yticks(range(len(names)), [DISPLAY[n] for n in names])
     ax1.set_xlabel("Dış fold macro-F1 (5 fold × 3 tekrar)")
-    ax1.set_title("CV macro-F1: noktalar = fold, çizgi = ortalama ± std", loc="left", fontsize=10)
+    ax1.set_title(
+        "CV macro-F1: nokta = fold; çizgi = ortalama ± std (fold dağılımı, CI değil)",
+        loc="left", fontsize=10,
+    )  # fmt: skip
 
     comps = {c["b"]: c for c in summary["paired_vs_best"]}
     best = summary["selected_for_test"]
@@ -180,15 +257,17 @@ def plot(summary: dict, metrics: dict[str, dict], path: Path) -> None:
         ax2.plot(c["ci95"], [y, y], color=hue, lw=2, solid_capstyle="round")
         ax2.scatter([c["mean_diff"]], [y], s=64, color=hue, zorder=3, edgecolors=surf,
                     linewidths=2)  # fmt: skip
-        ax2.annotate(f"p_Holm={c['p_holm']:.3f}", (c["ci95"][1], y), xytext=(6, 0),
+        ax2.annotate(f"p_Holm={c['p_holm']:.2f}", (c["ci95"][1], y), xytext=(6, 0),
                      textcoords="offset points", va="center", fontsize=8.5, color=ink2)  # fmt: skip
     ax2.axvline(0, color=ink2, lw=1, ls="--")
     ax2.set_yticks(range(len(others)), [DISPLAY[n] for n in others])
-    ax2.set_xlabel(f"{DISPLAY[best]} − model (macro-F1 farkı)")
-    ax2.set_title("Eşleştirilmiş fark, Nadeau–Bengio %95 CI", loc="left", fontsize=10)
+    ax2.set_xlabel(f"macro-F1 farkı: {DISPLAY[best]} − model")
+    ax2.set_title(
+        "Eşleştirilmiş fark, N–B %95 CI (çoklu karşılaştırma düzeltmesiz)", loc="left", fontsize=10
+    )
     lo = min(c["ci95"][0] for c in comps.values())
     hi = max(c["ci95"][1] for c in comps.values())
-    ax2.set_xlim(min(lo, 0) - 0.005, hi + (hi - min(lo, 0)) * 0.45)
+    ax2.set_xlim(min(lo, 0) - 0.005, hi + (hi - min(lo, 0)) * 0.6)
 
     for ax in (ax1, ax2):
         ax.set_facecolor(surf)
@@ -211,17 +290,22 @@ def main() -> None:
     missing = set(DISPLAY) - set(metrics)
     if missing:
         raise SystemExit(f"Eksik model sonuçları: {sorted(missing)}")
-    check_same_folds(list(metrics))
+    commits = {m["git_commit"] for m in metrics.values()}
+    if len(commits) != 1 or any(c.endswith("-dirty") for c in commits):
+        print(f"UYARI: model json'ları farklı/kirli commit'lerden: {sorted(commits)}")
+    check_same_folds(metrics)
     summary = summarize(metrics)
     p = report.write_metrics(summary, "phase2_summary")
     plot(summary, metrics, FIGURES_DIR / "phase2_cv_macro_f1.png")
     print(p)
     for r in summary["ranking"]:
-        print(f"{r['display']:32s} {r['macro_f1_mean']:.4f} ± {r['macro_f1_std']:.4f}")
+        lo, hi = r["macro_f1_nb_ci95"]
+        print(f"{r['display']:30s} {r['macro_f1_mean']:.4f} ± {r['macro_f1_std']:.4f} "
+              f"N-B CI [{lo:.4f}, {hi:.4f}]  bias {r['selection_bias']:+.4f}")  # fmt: skip
     for c in summary["paired_vs_best"]:
         lo, hi = c["ci95"]
         print(f"  {c['a']} - {c['b']}: {c['mean_diff']:+.4f} [{lo:+.4f}, {hi:+.4f}] "
-              f"p_Holm={c['p_holm']:.3g}")  # fmt: skip
+              f"p_Holm={c['p_holm']:.3g} corr={c['fold_corr']:.2f}")  # fmt: skip
 
 
 if __name__ == "__main__":

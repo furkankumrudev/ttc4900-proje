@@ -38,7 +38,10 @@ def test_specs_are_pipelines_with_tfidf():
 
 
 def test_tfidf_fit_only_on_outer_train(toy, monkeypatch):
-    """Her TF-IDF fit'i bir dış fold'un train kısmının alt kümesinde olmalı (sızıntı yok)."""
+    """Her TF-IDF fit'i, AİT OLDUĞU dış fold'un train kısmının alt kümesi olmalı (sızıntı yok).
+
+    n_jobs=1'de fit'ler sırayla yapılır: her dış fold'da (aday x iç fold) + 1 refit.
+    """
     train, p = toy
     seen: list[set[str]] = []
     orig = TfidfVectorizer.fit_transform
@@ -53,10 +56,14 @@ def test_tfidf_fit_only_on_outer_train(toy, monkeypatch):
         outer_splits=3, inner_splits=2, n_jobs=1,
     )  # fmt: skip
     text_of = dict(zip(train["row_id"], train["text"], strict=True))
-    val_sets = [{text_of[i] for i in f["val_row_ids"]} for f in folds]
-    assert seen
-    for fit_set in seen:
-        assert any(not (fit_set & v) for v in val_sets)  # bir dış fold'un val'ine hiç dokunmaz
+    n_cand = int(np.prod([len(v) for v in baselines.SPECS["word_cnb"].grid.values()]))
+    per_fold = n_cand * 2 + 1  # iç 2 fold + refit
+    assert len(seen) == per_fold * len(folds)
+    for i, f in enumerate(folds):
+        val = {text_of[r] for r in f["val_row_ids"]}
+        chunk = seen[i * per_fold : (i + 1) * per_fold]
+        assert all(not (fit_set & val) for fit_set in chunk), (f["repeat"], f["fold"])
+        assert len(chunk[-1]) == f["n_train"]  # refit = dış train'in tamamı
     # her tekrarda her satır tam bir kez doğrulanır
     assert preds["y_pred"].shape == (2, len(train))
     for r in range(2):
@@ -78,9 +85,11 @@ def test_run_baseline_writes_contract(toy, tmp_path):
     assert set(cv["per_class_f1_mean"]) == {"c0", "c1", "c2"}
     assert cv["macro_f1_mean"] > 0.9  # sınıf kelimesi belirgin; düşükse pipeline bozuk
     assert set(m["final"]["best_params"]) == set(baselines.SPECS["word_cnb"].grid)
-    bias = m["final"]["cv_best_score_optimistic"] - cv["macro_f1_mean"]
-    assert np.isclose(cv["selection_bias"], bias)  # aynı eğitim boyutunda (5 fold) karşılaştırma
-    npz = np.load(out / "preds" / "cv_word_cnb.npz")
+    # final seçim dış CV 0. tekrarla aynı bölümlemede (burada 3 fold) yapılır
+    bias = m["final"]["cv_best_score_optimistic"] - cv["macro_f1_repeat_means"][0]
+    assert np.isclose(cv["selection_bias"], bias)
+    assert m["preds_file"] == f"preds/cv_word_cnb_{path.stem.split('_')[-1]}.npz"
+    npz = np.load(out / m["preds_file"])
     assert npz["y_pred"].shape == (2, len(train)) and (npz["y_pred"] >= 0).all()
 
 
