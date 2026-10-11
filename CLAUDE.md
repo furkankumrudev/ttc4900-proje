@@ -14,7 +14,9 @@ Amaç hem öğrenmek hem portfolyo oluşturmak.
 - Sadece `train` split'i var; test ayrımını biz yapıyoruz.
 - `load_dataset` her zaman `revision=<commit SHA>` ile çağrılır. SHA, `ttc4900.data` içinde
   tek bir sabit olarak tutulur.
-- Sınıflar dengeli (~700/sınıf). Test seti ≈ 980 örnek (~140/sınıf).
+- Ham veride sınıflar tam dengeli (700/sınıf). Tam tekrar temizliğinden sonra 4538 örnek kalır
+  (sınıf başına 566–690). `split_v1`: train 3630, test 908 (sınıf başına 113–138).
+  Ayrıntı: `outputs/data_report.json`.
 
 ## Kurallar
 

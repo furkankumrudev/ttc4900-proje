@@ -50,6 +50,7 @@ def main() -> None:
     fig, ax = plt.subplots(figsize=(9, 5))
     sns.countplot(data=both, x="category", hue="veri", order=order, ax=ax)
     ax.set(title="Sınıf dağılımı: ham ve temiz veri", xlabel="Sınıf", ylabel="Örnek sayısı")
+    sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))  # çubukların üstüne binmesin
     _save(fig, "eda_class_distribution.png")
 
     # 2) train vs test sınıf oranları
@@ -63,6 +64,7 @@ def main() -> None:
     fig, ax = plt.subplots(figsize=(9, 5))
     sns.barplot(data=long, x="category", y="oran", hue="split", ax=ax)
     ax.set(title="Sınıf oranları: train vs test", xlabel="Sınıf", ylabel="Oran")
+    sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
     _save(fig, "eda_split_balance.png")
 
     # 3) kelime sayısı (yalnızca train)
