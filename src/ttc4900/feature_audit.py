@@ -14,6 +14,7 @@ Kullanım: python -m ttc4900.feature_audit
 from __future__ import annotations
 
 import json
+import re
 from collections import Counter
 from pathlib import Path
 
@@ -44,11 +45,15 @@ CATEGORY_TERMS = {
     "spor": ("spor",),
     "teknoloji": ("teknoloji",),
 }
-# Ajans / kaynak / künye imzaları (veride noktalama yok, kesme işareti boşluk)
+# Ajans / kaynak / künye imzaları (veride noktalama yok, kesme işareti boşluk).
+# "cihan" (Cihan Haber Ajansı) ilk listede yoktu; ilk koşuda dunya'nın 1. özelliği çıkınca eklendi.
 SOURCE_TERMS = frozenset(
-    "aa dha iha anka ihlas reuters afp ap bbc cnn ntv haber_merkezi muhabir kaynak foto "
+    "aa dha iha anka cihan ihlas reuters afp ap bbc cnn ntv haber_merkezi muhabir kaynak foto "
     "www com http https".split()
 )
+# cp1252 "akıllı tırnak"lar (‘ ’ “ ” –) yanlış çözülünce C1 kontrol karakterleri (U+0080-U+009F)
+# olarak kalır: kaynağa (kazıma hattına) bağlı bir artefakt, konuyla ilgisiz.
+C1 = re.compile("[-]")
 RULES = {
     "category_name": "özellik (char için örnek kelimesi) bir kategori adıyla başlıyor / içeriyor",
     "source_signature": f"kelime ajans/kaynak listesinde: {sorted(SOURCE_TERMS)}",
@@ -56,6 +61,7 @@ RULES = {
         f"sınıf belgelerinin >= {TEMPLATE_MIN_SHARE:.0%} kadarında ilk/son {BOUNDARY_WORDS} "
         "kelimede geçiyor"
     ),
+    "encoding_artifact": "özellik C1 kontrol karakteri (U+0080-U+009F) içeriyor",
     "concentrated": (
         f"df'nin >= {CONCENTRATED_SHARE} oranı tek sınıfta ve toplam df >= {CONCENTRATED_MIN_DF}"
     ),
@@ -83,7 +89,7 @@ def char_flags(ngram: str, example_words: list[str]) -> set[str]:
     n-gram kategori adının öneki, ya da ≥4 harfli bir n-gram adın alt dizesiyse işaretlenir.
     """
     s = ngram.strip()
-    flags = set()
+    flags = {"encoding_artifact"} if C1.search(ngram) else set()
     for t in _terms():
         if (ngram.startswith(" ") and len(s) >= 3 and t.startswith(s)) or (len(s) >= 4 and s in t):
             flags.add("category_name")
@@ -163,6 +169,21 @@ def audit_model(
     return pd.DataFrame(rows)
 
 
+def artifact_by_class(train: pd.DataFrame, label_names: list[str]) -> pd.DataFrame:
+    """Sınıf başına kaynak kelimesi ve C1 artefaktı içeren belge oranı (konudan bağımsız işaretler).
+
+    Bir sınıfta oran diğerlerinden çok farklıysa model kaynağı/kazıma hattını öğrenebilir.
+    """
+    words = train["text"].map(lambda t: set(t.split()))
+    marks = {f"src:{w}": words.map(lambda ws, w=w: w in ws) for w in sorted(SOURCE_TERMS)}
+    marks["c1_chars"] = train["text"].map(lambda t: bool(C1.search(t)))
+    df = pd.DataFrame(marks).assign(category=train["label"].map(lambda i: label_names[int(i)]))
+    share = df.groupby("category").mean().T
+    share = share[share.max(axis=1) > 0]  # hiç geçmeyen terimler atılır
+    share["max_over_min"] = share.max(axis=1) / share.min(axis=1).clip(lower=1e-3)
+    return share.sort_values("max_over_min", ascending=False)
+
+
 def boundary_ngrams(train: pd.DataFrame, label_names: list[str], n: int = 3, top: int = 10):
     """Her sınıfta en sık ilk/son n kelime dizileri (şablon/künye için göz kontrolü)."""
     rows = []
@@ -206,6 +227,8 @@ def main(path: Path = SPLIT_PATH, out_dir: Path = AUDIT_DIR) -> Path:
             "flagged": flagged.drop(columns=["model"]).to_dict(orient="records"),
         }
         print(f"{name}: {len(flagged)}/{len(df)} işaretli {dict(counts)}")
+    art = artifact_by_class(train, label_names)
+    art.to_csv(out_dir / "artifact_by_class.csv", encoding="utf-8")
     bn = boundary_ngrams(train, label_names)
     bn.to_csv(out_dir / "boundary_ngrams.csv", index=False, encoding="utf-8")
     out = {
@@ -218,6 +241,7 @@ def main(path: Path = SPLIT_PATH, out_dir: Path = AUDIT_DIR) -> Path:
         "top_k": TOP_K,
         "rules": RULES,
         "models": summary,
+        "artifact_by_class": art.drop(columns="max_over_min").round(4).to_dict(orient="index"),
         "boundary_max_share": {
             pos: float(bn[bn["position"] == pos]["share_in_class"].max())
             for pos in ("first", "last")

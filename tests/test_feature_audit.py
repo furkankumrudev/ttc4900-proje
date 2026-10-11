@@ -44,3 +44,14 @@ def test_audit_model_flags_template_and_concentration():
     assert set(dha["flags"].split(";")) == {"concentrated", "source_signature", "template"}
     assert dha["df_in_class"] == 30 and dha["df_other"] == 0
     assert np.isclose(dha["boundary_share_in_class"], 1.0)
+
+
+def test_c1_encoding_artifact_flag_and_table():
+    assert "encoding_artifact" in fa.char_flags(" \x92 ", [])
+    assert "encoding_artifact" not in fa.char_flags(" ab ", [])
+    train = pd.DataFrame(
+        {"label": [0, 0, 1, 1], "text": ["a \x92 b", "a \x93 b", "cihan c", "d e"]}
+    )
+    art = fa.artifact_by_class(train, ["x", "y"])
+    assert art.loc["c1_chars", "x"] == 1.0 and art.loc["c1_chars", "y"] == 0.0
+    assert art.loc["src:cihan", "y"] == 0.5
