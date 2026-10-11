@@ -78,6 +78,8 @@ def test_run_baseline_writes_contract(toy, tmp_path):
     assert set(cv["per_class_f1_mean"]) == {"c0", "c1", "c2"}
     assert cv["macro_f1_mean"] > 0.9  # sınıf kelimesi belirgin; düşükse pipeline bozuk
     assert set(m["final"]["best_params"]) == set(baselines.SPECS["word_cnb"].grid)
+    bias = m["final"]["cv_best_score_optimistic"] - cv["macro_f1_mean"]
+    assert np.isclose(cv["selection_bias"], bias)  # aynı eğitim boyutunda (5 fold) karşılaştırma
     npz = np.load(out / "preds" / "cv_word_cnb.npz")
     assert npz["y_pred"].shape == (2, len(train)) and (npz["y_pred"] >= 0).all()
 

@@ -59,12 +59,14 @@ def _pipe(clf, **tfidf) -> Pipeline:
 SPECS: dict[str, Spec] = {
     "word_lr": Spec(
         make=lambda: _pipe(LogisticRegression(max_iter=3000)),
-        grid={"tfidf__ngram_range": [(1, 1), (1, 2)], "clf__C": [1.0, 10.0, 100.0]},
+        # v1 grid {1,10,100}: C=100 14/15 fold'da üst kenardaydı -> yukarı kaydırıldı
+        grid={"tfidf__ngram_range": [(1, 1), (1, 2)], "clf__C": [10.0, 100.0, 1000.0]},
         fixed={**TFIDF_FIXED, "analyzer": "word", "clf": "LogisticRegression(lbfgs, L2)"},
     ),
     "char_lr": Spec(
         make=lambda: _pipe(LogisticRegression(max_iter=3000), analyzer="char_wb"),
-        grid={"tfidf__ngram_range": [(2, 4), (3, 5)], "clf__C": [1.0, 10.0, 100.0]},
+        # v1 grid: C=100 üst kenar (10/15), (2,4) alt kenar (11/15) -> ikisi de kaydırıldı
+        grid={"tfidf__ngram_range": [(1, 3), (2, 4)], "clf__C": [10.0, 100.0, 1000.0]},
         fixed={**TFIDF_FIXED, "analyzer": "char_wb", "clf": "LogisticRegression(lbfgs, L2)"},
     ),
     "word_svc": Spec(
@@ -161,8 +163,9 @@ def _summary(folds: list[dict], label_names: list[str], n_repeats: int) -> dict:
         "accuracy_mean": float(acc.mean()),
         "accuracy_std": float(acc.std(ddof=1)),
         "per_class_f1_mean": dict(zip(label_names, pc.mean(axis=0).tolist(), strict=True)),
-        "inner_best_score_mean_optimistic": float(inner.mean()),
-        "selection_bias": float(inner.mean() - f1.mean()),
+        # iç modeller train'in ~%53'ünü görür: bu skor öğrenme eğrisi yüzünden KARAMSARDIR,
+        # seçim yanlılığı için kullanılmaz (bkz. run_baseline: selection_bias)
+        "inner_best_score_mean": float(inner.mean()),
     }
 
 
@@ -204,7 +207,9 @@ def run_baseline(
             "n_folds": outer_splits,
             "n_repeats": n_repeats,
             "inner_n_folds": inner_splits,
-            **_summary(folds, label_names, n_repeats),
+            **(summary := _summary(folds, label_names, n_repeats)),
+            # aynı eğitim boyutu (5 fold, %80): final seçimin iyimser skoru - dış skor
+            "selection_bias": best_score - summary["macro_f1_mean"],
             "folds": [{k: v for k, v in f.items() if k != "val_row_ids"} for f in folds],
         },
         "final": {
