@@ -119,9 +119,19 @@ def nadeau_bengio(d: np.ndarray, val_train_ratio: float, alpha: float = 0.05) ->
         "t": float(t),
         "df": J - 1,
         "p": float(2 * stats.t.sf(abs(t), J - 1)),
+        # düzeltmesiz eşleştirilmiş t (fold'ları bağımsız sayar); yalnızca karşılaştırma için
+        "p_naive": _naive_p(d),
         "n_folds_positive": int((d > 0).sum()),  # betimsel; fold'lar bağımsız değil
         "J": J,
     }
+
+
+def _naive_p(d: np.ndarray) -> float:
+    """Düz eşleştirilmiş t-testi p'si: se = s/sqrt(J). Fold bağımlılığını yok sayar, iyimserdir."""
+    J, mean, s = len(d), d.mean(), d.std(ddof=1)
+    if s == 0:
+        return 1.0 if mean == 0 else 0.0
+    return float(2 * stats.t.sf(abs(mean / (s / np.sqrt(J))), J - 1))
 
 
 def nb_mean_ci(scores: np.ndarray, val_train_ratio: float, alpha: float = 0.05) -> list[float]:
@@ -142,6 +152,46 @@ def holm(pvals: list[float]) -> list[float]:
         running = max(running, (m - rank) * pvals[i])
         adj[i] = min(1.0, running)
     return adj.tolist()
+
+
+def _edge(grid: list, value) -> str | None:
+    """Seçilen değerin grid'deki konumu: 'low' / 'high' (uç) ya da None (iç nokta).
+
+    Grid listedeki sırayla okunur (C ve ngram_range artan yazılmıştır). İki değerli bir
+    grid'de her seçim bir uçtadır; bu yüzden `grid_size` ile birlikte yorumlanmalı.
+    """
+    i = grid.index(value)
+    if i == len(grid) - 1:
+        return "high"
+    return "low" if i == 0 else None
+
+
+def grid_edges(metrics: dict[str, dict]) -> dict[str, dict]:
+    """Her model x hiperparametre: dış fold seçim sayıları, final seçim ve uç durumu.
+
+    Dış fold seçimleri iç CV'den gelir; final seçim tüm train'deki GridSearchCV'den.
+    Seçimler grid ucunda yığılıyorsa optimum grid'in dışında olabilir.
+    """
+    out = {}
+    for name, m in metrics.items():
+        grid = m["params"]["grid"]
+        folds = [f["best_params"] for f in m["cv"]["folds"]]
+        final = m["final"]["best_params"]
+        out[name] = {}
+        for param, values in grid.items():
+            chosen = [f[param] for f in folds]
+            edges = [_edge(values, v) for v in chosen]
+            out[name][param] = {
+                "grid": values,
+                "grid_size": len(values),
+                "fold_counts": {json.dumps(v): chosen.count(v) for v in values},
+                "n_folds": len(chosen),
+                "n_folds_low_edge": edges.count("low"),
+                "n_folds_high_edge": edges.count("high"),
+                "final": final[param],
+                "final_edge": _edge(values, final[param]),
+            }
+    return out
 
 
 def summarize(metrics: dict[str, dict]) -> dict:
@@ -180,6 +230,17 @@ def summarize(metrics: dict[str, dict]) -> dict:
         comps.append(c)
     for c, p in zip(comps, holm([c["p"] for c in comps]), strict=True):
         c["p_holm"] = p
+    p_table = [
+        {
+            "a": c["a"],
+            "b": c["b"],
+            "mean_diff": c["mean_diff"],
+            "p_naive": c["p_naive"],
+            "p_nb": c["p"],
+            "p_nb_holm": c["p_holm"],
+        }
+        for c in comps
+    ]
     tied = [c["b"] for c in comps if c["ci95"][0] <= 0]
     return {
         "experiment": "phase2_summary",
@@ -189,6 +250,8 @@ def summarize(metrics: dict[str, dict]) -> dict:
         "split": splits.pop(),
         "ranking": rows,
         "paired_vs_best": comps,
+        "p_table": p_table,
+        "grid_edges": grid_edges(metrics),
         "val_train_ratio": ratio,
         "notes": {
             "macro_f1_std": "fold skorlarının dağılımı (ddof=1); ortalamanın belirsizliği DEĞİL",
@@ -198,12 +261,31 @@ def summarize(metrics: dict[str, dict]) -> dict:
                 "gösterir; CI olarak kullanılmaz"
             ),
             "ci95": "marjinal %95 (çoklu karşılaştırma düzeltmesiz); p_holm Holm düzeltmeli",
+            "p_table": (
+                "p_naive: düz eşleştirilmiş t (se = s/sqrt(J)); fold'lar bağımsız sayıldığı için "
+                "iyimser, karar için KULLANILMAZ. p_nb: Nadeau-Bengio düzeltmeli t "
+                "(se = sqrt(1/J + n_val/n_train)·s), çoklu karşılaştırma düzeltmesiz. "
+                "p_nb_holm: p_nb'lere Holm (aile = en iyiye karşı m karşılaştırma); karar "
+                "sütunu budur. 'p_holm' alanı p_nb_holm ile aynıdır."
+            ),
+            "p_007_erratum": (
+                "Raporda geçen 'düzeltilmiş p≈0.07' hiçbir tanıma karşılık gelmez: "
+                "char_lr-word_lr için p_naive 0.0025, p_nb 0.113, tek yönlü p_nb 0.057, "
+                "yanlış oranla (n_val/n=0.2) p_nb 0.087; p_nb_holm 0.324. Geçerli değerler "
+                "p_table'dadır."
+            ),
+            "grid_edges": (
+                "n_folds_*_edge: 15 dış fold'da iç CV seçiminin grid ucunda olduğu sayı; "
+                "final_edge: tüm train seçimi. grid_size=2 ise her seçim bir uçtadır."
+            ),
             "not_distinguishable_from_best": (
                 "'ayırt edilemedi' demektir, 'eşdeğer' değil; ci95[1] dışlanamayan en büyük açık"
             ),
             "grid_history": (
                 "LR grid'leri iç CV seçimleri kenarda yığıldığı için bir kez genişletildi "
-                "(superseded/); dış skorlar değişmedi. char_lr'de (2,4) yeni grid'in kenarında "
+                "(superseded/); dış skorlar değişmedi. char_lr'de C=100 güncel grid'de "
+                "({10,100,1000}) İÇ noktadır; üst uçta olduğu grid ilk grid'di ({1,10,100}). "
+                "char_lr'de kenarda kalan ngram_range=(2,4)'tür (15/15 ve final; 2 değerli grid) "
                 "ama (3,5) ilk grid'de denenip 4/15'te kalmıştı. Test kullanılmadı."
             ),
         },
@@ -306,6 +388,18 @@ def main() -> None:
         lo, hi = c["ci95"]
         print(f"  {c['a']} - {c['b']}: {c['mean_diff']:+.4f} [{lo:+.4f}, {hi:+.4f}] "
               f"p_Holm={c['p_holm']:.3g} corr={c['fold_corr']:.2f}")  # fmt: skip
+    print()
+    print(f"{'karşılaştırma':22s} {'fark':>8s} {'ham p':>8s} {'N-B p':>8s} {'N-B+Holm':>9s}")
+    for r in summary["p_table"]:
+        print(f"{r['a'] + ' - ' + r['b']:22s} {r['mean_diff']:+8.4f} {r['p_naive']:8.4f} "
+              f"{r['p_nb']:8.4f} {r['p_nb_holm']:9.4f}")  # fmt: skip
+    print()
+    print("Grid kenarları (dış fold seçimleri / final):")
+    for name, params in summary["grid_edges"].items():
+        for param, e in params.items():
+            flag = f"final {e['final_edge']} UÇTA" if e["final_edge"] else "final iç nokta"
+            print(f"  {name:9s} {param:20s} {e['fold_counts']}  final={e['final']}  {flag}"
+                  f"  (grid_size={e['grid_size']})")  # fmt: skip
 
 
 if __name__ == "__main__":

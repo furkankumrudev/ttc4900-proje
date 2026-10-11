@@ -32,7 +32,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.svm import LinearSVC
 
 from ttc4900 import report
-from ttc4900.data import RANDOM_STATE, SPLIT_PATH, load_split, load_train_test, make_cv
+from ttc4900.data import RANDOM_STATE, SPLIT_PATH, load_split, load_train, make_cv
 from ttc4900.paths import METRICS_DIR
 
 OUTER_SPLITS = 5
@@ -257,7 +257,7 @@ def main() -> None:
     ap.add_argument("--n-jobs", type=int, default=1)
     ap.add_argument("--repeats", type=int, default=N_REPEATS)
     args = ap.parse_args()
-    train = load_train_test()[0]  # test seti bilinçli olarak alınmaz
+    train = load_train()  # test satırları belleğe hiç alınmaz
     for name in SPECS if args.model == "all" else [args.model]:
         p = run_baseline(name, train, n_repeats=args.repeats, n_jobs=args.n_jobs)
         print(f"{name}: {p}")

@@ -250,3 +250,72 @@ def test_real_v2_class_balance():
     for cat, grp in clean.groupby("category"):
         ratio = test["category"].eq(cat).sum() / len(grp)
         assert abs(ratio - overall) <= 0.03, cat
+
+
+def _fake_hub(n=12):
+    """Ağsız sahte Hub veri kümesi: gerçek `datasets.Dataset`, ClassLabel etiketli."""
+    from datasets import ClassLabel, Dataset, Features, Value
+
+    feats = Features({"category": ClassLabel(names=["a", "b"]), "text": Value("string")})
+    return Dataset.from_dict(
+        {"category": [i % 2 for i in range(n)], "text": [f"metin {i}" for i in range(n)]}, feats
+    )
+
+
+def _fake_split(tmp_path, n=12, test_ids=(1, 4, 7, 10)):
+    p = tmp_path / "s.json"
+    train_ids = [i for i in range(n) if i not in test_ids]
+    split = {"revision": DATASET_REVISION, "n_raw": n, "train_ids": train_ids,
+             "test_ids": list(test_ids)}  # fmt: skip
+    data._write_json(split, p)
+    return p, split
+
+
+def test_load_train_never_selects_test_rows(tmp_path, monkeypatch):
+    """load_train yalnızca train id'lerini Arrow'dan seçer; test satırı DataFrame'e girmez."""
+    from datasets import Dataset
+
+    ds = _fake_hub()
+    monkeypatch.setattr(data, "_load_hub", lambda: ds)
+    selected: list[list[int]] = []
+    orig = Dataset.select
+
+    def spy(self, indices, *a, **k):
+        selected.append(list(indices))
+        return orig(self, indices, *a, **k)
+
+    monkeypatch.setattr(Dataset, "select", spy)
+    p, split = _fake_split(tmp_path)
+    train = data.load_train(p)
+    assert selected == [split["train_ids"]]
+    assert train["row_id"].tolist() == split["train_ids"]
+    assert not set(train["row_id"]) & set(split["test_ids"])
+    assert train["text"].tolist() == [f"metin {i}" for i in split["train_ids"]]
+    assert train["category"].tolist() == ["a" if i % 2 == 0 else "b" for i in split["train_ids"]]
+
+
+def test_load_train_matches_load_train_test(tmp_path, monkeypatch):
+    ds = _fake_hub()
+    monkeypatch.setattr(data, "_load_hub", lambda: ds)
+    p, _ = _fake_split(tmp_path)
+    tr, te = data.load_train_test(p)
+    pd.testing.assert_frame_equal(data.load_train(p), tr)
+    assert len(tr) + len(te) == len(ds)
+
+
+def test_load_train_validates_split(tmp_path, monkeypatch):
+    monkeypatch.setattr(data, "_load_hub", lambda: _fake_hub(10))  # n_raw 12 değil
+    p, _ = _fake_split(tmp_path)
+    with pytest.raises(ValueError, match="n_raw"):
+        data.load_train(p)
+
+
+@_real
+def test_real_load_train_equals_train_part():
+    """Gerçek veride load_train == load_train_test()[0] (satır sırası dahil; fold eşleşmesi)."""
+    try:
+        train = data.load_train()
+    except Exception as e:  # çevrimdışı ve önbellek yok
+        pytest.skip(f"veri yüklenemedi: {type(e).__name__}")
+    pd.testing.assert_frame_equal(train, data.load_train_test()[0])
+    assert train["row_id"].tolist() == load_split(SPLIT_V2_PATH)["train_ids"]

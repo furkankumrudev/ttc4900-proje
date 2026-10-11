@@ -1,6 +1,7 @@
 """Veri yükleme, tekrar temizliği, tek seferlik split'ler ve yakın-tekrar denetimi.
 
-Sonraki fazların tek giriş noktaları: `load_train_test()` ve `make_cv()`.
+Sonraki fazların tek giriş noktaları: `load_train()` (geliştirme), `load_train_test()` (yalnızca
+final değerlendirme) ve `make_cv()`.
 v1 = düz stratified split (yalnızca "sızıntı etkisi" baseline'ı için), v2 = yakın-tekrar
 gruplarını bölmeyen resmî split.
 """
@@ -45,21 +46,33 @@ _WS = re.compile(r"\s+")
 
 
 # --------------------------------------------------------------------------- yükleme
-def load_raw() -> pd.DataFrame:
-    """Hub'dan (sabit revision) ham veriyi yükler. row_id = orijinal Hub satır numarası."""
+def _load_hub():
     from datasets import load_dataset
 
-    ds = load_dataset(DATASET_ID, revision=DATASET_REVISION, split="train")
-    feat = ds.features["category"]
-    labels = list(ds["category"])
+    return load_dataset(DATASET_ID, revision=DATASET_REVISION, split="train")
+
+
+def _rows_to_frame(ds, row_ids) -> pd.DataFrame:
+    """`ds.select(row_ids)` -> DataFrame. Arrow bellek eşlemeli: seçilmeyen satırların metni
+    Python nesnesine hiç dönüşmez."""
+    row_ids = [int(i) for i in row_ids]
+    sub = ds.select(row_ids)
+    feat = sub.features["category"]
+    labels = list(sub["category"])
     return pd.DataFrame(
         {
-            "row_id": np.arange(len(ds)),
+            "row_id": np.asarray(row_ids, dtype=np.int64),
             "label": labels,
             "category": [feat.int2str(x) for x in labels],
-            "text": list(ds["text"]),
+            "text": list(sub["text"]),
         }
     )
+
+
+def load_raw() -> pd.DataFrame:
+    """Hub'dan (sabit revision) ham veriyi yükler. row_id = orijinal Hub satır numarası."""
+    ds = _load_hub()
+    return _rows_to_frame(ds, range(len(ds)))
 
 
 def label_names() -> list[str]:
@@ -227,23 +240,40 @@ def load_split(path: Path = SPLIT_PATH) -> dict:
     return json.loads(Path(path).read_text(encoding="utf-8"))
 
 
-def load_train_test(path: Path = SPLIT_PATH) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """(train_df, test_df): tüm fazların tek giriş noktası. Sütunlar: row_id,label,category,text."""
+def _validated_split(path: Path, n_raw: int) -> dict:
+    """Split dosyasını okur; revision, n_raw, ayrıklık ve id aralığını denetler."""
     split = load_split(path)
     if split["revision"] != DATASET_REVISION:
         raise ValueError("Split farklı bir veri revision'ı için üretilmiş.")
-    raw = load_raw()
-    if split.get("n_raw") is not None and len(raw) != split["n_raw"]:
-        raise ValueError(f"n_raw uyuşmuyor: split={split['n_raw']}, veri={len(raw)}")
+    if split.get("n_raw") is not None and n_raw != split["n_raw"]:
+        raise ValueError(f"n_raw uyuşmuyor: split={split['n_raw']}, veri={n_raw}")
     if set(split["train_ids"]) & set(split["test_ids"]):
         raise ValueError("train ve test id'leri ayrık değil.")
     ids = np.array(split["train_ids"] + split["test_ids"])
-    if len(ids) and (ids.min() < 0 or ids.max() >= len(raw)):
+    if len(ids) and (ids.min() < 0 or ids.max() >= n_raw):
         raise ValueError("Split id'leri range(n_raw) dışında.")
-    raw = raw.set_index("row_id", drop=False)
-    train = raw.loc[split["train_ids"]].reset_index(drop=True)
-    test = raw.loc[split["test_ids"]].reset_index(drop=True)
-    return train, test
+    return split
+
+
+def load_train_test(path: Path = SPLIT_PATH) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """(train_df, test_df): YALNIZCA final değerlendirmede. Sütunlar: row_id,label,category,text.
+
+    Model geliştirme (CV, seçim, denetim) `load_train()` kullanır; test metni belleğe alınmaz.
+    """
+    ds = _load_hub()
+    split = _validated_split(path, len(ds))
+    return _rows_to_frame(ds, split["train_ids"]), _rows_to_frame(ds, split["test_ids"])
+
+
+def load_train(path: Path = SPLIT_PATH) -> pd.DataFrame:
+    """Yalnızca train: test satırları Hub veri kümesinden hiç seçilmez (Arrow'dan okunmaz).
+
+    Satır sırası `load_train_test(path)[0]` ile aynıdır (split dosyasındaki train_ids sırası);
+    make_cv fold'larının fazlar arasında eşleşmesi buna bağlıdır.
+    """
+    ds = _load_hub()
+    split = _validated_split(path, len(ds))
+    return _rows_to_frame(ds, split["train_ids"])
 
 
 def cv_groups(train_df: pd.DataFrame, path: Path = SPLIT_PATH) -> np.ndarray:

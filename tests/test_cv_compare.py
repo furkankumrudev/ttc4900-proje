@@ -4,6 +4,7 @@ from scipy import stats
 
 from ttc4900.cv_compare import (
     check_same_folds,
+    grid_edges,
     holm,
     nadeau_bengio,
     nb_mean_ci,
@@ -54,9 +55,10 @@ def _fake(name, folds_f1, rows, fold_id, tmp_path):
             "macro_f1_repeat_means": [f1.mean()],
             "accuracy_mean": f1.mean(),
             "selection_bias": 0.001,
-            "folds": [{"n_val": 25, "n_train": 100}] * len(f1),
+            "folds": [{"n_val": 25, "n_train": 100, "best_params": {"clf__C": 1.0}}] * len(f1),
         },
-        "final": {"best_params": {}},
+        "params": {"grid": {"clf__C": [1.0, 10.0]}},
+        "final": {"best_params": {"clf__C": 10.0}},
     }
 
 
@@ -80,6 +82,13 @@ def test_summarize_and_check_same_folds(tmp_path):
     )
     assert "word_cnb" in s["not_distinguishable_from_best"]  # gürültülü, CI 0'ı içerir
     assert "selection_rule" in s and s["test"] is None
+    # p tablosu: ham / N-B / N-B+Holm, paired_vs_best ile aynı sayılar
+    for r in s["p_table"]:
+        c = by_b[r["b"]]
+        assert (r["p_naive"], r["p_nb"], r["p_nb_holm"]) == (c["p_naive"], c["p"], c["p_holm"])
+        assert r["p_naive"] <= r["p_nb"] <= r["p_nb_holm"]
+    e = s["grid_edges"]["char_lr"]["clf__C"]
+    assert e["final_edge"] == "high" and e["n_folds_low_edge"] == 5
 
     metrics["word_cnb"] = _fake("word_cnb", base, rows, fid[:, [1, 0, 2, 3, 4, 5, 6, 7, 8, 9]],
                                 tmp_path)  # fmt: skip
@@ -88,3 +97,29 @@ def test_summarize_and_check_same_folds(tmp_path):
     metrics["word_cnb"] = _fake("word_cnb", base, rows, fid, tmp_path) | {"split": "split_v1"}
     with pytest.raises(ValueError, match="farklı split"):
         summarize(metrics)
+
+
+def test_p_naive_equals_paired_ttest():
+    d = np.array([0.01, 0.02, -0.005, 0.015, 0.008, 0.012])
+    r = nadeau_bengio(d, 0.25)
+    assert np.isclose(r["p_naive"], stats.ttest_1samp(d, 0.0).pvalue)
+    assert r["p_naive"] < r["p"]  # düzeltme p'yi büyütür
+
+
+def _m(grid, fold_choices, final):
+    return {
+        "params": {"grid": grid},
+        "cv": {"folds": [{"best_params": c} for c in fold_choices]},
+        "final": {"best_params": final},
+    }
+
+
+def test_grid_edges_marks_edges():
+    grid = {"clf__C": [10.0, 100.0, 1000.0], "ng": [[1, 3], [2, 4]]}
+    folds = [{"clf__C": 100.0, "ng": [2, 4]}] * 3 + [{"clf__C": 1000.0, "ng": [1, 3]}]
+    e = grid_edges({"m": _m(grid, folds, {"clf__C": 100.0, "ng": [2, 4]})})["m"]
+    assert e["clf__C"]["final_edge"] is None  # iç nokta
+    assert e["clf__C"]["n_folds_high_edge"] == 1 and e["clf__C"]["n_folds_low_edge"] == 0
+    assert e["clf__C"]["fold_counts"] == {"10.0": 0, "100.0": 3, "1000.0": 1}
+    assert e["ng"]["final_edge"] == "high" and e["ng"]["grid_size"] == 2
+    assert e["ng"]["n_folds_high_edge"] == 3 and e["ng"]["n_folds_low_edge"] == 1
