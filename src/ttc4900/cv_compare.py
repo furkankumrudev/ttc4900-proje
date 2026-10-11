@@ -263,7 +263,7 @@ def plot(summary: dict, metrics: dict[str, dict], path: Path) -> None:
     ax2.set_yticks(range(len(others)), [DISPLAY[n] for n in others])
     ax2.set_xlabel(f"macro-F1 farkı: {DISPLAY[best]} − model")
     ax2.set_title(
-        "Eşleştirilmiş fark, N–B %95 CI (çoklu karşılaştırma düzeltmesiz)", loc="left", fontsize=10
+        "Eşleştirilmiş fark, N–B %95 CI\n(çoklu karşılaştırma düzeltmesiz)", loc="left", fontsize=10
     )
     lo = min(c["ci95"][0] for c in comps.values())
     hi = max(c["ci95"][1] for c in comps.values())
