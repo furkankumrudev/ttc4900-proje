@@ -1,4 +1,8 @@
-"""Ağ gerektirmeyen sentetik veri testleri (+ varsa gerçek split dosyası kontrolü)."""
+"""Sentetik veri testleri + varsa gerçek split dosyası kontrolleri.
+
+Hepsi ağsız çalışır; yalnızca test_real_v2_class_balance veriyi (HF önbelleği ya da ağ) ister
+ve yüklenemezse atlanır.
+"""
 
 import numpy as np
 import pandas as pd
@@ -122,15 +126,47 @@ def test_make_split_v2_keeps_groups(tmp_path):
         make_split_v2(clean, groups, path=p)
 
 
-def test_make_cv_does_not_split_groups(tmp_path):
+def _assert_groups_match_components(train: pd.DataFrame, g: np.ndarray, components) -> None:
+    """g, train satırlarına hizalı ve split'teki bileşenlerle birebir aynı bölümlemeyi vermeli.
+
+    Aynı bileşen -> aynı g; farklı bileşen ya da tekil satır -> farklı g. (Ayrık fold
+    kontrolü bunu sınamaz: StratifiedGroupKFold verilen HER g için grupları ayırır.)
+    """
+    assert len(g) == len(train)
+    comp_of = {i: k for k, c in enumerate(components) for i in c}
+    # bileşen anahtarı: bileşen indeksi ya da tekil satır için ("tekil", row_id)
+    key = [comp_of.get(int(r), ("tekil", int(r))) for r in train["row_id"]]
+    pairs = set(zip(key, g.tolist(), strict=True))
+    assert len(pairs) == len(set(key)) == len(set(g.tolist()))  # key <-> g birebir
+
+
+def test_make_cv_groups_aligned_with_components(tmp_path):
+    clean, groups = _synthetic()
+    p = tmp_path / "s2.json"
+    s = make_split_v2(clean, groups, path=p, n_raw=len(clean))
+    train = clean[clean["row_id"].isin(s["train_ids"])]
+    # karıştırılmış sıra: g satır sırasına hizalı olmalı, row_id sırasına değil
+    train = train.sample(frac=1, random_state=0).reset_index(drop=True)
+    cv, g = make_cv(train, path=p)
+    _assert_groups_match_components(train, g, s["components"])
+    for tr_idx, va_idx in cv.split(train, train["label"], g):
+        assert not set(g[tr_idx]) & set(g[va_idx])
+
+
+def test_make_cv_random_state(tmp_path):
     clean, groups = _synthetic()
     p = tmp_path / "s2.json"
     s = make_split_v2(clean, groups, path=p, n_raw=len(clean))
     train = clean[clean["row_id"].isin(s["train_ids"])].reset_index(drop=True)
-    cv, g = make_cv(train, path=p)
-    assert len(g) == len(train)
-    for tr_idx, va_idx in cv.split(train, train["label"], g):
-        assert not set(g[tr_idx]) & set(g[va_idx])
+    cv_a, g = make_cv(train, path=p)
+    cv_b, _ = make_cv(train, path=p, random_state=data.RANDOM_STATE)
+    cv_c, _ = make_cv(train, path=p, random_state=7)
+
+    def folds(cv):
+        return [va.tolist() for _, va in cv.split(train, train["label"], g)]
+
+    assert folds(cv_a) == folds(cv_b)  # varsayılan = RANDOM_STATE, tekrarlanabilir
+    assert folds(cv_a) != folds(cv_c)  # tekrarlı CV için farklı bölümleme
 
 
 def test_cv_groups_rejects_foreign_rows(tmp_path):
@@ -175,11 +211,40 @@ def test_real_v2():
 
 
 @_real
+def test_real_v2_csv_edges_within_components():
+    """csv'deki her kenarın iki ucu split_v2'de aynı bileşende (csv <-> split bağımsız bağ)."""
+    s2 = load_split(SPLIT_V2_PATH)
+    near = pd.read_csv(_NEAR_CSV)
+    comp_of = {i: k for k, c in enumerate(s2["components"]) for i in c}
+    a = near["row_id_a"].map(comp_of)
+    b = near["row_id_b"].map(comp_of)
+    assert a.notna().all() and (a == b).all()
+    # tersi: her bileşen en az bir kenarla bağlı (bileşen = csv kenarlarının bağlı bileşeni)
+    assert set(a.astype(int)) == set(range(len(s2["components"])))
+
+
+@_real
+def test_real_make_cv_groups():
+    """Gerçek split_v2 train'i üzerinde g <-> bileşen eşleşmesi (yalnızca json, ağ yok)."""
+    s2 = load_split(SPLIT_V2_PATH)
+    train = pd.DataFrame({"row_id": s2["train_ids"]}).sample(frac=1, random_state=0)
+    _, g = make_cv(train.reset_index(drop=True))
+    train_set = set(s2["train_ids"])
+    comps = [c for c in s2["components"] if set(c) <= train_set]
+    _assert_groups_match_components(train.reset_index(drop=True), g, comps)
+
+
+@_real
 def test_real_v2_class_balance():
+    """Etiketler split dosyasında yok; veri gerekir (HF önbelleği ya da ağ). Yoksa atlanır."""
     from ttc4900.data import drop_exact_duplicates, load_raw
 
     s2 = load_split(SPLIT_V2_PATH)
-    clean, _ = drop_exact_duplicates(load_raw())
+    try:
+        raw = load_raw()
+    except Exception as e:  # çevrimdışı ve önbellek yok
+        pytest.skip(f"veri yüklenemedi: {type(e).__name__}")
+    clean, _ = drop_exact_duplicates(raw)
     overall = len(s2["test_ids"]) / len(clean)
     test = clean[clean["row_id"].isin(s2["test_ids"])]
     for cat, grp in clean.groupby("category"):

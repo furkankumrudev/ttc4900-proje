@@ -13,9 +13,10 @@ altındaki ilgili kodu incele.
 
 ## Kontrol listesi
 
-1. **Tek split kaynağı**: Tüm modeller split'i `outputs/splits/split_v1.json` dosyasından mı okuyor?
-   Kodun herhangi bir yerinde `train_test_split` yeniden çağrılıyor mu? Stratified mı,
-   `test_size=0.2` ve `random_state=42` mi?
+1. **Tek split kaynağı**: Tüm modeller split'i `ttc4900.data.load_train_test()` ile resmî
+   `outputs/splits/split_v2.json` dosyasından mı okuyor? `split_v1.json` yalnızca sızıntı etkisi
+   teşhis deneyinde mi kullanılıyor? Kodun herhangi bir yerinde `train_test_split` yeniden
+   çağrılıyor mu (v1 üretimi hariç)? Her `outputs/metrics/*.json` `"split"` alanını taşıyor mu?
 2. **Tekrar eden metinler**: Split'ten önce birebir aynı ve neredeyse aynı metinler (normalize edilmiş
    boşluk ve küçük harfle) kontrol edilmiş mi? Aynı metin hem train'de hem test'te olabilir mi?
    Aynı metin farklı etiketlerle geçiyor mu?
@@ -25,7 +26,10 @@ altındaki ilgili kodu incele.
 4. **Test setinin kullanımı**: Hiperparametre seçimi, early stopping, eşik ayarı veya temperature
    scaling (T) test setinde mi yapılıyor? Bunlar train içinden ayrılan validation parçasında veya
    CV'de yapılmalı.
-5. **CV doğruluğu**: Fold'lar stratified mı? Ön-işleme fold içinde mi fit ediliyor?
+5. **CV doğruluğu**: CV `ttc4900.data.make_cv(train)` ile mi kuruluyor ve `groups=g` her
+   `split`/`fit` çağrısına veriliyor mu (iç içe CV'nin iç katmanı dahil)? Düz `StratifiedKFold`,
+   `KFold` ya da `cv=<int>` var mı? Ön-işleme fold içinde mi fit ediliyor? Hiperparametre seçilen
+   CV ile raporlanan skor aynı fold'lardan mı geliyor (seçim yanlılığı)?
 6. **BERT tarafı**: Tokenizer önceden eğitilmiş olduğu için sorun değil. Ancak `Trainer` içindeki
    `eval_dataset` test seti mi? `load_best_model_at_end` test seti üzerinden mi seçim yapıyor?
 7. **Metrik**: Ana metrik macro-F1 mi (`average="macro"`)? `micro` veya `weighted` yanlışlıkla

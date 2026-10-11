@@ -11,9 +11,11 @@ argument-hint: <deney adı ve parametreler, ör. tfidf_lr C=1.0>
    betik yazıp çalıştırma. Önce deney kodunu `src/ttc4900/` altına nasıl ekleyeceğini öner ve
    onay bekle.
 2. **Kuralları doğrula** (`CLAUDE.md`):
-   - Split `outputs/splits/split_v1.json` dosyasından okunuyor.
-   - Ön-işleme sadece train üzerinde fit ediliyor.
-   - Test seti seçim veya ayar için kullanılmıyor.
+   - Veri `load_train_test()` ile resmî `outputs/splits/split_v2.json` dosyasından okunuyor.
+   - CV `make_cv(train)` ile kuruluyor ve `groups=g` veriliyor.
+   - Ön-işleme sadece train (ya da train fold'u) üzerinde fit ediliyor.
+   - Test seti seçim veya ayar için kullanılmıyor; final değerlendirme fazından önce hiç
+     kullanılmıyor (o fazlarda `test` alanı `null`).
 3. **Çalıştır**: Proje ortamıyla çalıştır (Windows'ta `.venv\Scripts\python`). Seed'i sabitle.
    Süreyi ölç.
 4. **Kaydet**: Sonucu `outputs/metrics/<deney_adı>_<YYYYMMDD-HHMMSS>.json` dosyasına şu şemayla yaz:
@@ -23,7 +25,7 @@ argument-hint: <deney adı ve parametreler, ör. tfidf_lr C=1.0>
   "experiment": "tfidf_lr",
   "timestamp": "2026-10-11T14:30:00",
   "git_commit": "<git rev-parse --short HEAD, kirli çalışma ağacıysa '-dirty' eki>",
-  "split_id": "split_v1",
+  "split": "split_v2",
   "seed": 42,
   "params": {},
   "cv": {"n_folds": 5, "macro_f1_folds": [], "macro_f1_mean": 0.0, "macro_f1_std": 0.0},

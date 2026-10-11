@@ -268,14 +268,19 @@ def cv_groups(train_df: pd.DataFrame, path: Path = SPLIT_PATH) -> np.ndarray:
 
 
 def make_cv(
-    train_df: pd.DataFrame, path: Path = SPLIT_PATH, n_splits: int = CV_SPLITS
+    train_df: pd.DataFrame,
+    path: Path = SPLIT_PATH,
+    n_splits: int = CV_SPLITS,
+    random_state: int = RANDOM_STATE,
 ) -> tuple[StratifiedGroupKFold, np.ndarray]:
     """Faz 2+ CV'nin TEK giriş noktası; düz StratifiedKFold kullanılmaz.
 
     Kullanım: `cv, g = make_cv(train)`; `cv.split(train, train["label"], g)`.
     Yakın-tekrar grupları train/validation arasında bölünmez, CV skoru şişmez.
+    `random_state` yalnızca tekrarlı CV içindir (her tekrar farklı bölümleme); g değişmez.
+    `g`, çağrıldığı andaki `train_df` satır sırasına hizalıdır: CV'ye aynı DataFrame verilmeli.
     """
-    cv = StratifiedGroupKFold(n_splits=n_splits, shuffle=True, random_state=RANDOM_STATE)
+    cv = StratifiedGroupKFold(n_splits=n_splits, shuffle=True, random_state=random_state)
     return cv, cv_groups(train_df, path)
 
 

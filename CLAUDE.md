@@ -30,8 +30,10 @@ Amaç hem öğrenmek hem portfolyo oluşturmak.
     Model bu satırları genellemeden, ezberleyerek doğru bilebiliyordu. v2'de bölünmüş çift
     sayısı 0. Eşik başta 0.9'du. (0.8, 0.9] aralığında da aynı haberin sürümleri bulununca
     0.8'e indirildi. En büyük grup yine 5 satır, stratifikasyon bozulmuyor.
-  - `split_v1.json` silinmez ve değiştirilmez. Yalnızca Faz 2'deki tek "sızıntı etkisi"
-    baseline'ı için kullanılır. Ana sonuçlar v1'de raporlanmaz.
+  - `split_v1.json` silinmez ve değiştirilmez. Yalnızca Faz 5'teki tek "sızıntı etkisi"
+    teşhis deneyi için kullanılır. Ana sonuçlar v1'de raporlanmaz.
+  - Eşik 0.9 → 0.8 değişikliği yalnızca bölünmüş çiftlerin metinlerine bakılarak yapıldı;
+    etiket ya da model sonucu kullanılmadı. v2@0.9 hiçbir değerlendirmede kullanılmadı.
 - Split **bir kez** üretilir ve dosyaya yazılır. Bundan sonra tüm modeller split'i yalnızca bu
   dosyadan okur. Böylece hepsi aynı test örnekleri üzerinde değerlendirilir; McNemar ve paired
   bootstrap gibi eşleştirilmiş testler bunu gerektirir. Her `outputs/metrics/*.json` dosyası
@@ -41,7 +43,8 @@ Amaç hem öğrenmek hem portfolyo oluşturmak.
   `StratifiedGroupKFold` ile split_v2 gruplarını döndürür. `groups=g` parametresi `cross_validate`,
   `GridSearchCV.fit` ve `cross_val_predict` çağrılarına verilir. Düz `StratifiedKFold`, `KFold`
   ya da `cv=5` kullanılmaz; bunlar yakın tekrarları fold'lara böler ve CV skorunu sessizce
-  şişirir. Train'den ayrılacak bir validation parçası (BERT early stopping, temperature scaling)
+  şişirir. Tekrarlı CV için `make_cv(train, random_state=r)` kullanılır (gruplar aynı kalır).
+  `g` çağrı anındaki satır sırasına hizalıdır; CV'ye aynı DataFrame verilir. Train'den ayrılacak bir validation parçası (BERT early stopping, temperature scaling)
   da `train_test_split` ile değil, `make_cv` fold'larından biriyle ayrılır.
 - **Test seti yalnızca final değerlendirmede, bir kez kullanılır.** Hiperparametre araması, model
   seçimi, early stopping (`Trainer`'ın `eval_dataset`'i ve `load_best_model_at_end` dahil),
