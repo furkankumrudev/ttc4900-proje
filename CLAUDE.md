@@ -12,6 +12,8 @@ Amaç hem öğrenmek hem portfolyo oluşturmak.
 - Kaynak: Hugging Face `savasy/ttc4900`
 - 4900 örnek, 7 sınıf, sütunlar: `category` (etiket), `text`
 - Sadece `train` split'i var; test ayrımını biz yapıyoruz.
+- `load_dataset` her zaman `revision=<commit SHA>` ile çağrılır. SHA, `ttc4900.data` içinde
+  tek bir sabit olarak tutulur.
 - Sınıflar dengeli (~700/sınıf). Test seti ≈ 980 örnek (~140/sınıf).
 
 ## Kurallar
@@ -22,9 +24,12 @@ Amaç hem öğrenmek hem portfolyo oluşturmak.
   Bundan sonra tüm modeller split'i yalnızca bu dosyadan okur. Böylece hepsi aynı test örnekleri
   üzerinde değerlendirilir; McNemar ve paired bootstrap gibi eşleştirilmiş testler bunu gerektirir.
 - Tekrar eden (ve neredeyse aynı) metinler split'ten **önce** kontrol edilir.
-- Test seti model seçiminde, hiperparametre aramasında ve temperature scaling'de **kullanılmaz**.
-  Bunlar train içinde (CV veya ayrı bir validation parçası) yapılır. Test seti yalnızca final
-  değerlendirmede bir kez kullanılır.
+- **Test seti yalnızca final değerlendirmede, bir kez kullanılır.** Hiperparametre araması, model
+  seçimi, early stopping (`Trainer`'ın `eval_dataset`'i ve `load_best_model_at_end` dahil),
+  cross-validation ve temperature scaling **yalnızca train içinde** yapılır (CV fold'ları ya da
+  train'den ayrılan validation parçası).
+- Train/test verisi yalnızca `ttc4900.data.load_train_test()` ile okunur. Başka hiçbir yerde
+  `train_test_split` ile train/test ayrımı yeniden yapılmaz.
 - TF-IDF gibi veriden öğrenen dönüşümler `sklearn.pipeline.Pipeline` içinde, sadece train
   fold'unda fit edilir.
 

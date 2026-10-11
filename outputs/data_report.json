@@ -1,0 +1,219 @@
+{
+  "dataset_id": "savasy/ttc4900",
+  "revision": "236e17b0c497ceb5437c175cb1ffaae201bfb287",
+  "n_raw": 4900,
+  "raw_exact_duplicate_rows": 361,
+  "n_dropped_by_reason": {
+    "exact_duplicate": 360,
+    "conflicting_labels": 2
+  },
+  "n_clean": 4538,
+  "n_train": 3630,
+  "n_test": 908,
+  "class_distribution": {
+    "raw": {
+      "dunya": 700,
+      "ekonomi": 700,
+      "kultur": 700,
+      "saglik": 700,
+      "siyaset": 700,
+      "spor": 700,
+      "teknoloji": 700
+    },
+    "clean": {
+      "dunya": 677,
+      "ekonomi": 690,
+      "kultur": 566,
+      "saglik": 632,
+      "siyaset": 690,
+      "spor": 636,
+      "teknoloji": 647
+    },
+    "train": {
+      "dunya": 541,
+      "ekonomi": 552,
+      "kultur": 453,
+      "saglik": 506,
+      "siyaset": 552,
+      "spor": 509,
+      "teknoloji": 517
+    },
+    "test": {
+      "dunya": 136,
+      "ekonomi": 138,
+      "kultur": 113,
+      "saglik": 126,
+      "siyaset": 138,
+      "spor": 127,
+      "teknoloji": 130
+    }
+  },
+  "near_duplicates": {
+    "threshold": 0.9,
+    "n_pairs": 265,
+    "n_rows_involved": 451,
+    "n_cross_label_pairs": 6,
+    "n_cross_split_pairs": 88,
+    "examples": [
+      {
+        "row_id_a": 3586,
+        "row_id_b": 3596,
+        "similarity": 1.000000000000001,
+        "label_a": 5,
+        "label_b": 5,
+        "split_a": "test",
+        "split_b": "train",
+        "same_label": true,
+        "cross_split": true,
+        "text_a_preview": "marmaris te 17 ülke yarıştı marmaris te bu yıl 23 üncüsü düzenlenen ve doğa akdeniz in en büyük yelk",
+        "text_b_preview": "17 ülke marmaris te yarıştı marmaris te bu yıl 23 üncüsü düzenlenen ve doğa akdeniz in en büyük yelk"
+      },
+      {
+        "row_id_a": 2861,
+        "row_id_b": 3366,
+        "similarity": 1.0000000000000004,
+        "label_a": 4,
+        "label_b": 4,
+        "split_a": "train",
+        "split_b": "train",
+        "same_label": true,
+        "cross_split": false,
+        "text_a_preview": "düzenli muayene ile kadın hastalıklarından korunun kadınların büyük çoğunluğu jinekolojik muayeneler",
+        "text_b_preview": "düzenli muayene ile kadın hastalıklarından korunun kadınların büyük çoğunluğu jinekolojik muayeneler"
+      },
+      {
+        "row_id_a": 1461,
+        "row_id_b": 2079,
+        "similarity": 1.0000000000000004,
+        "label_a": 2,
+        "label_b": 2,
+        "split_a": "test",
+        "split_b": "train",
+        "same_label": true,
+        "cross_split": true,
+        "text_a_preview": "maliye sigara firmalarını yakın takibe aldı maliye_bakanı_mehmet_şimşek in talimatıyla 10 sigara dağ",
+        "text_b_preview": "maliye sigara firmalarını yakın takibe aldı maliye_bakanı_mehmet_şimşek in talimatıyla 10 sigara dağ"
+      },
+      {
+        "row_id_a": 3819,
+        "row_id_b": 3840,
+        "similarity": 1.0000000000000002,
+        "label_a": 5,
+        "label_b": 5,
+        "split_a": "test",
+        "split_b": "train",
+        "same_label": true,
+        "cross_split": true,
+        "text_a_preview": "culio gol atarsa yemekler muslera dan süper toto süper_lig in 11 haftasında gerçekleştirilecek mersi",
+        "text_b_preview": "culio gol atarsa yemekler muslera dan süper toto süper_lig in 11 haftasında gerçekleştirilecek mersi"
+      },
+      {
+        "row_id_a": 4355,
+        "row_id_b": 4582,
+        "similarity": 1.0,
+        "label_a": 6,
+        "label_b": 6,
+        "split_a": "test",
+        "split_b": "train",
+        "same_label": true,
+        "cross_split": true,
+        "text_a_preview": "7 mart tarihine dikkat ! sosyal medya devi facebook 7 mart tarihinde gerçekleştireceği etkinlik için",
+        "text_b_preview": "7 mart tarihine dikkat sosyal medya devi facebook 7 mart tarihinde gerçekleştireceği etkinlik için b"
+      },
+      {
+        "row_id_a": 1735,
+        "row_id_b": 2070,
+        "similarity": 1.0,
+        "label_a": 2,
+        "label_b": 2,
+        "split_a": "train",
+        "split_b": "train",
+        "same_label": true,
+        "cross_split": false,
+        "text_a_preview": "tüketim harcamasında istanbul lider türkiye de 2011 yılı sonu itibariyle toplam tüketim harcamasının",
+        "text_b_preview": "tüketim harcamasında istanbul lider türkiye de 2011 yılı sonu itibariyle toplam tüketim harcamasının"
+      },
+      {
+        "row_id_a": 1657,
+        "row_id_b": 1833,
+        "similarity": 0.9999999999999976,
+        "label_a": 2,
+        "label_b": 2,
+        "split_a": "train",
+        "split_b": "train",
+        "same_label": true,
+        "cross_split": false,
+        "text_a_preview": "sigara paketindeki uyarıların alanı genişliyor tütün mamulleri paketlerinin üzerindeki sağlık ve diğ",
+        "text_b_preview": "sigara paketindeki uyarıların alanı genişliyor tütün mamulleri paketlerinin üzerindeki sağlık ve diğ"
+      },
+      {
+        "row_id_a": 2877,
+        "row_id_b": 3037,
+        "similarity": 0.9999999999999949,
+        "label_a": 4,
+        "label_b": 4,
+        "split_a": "train",
+        "split_b": "train",
+        "same_label": true,
+        "cross_split": false,
+        "text_a_preview": "yorgunken spor yapmak sakatlanma riskini artırıyor isınmadan spor yapmak halı sahada futbol oynarken",
+        "text_b_preview": "yorgunken spor yapmak sakatlanma riskini artırıyor isınmadan spor yapmak halı sahada futbol oynarken"
+      },
+      {
+        "row_id_a": 2957,
+        "row_id_b": 3268,
+        "similarity": 0.9999053878226526,
+        "label_a": 4,
+        "label_b": 4,
+        "split_a": "train",
+        "split_b": "train",
+        "same_label": true,
+        "cross_split": false,
+        "text_a_preview": "sırt ağrıları hastalık habercisi olabilir her yaş grubunda ortaya çıkabilen sırt ağrıları kas incinm",
+        "text_b_preview": "sırt ağrıları hastalık habercisi her yaş grubunda ortaya çıkabilen sırt ağrıları kas incinmesi gibi "
+      },
+      {
+        "row_id_a": 3127,
+        "row_id_b": 3378,
+        "similarity": 0.9997515251578082,
+        "label_a": 4,
+        "label_b": 4,
+        "split_a": "train",
+        "split_b": "train",
+        "same_label": true,
+        "cross_split": false,
+        "text_a_preview": "menisküs yırtığına her zaman ameliyat gerekmez fizik tedavi ve rehabilitasyon uzmanı doç dr cengiz b",
+        "text_b_preview": "menisküs yırtığına her zaman ameliyat gerekmez fizik tedavi ve rehabilitasyon uzmanı doç dr cengiz b"
+      }
+    ],
+    "tfidf_fit_scope": "Denetim TF-IDF'i tüm temiz veriye (train+test) fit edildi; yalnızca yakın-tekrar tespiti içindir, model özelliği değildir.",
+    "note": "Yakın tekrarlar silinmedi; yalnızca raporlandı."
+  },
+  "eda": {
+    "scope_note": "Metin uzunluğu istatistikleri yalnızca train'den hesaplandı; test'ten yalnızca sınıf sayıları (eda_split_balance) kullanıldı.",
+    "n_train": 3630,
+    "n_words": {
+      "mean": 270.833608815427,
+      "median": 209.0,
+      "p95": 680.0,
+      "min": 8,
+      "max": 2711
+    },
+    "n_chars": {
+      "mean": 1989.5754820936638,
+      "median": 1539.0,
+      "p95": 5014.099999999999,
+      "min": 72,
+      "max": 19383
+    },
+    "median_words_by_class": {
+      "dunya": 146.0,
+      "ekonomi": 269.5,
+      "kultur": 204.0,
+      "saglik": 300.5,
+      "siyaset": 259.5,
+      "spor": 169.0,
+      "teknoloji": 169.0
+    }
+  }
+}
