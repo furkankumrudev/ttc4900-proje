@@ -23,5 +23,8 @@ runs/
 # HF önbelleği (proje içine düşerse)
 .cache/
 
+# Embedding önbelleği (Faz 3; yeniden üretilebilir, büyük)
+outputs/cache/
+
 # Claude Code kişisel ayarları
 .claude/settings.local.json

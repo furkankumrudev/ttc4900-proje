@@ -3,9 +3,11 @@ import pytest
 from scipy import stats
 
 from ttc4900.cv_compare import (
+    c1_sensitivity,
     check_same_folds,
     grid_edges,
     holm,
+    latest_metrics,
     nadeau_bengio,
     nb_mean_ci,
     summarize,
@@ -123,3 +125,39 @@ def test_grid_edges_marks_edges():
     assert e["clf__C"]["fold_counts"] == {"10.0": 0, "100.0": 3, "1000.0": 1}
     assert e["ng"]["final_edge"] == "high" and e["ng"]["grid_size"] == 2
     assert e["ng"]["n_folds_high_edge"] == 3 and e["ng"]["n_folds_low_edge"] == 1
+
+
+def _write(m, name, ts, tmp_path):
+    import json
+
+    body = {k: v for k, v in m.items() if k != "_file"}
+    body["cv"] = body["cv"] | {"per_class_f1_mean": {"a": body["cv"]["macro_f1_mean"], "b": 0.5}}
+    body["preds_file"] = f"{name}.npz"
+    (tmp_path / f"phase2_{name}_{ts}.json").write_text(json.dumps(body), encoding="utf-8")
+
+
+def test_latest_metrics_exact_name(tmp_path):
+    """char_lr aranırken char_lr_c1clean dosyası seçilmemeli (glob tuzağı)."""
+    rows, fid = np.arange(10), np.array([[0, 1, 2, 3, 4] * 2])
+    _write(_fake("char_lr", [0.9] * 5, rows, fid, tmp_path), "char_lr", "20260101-000000", tmp_path)
+    _write(_fake("char_lr_c1clean", [0.8] * 5, rows, fid, tmp_path), "char_lr_c1clean",
+           "20260102-000000", tmp_path)  # fmt: skip
+    assert latest_metrics("char_lr", tmp_path)["_file"] == "phase2_char_lr_20260101-000000.json"
+    assert latest_metrics("char_lr_c1clean", tmp_path)["cv"]["macro_f1_mean"] == 0.8
+    assert latest_metrics("word_lr", tmp_path) is None
+
+
+def test_c1_sensitivity_single_nb_comparison(tmp_path):
+    rows, fid = np.arange(10), np.array([[0, 1, 2, 3, 4] * 2])
+    raw = [0.90, 0.91, 0.89, 0.92, 0.90]
+    clean = [0.89, 0.91, 0.885, 0.90, 0.895]
+    _write(_fake("char_lr", raw, rows, fid, tmp_path), "char_lr", "20260101-000000", tmp_path)
+    _write(_fake("char_lr_c1clean", clean, rows, fid, tmp_path), "char_lr_c1clean",
+           "20260101-000001", tmp_path)  # fmt: skip
+    out = c1_sensitivity(tmp_path)
+    ref = nadeau_bengio(np.array(raw) - np.array(clean), 0.25)
+    assert np.isclose(out["nadeau_bengio"]["p"], ref["p"])
+    assert np.isclose(out["nadeau_bengio"]["mean_diff"], np.mean(raw) - np.mean(clean))
+    assert out["split"] == "split_v2" and out["test"] is None
+    assert "p_holm" not in out["nadeau_bengio"]  # tek karşılaştırma
+    assert "SEÇİM" in out["rule"].upper() or "seçim" in out["rule"]

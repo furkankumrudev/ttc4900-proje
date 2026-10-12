@@ -53,7 +53,7 @@ SOURCE_TERMS = frozenset(
 )
 # cp1252 "akıllı tırnak"lar (‘ ’ “ ” –) yanlış çözülünce C1 kontrol karakterleri (U+0080-U+009F)
 # olarak kalır: kaynağa (kazıma hattına) bağlı bir artefakt, konuyla ilgisiz.
-C1 = re.compile("[-]")
+C1 = re.compile(r"[\u0080-\u009f]")
 RULES = {
     "category_name": "özellik (char için örnek kelimesi) bir kategori adıyla başlıyor / içeriyor",
     "source_signature": f"kelime ajans/kaynak listesinde: {sorted(SOURCE_TERMS)}",

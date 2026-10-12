@@ -16,6 +16,7 @@ Kullanım: python -m ttc4900.baselines --model word_lr --n-jobs 4
 from __future__ import annotations
 
 import argparse
+import re
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -29,6 +30,7 @@ from sklearn.metrics import accuracy_score, f1_score, make_scorer
 from sklearn.model_selection import GridSearchCV
 from sklearn.naive_bayes import ComplementNB
 from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import FunctionTransformer
 from sklearn.svm import LinearSVC
 
 from ttc4900 import report
@@ -56,6 +58,21 @@ def _pipe(clf, **tfidf) -> Pipeline:
     return Pipeline([("tfidf", TfidfVectorizer(**TFIDF_FIXED, **tfidf)), ("clf", clf)])
 
 
+# cp1252 akıllı tırnakların (‘ ’ “ ”) yanlış çözülmüş hali: U+0091-U+0094 kontrol karakterleri.
+# Sınıfla güçlü ilişkili bir kaynak artefaktı (outputs/leakage/README.md). Duyarlılık analizi
+# için YALNIZCA bu dört karakter silinir; başka hiçbir normalizasyon yapılmaz.
+C1_QUOTES = re.compile(r"[\u0091-\u0094]")
+
+
+def strip_c1_quotes(texts) -> list[str]:
+    """Durumsuz (veriden öğrenmeyen) temizlik: fold'un neresinde uygulandığı fark etmez."""
+    return [C1_QUOTES.sub("", t) for t in texts]
+
+
+def _clean_pipe(clf, **tfidf) -> Pipeline:
+    return Pipeline([("clean", FunctionTransformer(strip_c1_quotes)), *_pipe(clf, **tfidf).steps])
+
+
 SPECS: dict[str, Spec] = {
     "word_lr": Spec(
         make=lambda: _pipe(LogisticRegression(max_iter=3000)),
@@ -68,6 +85,17 @@ SPECS: dict[str, Spec] = {
         # v1 grid: C=100 üst kenar (10/15), (2,4) alt kenar (11/15) -> ikisi de kaydırıldı
         grid={"tfidf__ngram_range": [(1, 3), (2, 4)], "clf__C": [10.0, 100.0, 1000.0]},
         fixed={**TFIDF_FIXED, "analyzer": "char_wb", "clf": "LogisticRegression(lbfgs, L2)"},
+    ),
+    # Duyarlılık analizi: char_lr ile AYNI grid ve protokol, tek fark C1 tırnaklarının silinmesi
+    "char_lr_c1clean": Spec(
+        make=lambda: _clean_pipe(LogisticRegression(max_iter=3000), analyzer="char_wb"),
+        grid={"tfidf__ngram_range": [(1, 3), (2, 4)], "clf__C": [10.0, 100.0, 1000.0]},
+        fixed={
+            **TFIDF_FIXED,
+            "analyzer": "char_wb",
+            "clf": "LogisticRegression(lbfgs, L2)",
+            "preprocess": "yalnızca U+0091-U+0094 silinir (durumsuz FunctionTransformer)",
+        },
     ),
     "word_svc": Spec(
         make=lambda: _pipe(LinearSVC(max_iter=10_000, random_state=RANDOM_STATE)),

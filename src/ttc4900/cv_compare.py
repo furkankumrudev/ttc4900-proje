@@ -27,7 +27,9 @@ Kullanım: python -m ttc4900.cv_compare
 
 from __future__ import annotations
 
+import argparse
 import json
+import re
 from pathlib import Path
 
 import numpy as np
@@ -59,6 +61,13 @@ TEST_PLAN = {
         "908 test örneğiyle klasik modeller arası 0.004-0.01'lik farkların McNemar ile "
         "yakalanması beklenmez; anlamsız sonuç eşdeğerlik kanıtı sayılmaz"
     ),
+    "sensitivity_c1": (
+        "C1 duyarlılık analizi (kural CV'den ÖNCE donduruldu): birincil klasik baseline ham "
+        "char_lr olarak KALIR. U+0091-U+0094 silinmiş char_lr_c1clean yalnızca duyarlılık "
+        "analizidir; final.best_params ile teste ikincil/betimsel olarak taşınır ve ham "
+        "char_lr ile birlikte raporlanır. İkisi arasında test (ya da CV) sonucuna göre seçim "
+        "YAPILMAZ; BERTurk karşılaştırmasındaki referans değişmez."
+    ),
     "expectation_note": (
         "CV skoru 2904 satırla eğitimi ölçer, final model 3630 satırla eğitilir; ayrıca seçilen "
         "modelin CV skoru 4 adayın maksimumudur (kazananın laneti). Test skorunun CV'den "
@@ -67,16 +76,24 @@ TEST_PLAN = {
 }
 
 
+def latest_metrics(name: str, metrics_dir: Path = METRICS_DIR, phase: int = 2) -> dict | None:
+    """`phase<N>_<name>_<YYYYMMDD-HHMMSS>.json` dosyalarının en sonu.
+
+    Ad tam eşleşmeli: `char_lr_*` glob'u `char_lr_c1clean_*`'ı da yakalardı.
+    """
+    pat = re.compile(rf"phase{phase}_{re.escape(name)}_\d{{8}}-\d{{6}}\.json")
+    files = sorted(
+        f for f in Path(metrics_dir).glob(f"phase{phase}_*.json") if pat.fullmatch(f.name)
+    )
+    if not files:
+        return None
+    return json.loads(files[-1].read_text(encoding="utf-8")) | {"_file": files[-1].name}
+
+
 def latest_phase2(metrics_dir: Path = METRICS_DIR) -> dict[str, dict]:
-    """Her model için en son phase2_<model>_<ts>.json (zaman damgası ada gömülü)."""
-    out = {}
-    for name in DISPLAY:
-        files = sorted(Path(metrics_dir).glob(f"phase2_{name}_*.json"))
-        if files:
-            out[name] = json.loads(files[-1].read_text(encoding="utf-8")) | {
-                "_file": files[-1].name
-            }
-    return out
+    """Ana karşılaştırmadaki her model için en son phase2_<model>_<ts>.json."""
+    found = {name: latest_metrics(name, metrics_dir) for name in DISPLAY}
+    return {k: v for k, v in found.items() if v is not None}
 
 
 def check_same_folds(metrics: dict[str, dict], metrics_dir: Path = METRICS_DIR) -> None:
@@ -301,6 +318,54 @@ def summarize(metrics: dict[str, dict]) -> dict:
     }
 
 
+C1_PAIR = ("char_lr", "char_lr_c1clean")
+
+
+def c1_sensitivity(metrics_dir: Path = METRICS_DIR) -> dict:
+    """Tek karşılaştırma: ham char_lr - temiz char_lr, Nadeau-Bengio düzeltmeli (Holm yok, m=1).
+
+    d_j > 0: C1 artefaktı fold j'de skoru artırıyor (model kısmen kısayol kullanıyor).
+    """
+    raw, clean = (latest_metrics(n, metrics_dir) for n in C1_PAIR)
+    if raw is None or clean is None:
+        raise SystemExit(f"Eksik sonuç: {C1_PAIR}")
+    pair = dict(zip(C1_PAIR, (raw, clean), strict=True))
+    if raw["split"] != clean["split"]:
+        raise ValueError("Ham ve temiz char_lr farklı split'lerde.")
+    check_same_folds(pair, metrics_dir)
+    ratio = float(np.mean([f["n_val"] / f["n_train"] for f in raw["cv"]["folds"]]))
+    fr, fc = (np.array(m["cv"]["macro_f1_folds"]) for m in (raw, clean))
+    res = nadeau_bengio(fr - fc, ratio)
+    pc = {
+        k: raw["cv"]["per_class_f1_mean"][k] - clean["cv"]["per_class_f1_mean"][k]
+        for k in raw["cv"]["per_class_f1_mean"]
+    }
+    return {
+        "experiment": "phase2_c1_sensitivity",
+        "phase": 2,
+        "timestamp": report.now().isoformat(timespec="seconds"),
+        "git_commit": report.git_commit(),
+        "split": raw["split"],
+        "comparison": "char_lr (ham) - char_lr_c1clean (U+0091-U+0094 silinmiş)",
+        "sources": {n: m["_file"] for n, m in pair.items()},
+        "macro_f1_mean": {n: m["cv"]["macro_f1_mean"] for n, m in pair.items()},
+        "macro_f1_std": {n: m["cv"]["macro_f1_std"] for n, m in pair.items()},
+        "final_params": {n: m["final"]["best_params"] for n, m in pair.items()},
+        "nadeau_bengio": res | {"fold_corr": float(np.corrcoef(fr, fc)[0, 1])},
+        "per_class_f1_diff": pc,
+        "val_train_ratio": ratio,
+        "rule": TEST_PLAN["sensitivity_c1"],
+        "notes": {
+            "family": "tek karşılaştırma, çoklu karşılaştırma düzeltmesi yok",
+            "interpretation": (
+                "CI 0'ı içeriyorsa artefaktın CV skoruna etkisi ayırt edilemedi demektir, "
+                "'etkisi yok' değil; per_class_f1_diff hangi sınıfların etkilendiğini gösterir"
+            ),
+        },
+        "test": None,
+    }
+
+
 def plot(summary: dict, metrics: dict[str, dict], path: Path) -> None:
     """Sol: 15 fold skoru + ortalama ± std. Sağ: en iyiye göre fark ve düzeltilmiş %95 CI."""
     import matplotlib
@@ -367,7 +432,25 @@ def plot(summary: dict, metrics: dict[str, dict], path: Path) -> None:
     plt.close(fig)
 
 
+def main_c1() -> None:
+    out = c1_sensitivity()
+    p = report.write_metrics(out, "phase2_c1_sensitivity")
+    nb = out["nadeau_bengio"]
+    lo, hi = nb["ci95"]
+    print(p)
+    for n, v in out["macro_f1_mean"].items():
+        print(f"  {n:16s} {v:.4f} ± {out['macro_f1_std'][n]:.4f}")
+    print(f"  ham - temiz: {nb['mean_diff']:+.4f} N-B CI [{lo:+.4f}, {hi:+.4f}] "
+          f"p_NB={nb['p']:.3g} (ham p={nb['p_naive']:.3g}) corr={nb['fold_corr']:.2f}")  # fmt: skip
+    for k, v in out["per_class_f1_diff"].items():
+        print(f"    {k:10s} {v:+.4f}")
+
+
 def main() -> None:
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--c1-sensitivity", action="store_true", help="ham vs temiz char_lr")
+    if ap.parse_args().c1_sensitivity:
+        return main_c1()
     metrics = latest_phase2()
     missing = set(DISPLAY) - set(metrics)
     if missing:

@@ -98,3 +98,19 @@ def test_write_metrics_requires_split(tmp_path):
         report.write_metrics({"experiment": "x"}, "x", tmp_path)
     p = report.write_metrics({"split": "split_v2", "r": (1, 2)}, "x", tmp_path)
     assert json.loads(p.read_text(encoding="utf-8"))["r"] == [1, 2]
+
+
+def test_strip_c1_quotes_only_91_to_94():
+    s = "a\u0091b\u0092c\u0093d\u0094e\u0095f\u0096g\u0080h ş"
+    assert baselines.strip_c1_quotes([s]) == ["abcde\u0095f\u0096g\u0080h ş"]
+
+
+def test_c1clean_spec_matches_char_lr_except_cleaning():
+    raw, clean = baselines.SPECS["char_lr"], baselines.SPECS["char_lr_c1clean"]
+    assert clean.grid == raw.grid
+    p_raw, p_clean = raw.make(), clean.make()
+    assert [n for n, _ in p_clean.steps] == ["clean", "tfidf", "clf"]
+    assert p_clean.named_steps["tfidf"].get_params() == p_raw.named_steps["tfidf"].get_params()
+    assert p_clean.named_steps["clf"].get_params() == p_raw.named_steps["clf"].get_params()
+    X = p_clean[:1].fit_transform(["x\u0092 y", "z"])  # temizlik durumsuz: fit sonucu aynı
+    assert X == ["x y", "z"]
