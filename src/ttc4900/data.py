@@ -288,13 +288,33 @@ def cv_groups(train_df: pd.DataFrame, path: Path = SPLIT_PATH) -> np.ndarray:
             f"{path} grup bilgisi (components) içermiyor; v1 grupsuzdur. "
             "Gruplu CV için split_v2.json kullanın."
         )
-    foreign = set(train_df["row_id"].astype(int)) - set(split["train_ids"])
+    return _group_ids(train_df["row_id"], split, "train", Path(path).name)
+
+
+def test_groups(test_df: pd.DataFrame, path: Path = SPLIT_PATH) -> np.ndarray:
+    """test_df satırlarına hizalı yakın-tekrar grup id'leri (final test bootstrap'i için).
+
+    Yalnızca row_id okur; metin ve etiket kullanılmaz. Kodlama `cv_groups` ile aynıdır.
+    """
+    split = load_split(path)
+    if "components" not in split:
+        raise ValueError(f"{path} grup bilgisi (components) içermiyor; split_v2.json kullanın.")
+    return _group_ids(test_df["row_id"], split, "test", Path(path).name)
+
+
+test_groups.__test__ = False  # pytest bunu test fonksiyonu sanmasın
+
+
+def _group_ids(row_ids, split: dict, side: str, name: str) -> np.ndarray:
+    """Bileşen üyeleri bileşenin en küçük row_id'sini, tekil satırlar -(row_id+1) alır."""
+    ids = [int(r) for r in row_ids]
+    foreign = set(ids) - set(split[f"{side}_ids"])
     if foreign:
         raise ValueError(
-            f"{len(foreign)} satır {Path(path).name} train'inde değil (test ya da başka split?)."
+            f"{len(foreign)} satır {name} {side}'inde değil (başka küme ya da split?)."
         )
     gid = {i: comp[0] for comp in split["components"] for i in comp}
-    return np.array([gid.get(int(r), -(int(r) + 1)) for r in train_df["row_id"]], dtype=np.int64)
+    return np.array([gid.get(r, -(r + 1)) for r in ids], dtype=np.int64)
 
 
 def make_cv(

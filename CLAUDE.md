@@ -61,6 +61,8 @@ Amaç hem öğrenmek hem portfolyo oluşturmak.
   raporlanır.
 - Karşılaştırmalar nokta tahminle bırakılmaz: CV için ortalama ± std, test için bootstrap güven
   aralığı, model çiftleri için McNemar testi kullanılır.
+- Test yönteminin tek kaynağı `ttc4900.test_plan.TEST_PLAN`'dır (kodu `ttc4900.paired_test`,
+  özeti `docs/test_protokol.md`). Exact McNemar, grup bootstrap ve karar kuralı buradan okunur.
 - BERTurk sonuçları birden fazla seed ile raporlanır.
 
 ### Kod düzeni

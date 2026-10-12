@@ -177,6 +177,18 @@ def test_cv_groups_rejects_foreign_rows(tmp_path):
         make_cv(clean, path=p)  # test satırları da içeriyor
 
 
+def test_test_groups_aligned_and_rejects_train_rows(tmp_path):
+    clean, groups = _synthetic()
+    p = tmp_path / "s2.json"
+    s = make_split_v2(clean, groups, path=p, n_raw=len(clean))
+    test = clean[clean["row_id"].isin(s["test_ids"])].sample(frac=1, random_state=0)
+    test = test.reset_index(drop=True)
+    g = data.test_groups(test, path=p)
+    _assert_groups_match_components(test, g, s["components"])
+    with pytest.raises(ValueError, match="test'inde değil"):
+        data.test_groups(clean, path=p)  # train satırları da içeriyor
+
+
 def test_cv_groups_v1_error(tmp_path):
     clean, _ = _synthetic()
     p = tmp_path / "s1.json"
@@ -232,6 +244,17 @@ def test_real_make_cv_groups():
     train_set = set(s2["train_ids"])
     comps = [c for c in s2["components"] if set(c) <= train_set]
     _assert_groups_match_components(train.reset_index(drop=True), g, comps)
+
+
+@_real
+def test_real_test_groups():
+    """Gerçek split_v2 test'i: yalnızca row_id'ler (metin/etiket yok)."""
+    s2 = load_split(SPLIT_V2_PATH)
+    test = pd.DataFrame({"row_id": s2["test_ids"]})
+    g = data.test_groups(test)
+    test_set = set(s2["test_ids"])
+    comps = [c for c in s2["components"] if set(c) <= test_set]
+    _assert_groups_match_components(test, g, comps)
 
 
 @_real

@@ -55,6 +55,7 @@ Ayrıntı için `docs/shortcut_learning.md` dosyasına bak.
   bakılmaz.
 - Testte bu encoder char_lr'ye karşı McNemar ve paired bootstrap ile karşılaştırılır. Bu
   karşılaştırma Faz 2'nin ikincil Holm ailesine eklenir ve aile 3'ten 4 karşılaştırmaya çıkar.
+  Yöntemin ayrıntısı (exact McNemar, grup bootstrap, karar kuralı): `docs/test_protokol.md`.
 - Birincil aile (BERTurk fine-tuning vs char_lr) değişmez.
 - Test sonucuna göre encoder, pooling ya da C değiştirilmez.
 

@@ -20,7 +20,7 @@ Varsayımlar ve sınırlar:
 - ci95 aralıkları marjinaldir (çoklu karşılaştırma düzeltmesiz); p_holm ise Holm düzeltmelidir.
 
 Bu fazdaki p-değerleri keşifseldir; model seçimine yardım eder, "A, B'den iyidir" iddiası
-final test fazındaki McNemar / paired bootstrap ile kurulur.
+final test fazındaki McNemar / grup bootstrap ile kurulur (yöntem: ttc4900.test_plan).
 
 Kullanım: python -m ttc4900.cv_compare
 """
@@ -37,6 +37,7 @@ from scipy import stats
 
 from ttc4900 import report
 from ttc4900.paths import FIGURES_DIR, METRICS_DIR
+from ttc4900.test_plan import TEST_PLAN  # test yönteminin tek kaynağı; özetlere gömülür
 
 DISPLAY = {
     "word_lr": "Kelime TF-IDF + LR",
@@ -51,31 +52,6 @@ SELECTION_RULE = (
     "eleştirisini önlemek için tutucu tercih). Kural testten ÖNCE donar; test sonucuna göre "
     "'en iyi klasik' değiştirilmez."
 )
-TEST_PLAN = {
-    "primary": "BERTurk vs birincil klasik baseline (McNemar + paired bootstrap, ayrı aile)",
-    "secondary": (
-        "Dört klasik modelin donmuş final.best_params konfigürasyonları betimsel raporlanır; "
-        "birincil modele karşı 3 karşılaştırma ayrı bir Holm ailesi"
-    ),
-    "power_warning": (
-        "908 test örneğiyle klasik modeller arası 0.004-0.01'lik farkların McNemar ile "
-        "yakalanması beklenmez; anlamsız sonuç eşdeğerlik kanıtı sayılmaz"
-    ),
-    "sensitivity_c1": (
-        "C1 duyarlılık analizi (kural CV'den ÖNCE donduruldu): birincil klasik baseline ham "
-        "char_lr olarak KALIR. U+0091-U+0094 silinmiş char_lr_c1clean yalnızca duyarlılık "
-        "analizidir; final.best_params ile teste ikincil/betimsel olarak taşınır ve ham "
-        "char_lr ile birlikte raporlanır. İkisi arasında test (ya da CV) sonucuna göre seçim "
-        "YAPILMAZ; BERTurk karşılaştırmasındaki referans değişmez. Testte bu çift için p "
-        "hesaplanmaz: yalnızca iki modelin skorları ve farkın paired bootstrap %95 CI'ı "
-        "betimsel raporlanır (hiçbir Holm ailesine girmez)."
-    ),
-    "expectation_note": (
-        "CV skoru 2904 satırla eğitimi ölçer, final model 3630 satırla eğitilir; ayrıca seçilen "
-        "modelin CV skoru 4 adayın maksimumudur (kazananın laneti). Test skorunun CV'den "
-        "farklı çıkması tek başına anomali değildir."
-    ),
-}
 
 
 def latest_metrics(name: str, metrics_dir: Path = METRICS_DIR, phase: int = 2) -> dict | None:
