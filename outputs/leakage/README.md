@@ -19,8 +19,12 @@ Kurallar yalnızca işaret koyar, model seçimini etkilemez.
 ## Bulgular
 
 ### 1. Kodlama artefaktı: C1 kontrol karakterleri (şüpheli, en güçlü bulgu)
-Metinlerde cp1252 "akıllı tırnak"ları (‘ ’ “ ” –) yanlış çözülmüş ve U+0091–U+0096 kontrol
-karakterleri olarak kalmış. Bu karakterlerin geçtiği belge oranı sınıfa göre çok değişiyor:
+Metinlerde cp1252 "akıllı tırnak"ları (‘ ’ “ ”) yanlış çözülmüş ve U+0091–U+0094 kontrol
+karakterleri olarak kalmış. Train'deki 15 753 C1 karakterinin 15 619'u bu dört karakter
+(1157 belge). U+0095–U+009F (• – ™ …) yalnızca 66 belgede, U+0080–U+0090 1 belgede geçiyor.
+Aşağıdaki oranlar ve `c1_chars` U+0080–U+009F aralığının tamamını sayıyor; duyarlılık analizi
+(`char_lr_c1clean`) yalnızca U+0091–U+0094'ü siliyor. Bu karakterlerin geçtiği belge oranı
+sınıfa göre çok değişiyor:
 
 | dunya | ekonomi | kultur | saglik | siyaset | spor | teknoloji |
 |---|---|---|---|---|---|---|
