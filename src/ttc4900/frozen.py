@@ -8,6 +8,7 @@ Bu dosyadaki aile, grid ve kurallar CV KOŞMADAN ÖNCE ayrı bir commit'le dondu
 
 Kullanım:
     python -m ttc4900.frozen --encoder all --n-jobs 8     # ailenin nested CV'si (ham metin)
+    python -m ttc4900.frozen --expand-edges --n-jobs 8    # grid kenarı kuralı (tetiklenirse)
     python -m ttc4900.frozen --sensitivity --n-jobs 8     # en iyi encoder, C1 temiz metin
 """
 
@@ -94,6 +95,27 @@ RULES = {
 }
 
 
+def expanded_spec(direction: str) -> Spec:
+    """RULES["grid_edge"]: C grid'i bir dekad aşağı ("low") ya da yukarı ("high") genişletilir."""
+    grid = SPEC.grid["clf__C"]
+    new = [grid[0] / 10, *grid] if direction == "low" else [*grid, grid[-1] * 10]
+    return Spec(make=SPEC.make, grid={"clf__C": new}, fixed=SPEC.fixed)
+
+
+def edge_direction(m: dict) -> str | None:
+    """Kuralın tetiklenip tetiklenmediği: final uçta ya da dış seçimlerin >= 8/15'i bir uçta."""
+    from ttc4900.cv_compare import grid_edges
+
+    e = grid_edges({"x": m})["x"]["clf__C"]
+    if e["final_edge"]:
+        return e["final_edge"]
+    if e["n_folds_low_edge"] >= 8:
+        return "low"
+    if e["n_folds_high_edge"] >= 8:
+        return "high"
+    return None
+
+
 def best_encoder(metrics_dir: Path = METRICS_DIR) -> str:
     """Ham metinle dış CV ortalaması en yüksek aile üyesi (eksik sonuç varsa hata)."""
     from ttc4900.cv_compare import latest_metrics
@@ -105,28 +127,65 @@ def best_encoder(metrics_dir: Path = METRICS_DIR) -> str:
     return max(res, key=lambda n: res[n]["cv"]["macro_f1_mean"])
 
 
-def run(name: str, train: pd.DataFrame, n_jobs: int = 1, c1clean: bool = False) -> Path:
+def run(
+    name: str,
+    train: pd.DataFrame,
+    n_jobs: int = 1,
+    c1clean: bool = False,
+    spec: Spec = SPEC,
+    extra: dict | None = None,
+) -> Path:
     X = load_embeddings(name, train, c1clean)
     meta = cache_meta(name, c1clean)
     label = name + (C1_SUFFIX if c1clean else "")
     return run_nested(
         label,
-        SPEC,
+        spec,
         train,
         n_jobs=n_jobs,
         features=X,
         phase=3,
-        extra={"embedding": meta, "rules": RULES, "reference": REFERENCE},
+        extra={"embedding": meta, "rules": RULES, "reference": REFERENCE, **(extra or {})},
     )
+
+
+def expand_edges(train: pd.DataFrame, n_jobs: int = 1, metrics_dir: Path = METRICS_DIR) -> None:
+    """RULES["grid_edge"]'i uygular: tetiklenen encoder'lar genişletilmiş grid'le BİR KEZ
+    yeniden koşulur (zaten genişletilmiş bir koşu varsa tekrar edilmez)."""
+    from ttc4900.cv_compare import latest_metrics
+
+    for n in FAMILY:
+        m = latest_metrics(n, metrics_dir, phase=3)
+        if m.get("grid_expansion"):
+            print(f"{n}: zaten genişletilmiş grid'le koşulmuş, atlandı", flush=True)
+            continue
+        d = edge_direction(m)
+        if d is None:
+            print(f"{n}: kural tetiklenmedi", flush=True)
+            continue
+        spec = expanded_spec(d)
+        info = {
+            "rule": RULES["grid_edge"],
+            "direction": d,
+            "previous_run": m["_file"],
+            "previous_grid": m["params"]["grid"],
+            "previous_macro_f1_mean": m["cv"]["macro_f1_mean"],
+            "previous_final_params": m["final"]["best_params"],
+        }
+        print(n, d, run(n, train, n_jobs, spec=spec, extra={"grid_expansion": info}), flush=True)
 
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--encoder", default="all", choices=[*FAMILY, "all"])
     ap.add_argument("--sensitivity", action="store_true")
+    ap.add_argument("--expand-edges", action="store_true", help="RULES['grid_edge'] uygula")
     ap.add_argument("--n-jobs", type=int, default=1)
     args = ap.parse_args()
     train = load_train()  # test satırları belleğe hiç alınmaz
+    if args.expand_edges:
+        expand_edges(train, args.n_jobs)
+        return
     if args.sensitivity:
         best = best_encoder()
         print(f"en iyi encoder (ham): {best}; C1 temiz metinle embed + CV", flush=True)

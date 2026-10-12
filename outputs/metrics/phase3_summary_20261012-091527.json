@@ -1,0 +1,399 @@
+{
+  "experiment": "phase3_summary",
+  "phase": 3,
+  "timestamp": "2026-10-12T09:15:27+00:00",
+  "git_commit": "0e5b412",
+  "split": "split_v2",
+  "reference": "char_lr",
+  "ranking": [
+    {
+      "model": "bge_m3",
+      "display": "bge-m3 (CLS) + LR",
+      "phase": 3,
+      "macro_f1_mean": 0.9072491003070432,
+      "macro_f1_std": 0.009444448187095472,
+      "macro_f1_nb_ci95": [
+        0.8958502285120726,
+        0.9186479721020138
+      ],
+      "macro_f1_repeat_means": [
+        0.9081686794407681,
+        0.9083879054870045,
+        0.9051907159933572
+      ],
+      "accuracy_mean": 0.9059687786960514,
+      "per_class_f1_mean": {
+        "siyaset": 0.8815768499961478,
+        "dunya": 0.8657514931186852,
+        "ekonomi": 0.8562992310715902,
+        "kultur": 0.919563702638074,
+        "saglik": 0.9527222096978145,
+        "spor": 0.9804947564395844,
+        "teknoloji": 0.8943354591874065
+      },
+      "selection_bias": 0.0,
+      "final_params": {
+        "clf__C": 0.001
+      },
+      "source": "phase3_bge_m3_20261012-091503.json",
+      "git_commit": "0e5b412"
+    },
+    {
+      "model": "char_lr",
+      "display": "Karakter TF-IDF + LR (Faz 2, referans)",
+      "phase": 2,
+      "macro_f1_mean": 0.905353426991854,
+      "macro_f1_std": 0.0106843429658876,
+      "macro_f1_nb_ci95": [
+        0.8924580779710337,
+        0.9182487760126742
+      ],
+      "macro_f1_repeat_means": [
+        0.9054117720138205,
+        0.9047914714784173,
+        0.9058570374833244
+      ],
+      "accuracy_mean": 0.904315886134068,
+      "per_class_f1_mean": {
+        "siyaset": 0.8913172518471728,
+        "dunya": 0.8745927067406412,
+        "ekonomi": 0.8664554390190542,
+        "kultur": 0.9106395656100881,
+        "saglik": 0.9374752489642187,
+        "spor": 0.9798891391907466,
+        "teknoloji": 0.8771046375710569
+      },
+      "selection_bias": 0.0027404542227383866,
+      "final_params": {
+        "clf__C": 100.0,
+        "tfidf__ngram_range": [
+          2,
+          4
+        ]
+      },
+      "source": "phase2_char_lr_20261011-192701.json",
+      "git_commit": "c42a96f"
+    },
+    {
+      "model": "e5_base",
+      "display": "multilingual-e5-base + LR",
+      "phase": 3,
+      "macro_f1_mean": 0.9030485337964728,
+      "macro_f1_std": 0.011670687542084885,
+      "macro_f1_nb_ci95": [
+        0.8889627271494357,
+        0.9171343404435098
+      ],
+      "macro_f1_repeat_means": [
+        0.9026577669909317,
+        0.9055272480198638,
+        0.9009605863786232
+      ],
+      "accuracy_mean": 0.9020202020202018,
+      "per_class_f1_mean": {
+        "siyaset": 0.878377170755371,
+        "dunya": 0.8659022350278565,
+        "ekonomi": 0.8638860538246317,
+        "kultur": 0.9038549451866241,
+        "saglik": 0.9434676875868384,
+        "spor": 0.9778553147012216,
+        "teknoloji": 0.8879963294927673
+      },
+      "selection_bias": 0.0001925256545109999,
+      "final_params": {
+        "clf__C": 0.001
+      },
+      "source": "phase3_e5_base_20261012-091446.json",
+      "git_commit": "0e5b412"
+    },
+    {
+      "model": "berturk_mean",
+      "display": "BERTurk mean + LR",
+      "phase": 3,
+      "macro_f1_mean": 0.9006123893146987,
+      "macro_f1_std": 0.01058580066931222,
+      "macro_f1_nb_ci95": [
+        0.8878359748237518,
+        0.9133888038056456
+      ],
+      "macro_f1_repeat_means": [
+        0.9029770732475442,
+        0.8979100211078433,
+        0.9009500735887084
+      ],
+      "accuracy_mean": 0.8991735537190082,
+      "per_class_f1_mean": {
+        "siyaset": 0.8839956123191215,
+        "dunya": 0.8668475008981348,
+        "ekonomi": 0.8457148414723932,
+        "kultur": 0.9144181148124251,
+        "saglik": 0.9506718719645517,
+        "spor": 0.9777924849625516,
+        "teknoloji": 0.8648462987737134
+      },
+      "selection_bias": 0.0,
+      "final_params": {
+        "clf__C": 0.01
+      },
+      "source": "phase3_berturk_mean_20261012-091423.json",
+      "git_commit": "0e5b412"
+    }
+  ],
+  "vs_reference": [
+    {
+      "a": "berturk_mean",
+      "b": "char_lr",
+      "mean_diff": -0.004741037677155399,
+      "std_diff": 0.009793868205854948,
+      "se_corrected": 0.005511317498625702,
+      "se_naive": 0.0025287658970817688,
+      "ci95": [
+        -0.016561638081096255,
+        0.007079562726785457
+      ],
+      "t": -0.8602367180511048,
+      "df": 14,
+      "p": 0.4041498151164062,
+      "p_naive": 0.08182968335910434,
+      "n_folds_positive": 5,
+      "J": 15,
+      "fold_corr": 0.5760027748424075,
+      "p_holm": 1.0
+    },
+    {
+      "a": "e5_base",
+      "b": "char_lr",
+      "mean_diff": -0.002304893195381119,
+      "std_diff": 0.009912068886041913,
+      "se_corrected": 0.005577832736871857,
+      "se_naive": 0.002559285181473402,
+      "ci95": [
+        -0.01426815459685601,
+        0.009658368206093771
+      ],
+      "t": -0.4132237921271447,
+      "df": 14,
+      "p": 0.6857021864123111,
+      "p_naive": 0.38303182582565265,
+      "n_folds_positive": 5,
+      "J": 15,
+      "fold_corr": 0.6099390351058134,
+      "p_holm": 1.0
+    },
+    {
+      "a": "bge_m3",
+      "b": "char_lr",
+      "mean_diff": 0.0018956733151891836,
+      "std_diff": 0.007097259977776082,
+      "se_corrected": 0.003993851283850174,
+      "se_naive": 0.0018325046465087458,
+      "ci95": [
+        -0.006670285751936101,
+        0.010461632382314469
+      ],
+      "t": 0.47464794767263,
+      "df": 14,
+      "p": 0.6423567674159595,
+      "p_naive": 0.31845538926687705,
+      "n_folds_positive": 9,
+      "J": 15,
+      "fold_corr": 0.7580276394635976,
+      "p_holm": 1.0
+    }
+  ],
+  "p_table": [
+    {
+      "a": "berturk_mean",
+      "b": "char_lr",
+      "mean_diff": -0.004741037677155399,
+      "ci95": [
+        -0.016561638081096255,
+        0.007079562726785457
+      ],
+      "p_naive": 0.08182968335910434,
+      "p_nb": 0.4041498151164062,
+      "p_nb_holm": 1.0
+    },
+    {
+      "a": "e5_base",
+      "b": "char_lr",
+      "mean_diff": -0.002304893195381119,
+      "ci95": [
+        -0.01426815459685601,
+        0.009658368206093771
+      ],
+      "p_naive": 0.38303182582565265,
+      "p_nb": 0.6857021864123111,
+      "p_nb_holm": 1.0
+    },
+    {
+      "a": "bge_m3",
+      "b": "char_lr",
+      "mean_diff": 0.0018956733151891836,
+      "ci95": [
+        -0.006670285751936101,
+        0.010461632382314469
+      ],
+      "p_naive": 0.31845538926687705,
+      "p_nb": 0.6423567674159595,
+      "p_nb_holm": 1.0
+    }
+  ],
+  "grid_edges": {
+    "berturk_mean": {
+      "clf__C": {
+        "grid": [
+          0.001,
+          0.01,
+          0.1,
+          1.0,
+          10.0
+        ],
+        "grid_size": 5,
+        "fold_counts": {
+          "0.001": 2,
+          "0.01": 13,
+          "0.1": 0,
+          "1.0": 0,
+          "10.0": 0
+        },
+        "n_folds": 15,
+        "n_folds_low_edge": 2,
+        "n_folds_high_edge": 0,
+        "final": 0.01,
+        "final_edge": null
+      }
+    },
+    "e5_base": {
+      "clf__C": {
+        "grid": [
+          0.001,
+          0.01,
+          0.1,
+          1.0,
+          10.0
+        ],
+        "grid_size": 5,
+        "fold_counts": {
+          "0.001": 6,
+          "0.01": 9,
+          "0.1": 0,
+          "1.0": 0,
+          "10.0": 0
+        },
+        "n_folds": 15,
+        "n_folds_low_edge": 6,
+        "n_folds_high_edge": 0,
+        "final": 0.001,
+        "final_edge": "low"
+      }
+    },
+    "bge_m3": {
+      "clf__C": {
+        "grid": [
+          0.001,
+          0.01,
+          0.1,
+          1.0,
+          10.0
+        ],
+        "grid_size": 5,
+        "fold_counts": {
+          "0.001": 12,
+          "0.01": 3,
+          "0.1": 0,
+          "1.0": 0,
+          "10.0": 0
+        },
+        "n_folds": 15,
+        "n_folds_low_edge": 12,
+        "n_folds_high_edge": 0,
+        "final": 0.001,
+        "final_edge": "low"
+      }
+    }
+  },
+  "val_train_ratio": 0.25,
+  "selected_for_test": "bge_m3",
+  "embedding_meta": {
+    "berturk_mean": {
+      "encoder": "berturk_mean",
+      "model_id": "dbmdz/bert-base-turkish-cased",
+      "revision": "b6e1de16c983e0f2c70664591ea3f22810072608",
+      "pooling": "mean",
+      "prefix": "",
+      "max_length": 512,
+      "source": "sentence modeli değil, card pooling önermiyor; mask'li ortalama seçildi",
+      "c1clean": false,
+      "text_transform": "yok",
+      "n": 3630,
+      "train_row_ids_sha256": "04f4a0bbd37a5b31a2c54319ea20de8ce306e9507c43685769e4b9c1750cef27",
+      "split": "split_v2",
+      "n_truncated": 810,
+      "torch": "2.14.1+cpu",
+      "transformers": "5.19.0",
+      "device": "cpu",
+      "dtype": "float32",
+      "created_at": "2026-10-12T08:43:07+00:00",
+      "git_commit": "0e5b412"
+    },
+    "e5_base": {
+      "encoder": "e5_base",
+      "model_id": "intfloat/multilingual-e5-base",
+      "revision": "d128750597153bb5987e10b1c3493a34e5a4502a",
+      "pooling": "mean",
+      "prefix": "query: ",
+      "max_length": 512,
+      "source": "model card: 'query: ' prefix for linear probing classification; 1_Pooling mean",
+      "c1clean": false,
+      "text_transform": "yok",
+      "n": 3630,
+      "train_row_ids_sha256": "04f4a0bbd37a5b31a2c54319ea20de8ce306e9507c43685769e4b9c1750cef27",
+      "split": "split_v2",
+      "n_truncated": 1149,
+      "torch": "2.14.1+cpu",
+      "transformers": "5.19.0",
+      "device": "cpu",
+      "dtype": "float32",
+      "created_at": "2026-10-12T08:34:43+00:00",
+      "git_commit": "0e5b412"
+    },
+    "bge_m3": {
+      "encoder": "bge_m3",
+      "model_id": "BAAI/bge-m3",
+      "revision": "5617a9f61b028005a4858fdac845db406aefb181",
+      "pooling": "cls",
+      "prefix": "",
+      "max_length": 512,
+      "source": "1_Pooling/config.json: pooling_mode_cls_token=true; card: prefix gerekmez",
+      "c1clean": false,
+      "text_transform": "yok",
+      "n": 3630,
+      "train_row_ids_sha256": "04f4a0bbd37a5b31a2c54319ea20de8ce306e9507c43685769e4b9c1750cef27",
+      "split": "split_v2",
+      "n_truncated": 1141,
+      "torch": "2.14.1+cpu",
+      "transformers": "5.19.0",
+      "device": "cpu",
+      "dtype": "float32",
+      "created_at": "2026-10-12T09:14:17+00:00",
+      "git_commit": "0e5b412"
+    }
+  },
+  "rules": {
+    "family": "Aile = ['berturk_mean', 'e5_base', 'bge_m3'] (m=3). Token uzunluğu ve 64 metinlik hız ölçümünden sonra, CV'den önce donduruldu; bge-m3 önceden konan <= 60 dk eşiğini (32 dk) geçtiği için dahil.",
+    "max_length": "Üç encoder'da 512 token, baştan kesme (head truncation). Kesilen metin oranı %22-32, önceden konan %40 parçalama eşiğinin altında. bge-m3'ün kendi sınırı 8192 token'dır; 512 karşılaştırılabilirlik (BERT ailesinin sınırı) ve CPU maliyeti için seçildi, bu yüzden bge-m3 uzun metin avantajını bu fazda kullanmaz.",
+    "input_text": "Ham metin (Faz 2 birincil char_lr ile aynı girdi). ASİMETRİ: e5_base ve bge_m3 (XLM-R tokenizer) U+0091-U+0094 kontrol karakterlerini gerçek token id'leriyle görür; berturk_mean (BERT normalizer'ı Cc karakterlerini siler) görmez. Encoder'lar arası ve char_lr'ye karşı farklar bu artefakta erişim farkını içerebilir.",
+    "comparison": "Her encoder için d_j = encoder_j - char_lr_j (aynı 15 dış fold, npz'den doğrulanır). Sütunlar: düz eşleştirilmiş t p'si (karar için kullanılmaz), Nadeau-Bengio düzeltmeli t (df=14, oran n_val/n_train), N-B p'lerine Holm (aile = 3 encoder). Referans sabit char_lr'dir (argmax değil). Encoder'lar arası sıralama betimseldir.",
+    "grid_edge": "Final seçim ya da dış fold seçimlerinin >= 8/15'i C grid'inin bir ucundaysa grid o yönde bir dekad genişletilip o encoder bir kez yeniden koşulur; iki koşu da raporlanır (Faz 2'deki tek genişletme ile aynı ilke).",
+    "test_transfer": "Teste taşınan tek Faz 3 konfigürasyonu: ham metinle dış CV macro-F1 ortalaması en yüksek encoder, final.best_params ile; char_lr'yi geçip geçmemesinden BAĞIMSIZ taşınır. Testte char_lr'ye karşı McNemar + paired bootstrap; Faz 2'nin ikincil Holm ailesine (birincil char_lr'ye karşı karşılaştırmalar) eklenir, aile 3'ten 4'e çıkar. Birincil aile (BERTurk fine-tuning vs char_lr) değişmez. Test embedding'i yalnızca final değerlendirmede, aynı revision/max_length/pooling ile üretilir; test sonucuna göre encoder, pooling ya da C değiştirilmez.",
+    "sensitivity_c1": "Ham metinle CV'de en iyi çıkan encoder (test_transfer ile aynı seçim) bir kez de U+0091-U+0094 silinmiş metinle (baselines.strip_c1_quotes) embed edilip aynı protokolle koşulur. Tek karşılaştırma: ham - temiz, Nadeau-Bengio (Holm yok). İkincil duyarlılık analizi olarak raporlanır; model seçiminde KULLANILMAZ ve teste taşınmaz. En iyi berturk_mean çıkarsa tokenizer bu karakterleri zaten sildiğinden fark yapısal olarak ~0 beklenir; yine de koşulur."
+  },
+  "notes": {
+    "p_table": "mean_diff = encoder - char_lr (pozitif: encoder daha iyi). p_naive düz eşleştirilmiş t, karar için kullanılmaz; p_nb Nadeau-Bengio; p_nb_holm aile = 3 encoder; ci95 marjinal (düzeltmesiz).",
+    "asymmetry": "Ham metin (Faz 2 birincil char_lr ile aynı girdi). ASİMETRİ: e5_base ve bge_m3 (XLM-R tokenizer) U+0091-U+0094 kontrol karakterlerini gerçek token id'leriyle görür; berturk_mean (BERT normalizer'ı Cc karakterlerini siler) görmez. Encoder'lar arası ve char_lr'ye karşı farklar bu artefakta erişim farkını içerebilir.",
+    "max_length": "Üç encoder'da 512 token, baştan kesme (head truncation). Kesilen metin oranı %22-32, önceden konan %40 parçalama eşiğinin altında. bge-m3'ün kendi sınırı 8192 token'dır; 512 karşılaştırılabilirlik (BERT ailesinin sınırı) ve CPU maliyeti için seçildi, bu yüzden bge-m3 uzun metin avantajını bu fazda kullanmaz.",
+    "ranking": "encoder'lar arası sıralama betimseldir; test edilmez"
+  },
+  "test": null
+}

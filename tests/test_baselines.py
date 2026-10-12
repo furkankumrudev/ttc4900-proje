@@ -145,3 +145,20 @@ def test_features_scaler_fit_only_on_outer_train(toy, monkeypatch):
         assert all(not (s & val) for s in seen[i * per_fold : (i + 1) * per_fold])
     with pytest.raises(ValueError, match="satır sayısı"):
         baselines.nested_cv(SPEC, train, [0, 1, 2], p, features=feats[:-1])
+
+
+def test_grid_edge_rule_direction_and_expansion():
+    from ttc4900 import frozen
+
+    grid = {"clf__C": frozen.SPEC.grid["clf__C"]}
+
+    def m(folds, final):
+        return {"params": {"grid": grid}, "cv": {"folds": [{"best_params": {"clf__C": c}}
+                for c in folds]}, "final": {"best_params": {"clf__C": final}}}  # fmt: skip
+
+    assert frozen.edge_direction(m([0.01] * 15, 0.001)) == "low"  # final uçta
+    assert frozen.edge_direction(m([0.001] * 8 + [0.01] * 7, 0.01)) == "low"  # 8/15 uçta
+    assert frozen.edge_direction(m([0.001] * 7 + [0.01] * 8, 0.01)) is None
+    assert frozen.edge_direction(m([10.0] * 9 + [1.0] * 6, 1.0)) == "high"
+    assert frozen.expanded_spec("low").grid["clf__C"][0] == 1e-4
+    assert frozen.expanded_spec("high").grid["clf__C"][-1] == 100.0

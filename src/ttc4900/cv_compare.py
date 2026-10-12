@@ -464,6 +464,7 @@ def compare_to_reference(metrics_dir: Path = METRICS_DIR) -> tuple[dict, dict[st
         "val_train_ratio": ratio,
         "selected_for_test": best,
         "embedding_meta": {n: encs[n].get("embedding") for n in FAMILY},
+        "grid_expansion": {n: encs[n].get("grid_expansion") for n in FAMILY},
         "rules": RULES,
         "notes": {
             "p_table": (
