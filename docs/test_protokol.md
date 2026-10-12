@@ -65,7 +65,8 @@ açılmadan** donduruldu; test sonucuna göre değiştirilmez.
   Kural koşulların kesişimi olduğu için gücü, her koşulun tek başına gücünden yüksek olamaz.
 
 ## Güç analizi
-Kaynak: yalnızca train OOF tahminleri, `outputs/metrics/test_power_*.json`.
+Kaynak: yalnızca train OOF tahminleri,
+`outputs/metrics/test_power_20261012-133032.json` (commit `489279d`).
 
 - **psi:** iki modelden yalnızca birinin doğru olduğu OOF satırlarının oranı, 3 tekrarın
   ortalaması.

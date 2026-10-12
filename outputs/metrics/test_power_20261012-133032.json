@@ -1,0 +1,498 @@
+{
+  "experiment": "test_power",
+  "phase": "test öncesi (Faz 4'ten önce)",
+  "timestamp": "2026-10-12T13:30:32+00:00",
+  "git_commit": "489279d",
+  "split": "split_v2",
+  "n_test": 908,
+  "test_group_structure": {
+    "n_groups": 850,
+    "group_size_hist": {
+      "1": 800,
+      "2": 44,
+      "3": 5,
+      "5": 1
+    },
+    "note": "yalnızca split dosyasındaki test row_id'leri ve components; metin/etiket yok"
+  },
+  "settings": {
+    "power_target": 0.8,
+    "alpha_primary": 0.05,
+    "alphas_secondary": [
+      0.0125,
+      0.05
+    ],
+    "bootstrap_B": 10000,
+    "bootstrap_seed": 42
+  },
+  "pairs": [
+    {
+      "role": "primary",
+      "a": "berturk_ft",
+      "b": "char_lr",
+      "status": "OOF yok (Faz 4 sonrası aynı CLI ile hesaplanır)"
+    },
+    {
+      "role": "secondary",
+      "a": "char_lr",
+      "b": "word_lr",
+      "n_repeats_used": 3,
+      "psi_mean": 0.052157943067033974,
+      "psi_by_repeat": [
+        0.049862258953168044,
+        0.05371900826446281,
+        0.05289256198347107
+      ],
+      "oof_acc_diff_mean": 0.00789715335169879,
+      "oof_macro_f1_diff_mean": 0.007580484069696543,
+      "per_repeat": [
+        {
+          "repeat": 0,
+          "psi": 0.049862258953168044,
+          "n10": 104,
+          "n01": 77,
+          "acc_diff": 0.007438016528925617,
+          "macro_f1_diff": 0.007058963198529167
+        },
+        {
+          "repeat": 1,
+          "psi": 0.05371900826446281,
+          "n10": 111,
+          "n01": 84,
+          "acc_diff": 0.007438016528925617,
+          "macro_f1_diff": 0.007052821062508596
+        },
+        {
+          "repeat": 2,
+          "psi": 0.05289256198347107,
+          "n10": 112,
+          "n01": 80,
+          "acc_diff": 0.008815426997245135,
+          "macro_f1_diff": 0.008629667948051867
+        }
+      ],
+      "oof_macro_f1_diff_se_boot_r0": 0.003739032612871239,
+      "se_ratio_group_vs_iid_r0": 1.0224632128399014,
+      "macro_f1_diff_se_test_rough": 0.007476006003556736,
+      "by_alpha": {
+        "0.0125": {
+          "mde_acc": 0.02569870976261982,
+          "power_at_oof_acc_diff": 0.053619428938500545,
+          "mde_macro_f1_rough": 0.02496482651673537,
+          "z_multiplier": 3.3393267079852884
+        },
+        "0.05": {
+          "mde_acc": 0.02181578263450122,
+          "power_at_oof_acc_diff": 0.14647070422838113,
+          "mde_macro_f1_rough": 0.02094466791008836,
+          "z_multiplier": 2.8015852181129683
+        }
+      },
+      "sources": {
+        "a": "phase2_char_lr_20261011-192701.json",
+        "b": "phase2_word_lr_20261011-193915.json"
+      },
+      "source_commits": {
+        "a": "c42a96f",
+        "b": "c42a96f"
+      }
+    },
+    {
+      "role": "secondary",
+      "a": "char_lr",
+      "b": "word_svc",
+      "n_repeats_used": 3,
+      "psi_mean": 0.050872359963269054,
+      "psi_by_repeat": [
+        0.047933884297520664,
+        0.0512396694214876,
+        0.0534435261707989
+      ],
+      "oof_acc_diff_mean": 0.0036730945821854912,
+      "oof_macro_f1_diff_mean": 0.0035666422322238414,
+      "per_repeat": [
+        {
+          "repeat": 0,
+          "psi": 0.047933884297520664,
+          "n10": 91,
+          "n01": 83,
+          "acc_diff": 0.0022038567493113392,
+          "macro_f1_diff": 0.001916147331292195
+        },
+        {
+          "repeat": 1,
+          "psi": 0.0512396694214876,
+          "n10": 102,
+          "n01": 84,
+          "acc_diff": 0.0049586776859503745,
+          "macro_f1_diff": 0.004950603680464738
+        },
+        {
+          "repeat": 2,
+          "psi": 0.0534435261707989,
+          "n10": 104,
+          "n01": 90,
+          "acc_diff": 0.0038567493112947604,
+          "macro_f1_diff": 0.0038331756849145915
+        }
+      ],
+      "oof_macro_f1_diff_se_boot_r0": 0.0036926887108550454,
+      "se_ratio_group_vs_iid_r0": 1.0321766782304256,
+      "macro_f1_diff_se_test_rough": 0.007383343722808333,
+      "by_alpha": {
+        "0.0125": {
+          "mde_acc": 0.02536947656148086,
+          "power_at_oof_acc_diff": 0.01618700613801103,
+          "mde_macro_f1_rough": 0.024655396887809395,
+          "z_multiplier": 3.3393267079852884
+        },
+        "0.05": {
+          "mde_acc": 0.02155218934795991,
+          "power_at_oof_acc_diff": 0.05874244267925124,
+          "mde_macro_f1_rough": 0.020685066634067,
+          "z_multiplier": 2.8015852181129683
+        }
+      },
+      "sources": {
+        "a": "phase2_char_lr_20261011-192701.json",
+        "b": "phase2_word_svc_20261011-193915.json"
+      },
+      "source_commits": {
+        "a": "c42a96f",
+        "b": "c42a96f"
+      }
+    },
+    {
+      "role": "secondary",
+      "a": "char_lr",
+      "b": "word_cnb",
+      "n_repeats_used": 3,
+      "psi_mean": 0.06758494031221304,
+      "psi_by_repeat": [
+        0.06611570247933884,
+        0.07134986225895316,
+        0.0652892561983471
+      ],
+      "oof_acc_diff_mean": 0.010468319559228667,
+      "oof_macro_f1_diff_mean": 0.010554188111028298,
+      "per_repeat": [
+        {
+          "repeat": 0,
+          "psi": 0.06611570247933884,
+          "n10": 134,
+          "n01": 106,
+          "acc_diff": 0.007713498622589521,
+          "macro_f1_diff": 0.00778022322605898
+        },
+        {
+          "repeat": 1,
+          "psi": 0.07134986225895316,
+          "n10": 154,
+          "n01": 105,
+          "acc_diff": 0.013498622589531717,
+          "macro_f1_diff": 0.013633983953786788
+        },
+        {
+          "repeat": 2,
+          "psi": 0.0652892561983471,
+          "n10": 137,
+          "n01": 100,
+          "acc_diff": 0.010192837465564764,
+          "macro_f1_diff": 0.01024835715323913
+        }
+      ],
+      "oof_macro_f1_diff_se_boot_r0": 0.004454679361624277,
+      "se_ratio_group_vs_iid_r0": 1.0617934440555146,
+      "macro_f1_diff_se_test_rough": 0.00890690536819082,
+      "by_alpha": {
+        "0.0125": {
+          "mde_acc": 0.02932923434349525,
+          "power_at_oof_acc_diff": 0.07731795980384192,
+          "mde_macro_f1_rough": 0.029743066981497143,
+          "z_multiplier": 3.3393267079852884
+        },
+        "0.05": {
+          "mde_acc": 0.024819755511184764,
+          "power_at_oof_acc_diff": 0.19313995790552596,
+          "mde_macro_f1_rough": 0.024953454418654444,
+          "z_multiplier": 2.8015852181129683
+        }
+      },
+      "sources": {
+        "a": "phase2_char_lr_20261011-192701.json",
+        "b": "phase2_word_cnb_20261011-193915.json"
+      },
+      "source_commits": {
+        "a": "c42a96f",
+        "b": "c42a96f"
+      }
+    },
+    {
+      "role": "secondary",
+      "a": "bge_m3",
+      "b": "char_lr",
+      "n_repeats_used": 3,
+      "psi_mean": 0.07419651056014692,
+      "psi_by_repeat": [
+        0.07410468319559228,
+        0.07162534435261708,
+        0.0768595041322314
+      ],
+      "oof_acc_diff_mean": 0.001652892561983495,
+      "oof_macro_f1_diff_mean": 0.0018617357506687249,
+      "per_repeat": [
+        {
+          "repeat": 0,
+          "psi": 0.07410468319559228,
+          "n10": 139,
+          "n01": 130,
+          "acc_diff": 0.0024793388429752428,
+          "macro_f1_diff": 0.0026691894024201135
+        },
+        {
+          "repeat": 1,
+          "psi": 0.07162534435261708,
+          "n10": 136,
+          "n01": 124,
+          "acc_diff": 0.0033057851239669533,
+          "macro_f1_diff": 0.0035373321805973745
+        },
+        {
+          "repeat": 2,
+          "psi": 0.0768595041322314,
+          "n10": 138,
+          "n01": 141,
+          "acc_diff": -0.0008264462809917106,
+          "macro_f1_diff": -0.0006213143310113134
+        }
+      ],
+      "oof_macro_f1_diff_se_boot_r0": 0.004702375416710349,
+      "se_ratio_group_vs_iid_r0": 1.0557850406759168,
+      "macro_f1_diff_se_test_rough": 0.009402161063074635,
+      "by_alpha": {
+        "0.0125": {
+          "mde_acc": 0.030749424668471068,
+          "power_at_oof_acc_diff": 0.00972585458238855,
+          "mde_macro_f1_rough": 0.03139688755070448,
+          "z_multiplier": 3.3393267079852884
+        },
+        "0.05": {
+          "mde_acc": 0.026003446166582907,
+          "power_at_oof_acc_diff": 0.04109161922703578,
+          "mde_macro_f1_rough": 0.02634095545262721,
+          "z_multiplier": 2.8015852181129683
+        }
+      },
+      "sources": {
+        "a": "phase3_bge_m3_20261012-091657.json",
+        "b": "phase2_char_lr_20261011-192701.json"
+      },
+      "source_commits": {
+        "a": "5b95038",
+        "b": "c42a96f"
+      }
+    },
+    {
+      "role": "descriptive",
+      "a": "char_lr",
+      "b": "char_lr_c1clean",
+      "n_repeats_used": 3,
+      "psi_mean": 0.016437098255280072,
+      "psi_by_repeat": [
+        0.013223140495867768,
+        0.017355371900826446,
+        0.018732782369146005
+      ],
+      "oof_acc_diff_mean": 0.004683195592286508,
+      "oof_macro_f1_diff_mean": 0.004442866329067467,
+      "per_repeat": [
+        {
+          "repeat": 0,
+          "psi": 0.013223140495867768,
+          "n10": 30,
+          "n01": 18,
+          "acc_diff": 0.0033057851239669533,
+          "macro_f1_diff": 0.0029988163625743747
+        },
+        {
+          "repeat": 1,
+          "psi": 0.017355371900826446,
+          "n10": 40,
+          "n01": 23,
+          "acc_diff": 0.004683195592286471,
+          "macro_f1_diff": 0.004524650524800777
+        },
+        {
+          "repeat": 2,
+          "psi": 0.018732782369146005,
+          "n10": 45,
+          "n01": 23,
+          "acc_diff": 0.0060606060606061,
+          "macro_f1_diff": 0.005805132099827248
+        }
+      ],
+      "oof_macro_f1_diff_se_boot_r0": 0.0019990941242919156,
+      "se_ratio_group_vs_iid_r0": 1.061251377567228,
+      "macro_f1_diff_se_test_rough": 0.003997087274241442,
+      "by_alpha": {
+        "0.05": {
+          "mde_acc": 0.012133626371206692,
+          "power_at_oof_acc_diff": 0.13212646116182566,
+          "mde_macro_f1_rough": 0.01119818062302228,
+          "z_multiplier": 2.8015852181129683
+        }
+      },
+      "sources": {
+        "a": "phase2_char_lr_20261011-192701.json",
+        "b": "phase2_char_lr_c1clean_20261012-075141.json"
+      },
+      "source_commits": {
+        "a": "c42a96f",
+        "b": "0bd1d64"
+      },
+      "note": "testte p yok: yalnız mde_macro_f1_rough (CI koşulu) anlamlı"
+    },
+    {
+      "role": "primary_proxy",
+      "a": "berturk_mean",
+      "b": "char_lr",
+      "n_repeats_used": 3,
+      "psi_mean": 0.07144168962350782,
+      "psi_by_repeat": [
+        0.06942148760330578,
+        0.07355371900826446,
+        0.07134986225895316
+      ],
+      "oof_acc_diff_mean": -0.0051423324150596805,
+      "oof_macro_f1_diff_mean": -0.004752065636107232,
+      "per_repeat": [
+        {
+          "repeat": 0,
+          "psi": 0.06942148760330578,
+          "n10": 121,
+          "n01": 131,
+          "acc_diff": -0.0027548209366391463,
+          "macro_f1_diff": -0.0024373428655528606
+        },
+        {
+          "repeat": 1,
+          "psi": 0.07355371900826446,
+          "n10": 120,
+          "n01": 147,
+          "acc_diff": -0.007438016528925617,
+          "macro_f1_diff": -0.006912621521511397
+        },
+        {
+          "repeat": 2,
+          "psi": 0.07134986225895316,
+          "n10": 120,
+          "n01": 139,
+          "acc_diff": -0.005234159779614278,
+          "macro_f1_diff": -0.0049062325212574365
+        }
+      ],
+      "oof_macro_f1_diff_se_boot_r0": 0.004516673353713732,
+      "se_ratio_group_vs_iid_r0": 1.037964257913702,
+      "macro_f1_diff_se_test_rough": 0.009030859210008024,
+      "by_alpha": {
+        "0.0125": {
+          "mde_acc": 0.030166265766732966,
+          "power_at_oof_acc_diff": 0.020699795885463196,
+          "mde_macro_f1_rough": 0.030156989356034714,
+          "z_multiplier": 3.3393267079852884
+        },
+        "0.05": {
+          "mde_acc": 0.02551501689381119,
+          "power_at_oof_acc_diff": 0.0707987777628397,
+          "mde_macro_f1_rough": 0.02530072166961784,
+          "z_multiplier": 2.8015852181129683
+        }
+      },
+      "sources": {
+        "a": "phase3_berturk_mean_20261012-091423.json",
+        "b": "phase2_char_lr_20261011-192701.json"
+      },
+      "source_commits": {
+        "a": "0e5b412",
+        "b": "c42a96f"
+      }
+    },
+    {
+      "role": "primary_proxy",
+      "a": "e5_base",
+      "b": "char_lr",
+      "n_repeats_used": 3,
+      "psi_mean": 0.07447199265381084,
+      "psi_by_repeat": [
+        0.07382920110192838,
+        0.07603305785123966,
+        0.07355371900826446
+      ],
+      "oof_acc_diff_mean": -0.0022956841138659367,
+      "oof_macro_f1_diff_mean": -0.0023278286653554137,
+      "per_repeat": [
+        {
+          "repeat": 0,
+          "psi": 0.07382920110192838,
+          "n10": 129,
+          "n01": 139,
+          "acc_diff": -0.0027548209366391463,
+          "macro_f1_diff": -0.0027866752910900017
+        },
+        {
+          "repeat": 1,
+          "psi": 0.07603305785123966,
+          "n10": 139,
+          "n01": 137,
+          "acc_diff": 0.000550964187327807,
+          "macro_f1_diff": 0.0006367437258862907
+        },
+        {
+          "repeat": 2,
+          "psi": 0.07355371900826446,
+          "n10": 125,
+          "n01": 142,
+          "acc_diff": -0.004683195592286471,
+          "macro_f1_diff": -0.00483355443086253
+        }
+      ],
+      "oof_macro_f1_diff_se_boot_r0": 0.004679236333428661,
+      "se_ratio_group_vs_iid_r0": 1.0437914628062817,
+      "macro_f1_diff_se_test_rough": 0.00935589564005179,
+      "by_alpha": {
+        "0.0125": {
+          "mde_acc": 0.030807016489772267,
+          "power_at_oof_acc_diff": 0.01077369172588045,
+          "mde_macro_f1_rough": 0.031242392187948057,
+          "z_multiplier": 3.3393267079852884
+        },
+        "0.05": {
+          "mde_acc": 0.026052034040749215,
+          "power_at_oof_acc_diff": 0.04406108139277081,
+          "mde_macro_f1_rough": 0.026211338927376666,
+          "z_multiplier": 2.8015852181129683
+        }
+      },
+      "sources": {
+        "a": "phase3_e5_base_20261012-091636.json",
+        "b": "phase2_char_lr_20261011-192701.json"
+      },
+      "source_commits": {
+        "a": "5b95038",
+        "b": "c42a96f"
+      }
+    }
+  ],
+  "notes": {
+    "mde_acc": "Exact iki yönlü McNemar'ın %80 güce ulaştığı en küçük accuracy farkı (p10 - p01), n = n_test, psi = OOF uyuşmazlık oranının tekrar ortalaması; psi alternatif altında sabit tutulur (yalnız uyuşmazlığın yönü değişir). nan: psi bu güce izin vermiyor.",
+    "alphas": "Birincil aile m=1: α=0.05. İkincil aile m=4: Holm'un ilk adımı α/4 (en kötü), son adımı α (en iyi); p < α/m her zaman reddedilir, p >= α hiç reddedilmez, bu yüzden iki α'daki güç Holm altındaki marjinal gücün alt ve üst sınırıdır. Vekil çiftlerde iki değer bilgi amaçlıdır; betimsel çiftte yalnız α (CI).",
+    "oof_differences": "OOF farkları kazananın lanetiyle yukarı yanlı olabilir (char_lr 4 klasik adayın, bge_m3 3 encoder'ın CV maksimumu); gerçek test farkı daha küçükse güç daha da düşüktür.",
+    "se_ratio_group_vs_iid_r0": "Train OOF'ta grup bootstrap SE'si / satır bootstrap SE'si (macro-F1 farkı). 1'e yakınsa yakın-tekrar bağımlılığının SE'ye etkisi küçüktür; testte çok satırlı gruplardaki satır oranı ayrıca test_group_structure'da.",
+    "mde_macro_f1_rough": "Kaba normal yaklaşım: (z_{1-α/2} + z_0.8) · SE_test; SE_test = OOF tekrar 0 grup bootstrap SE'si · sqrt(n_oof / n_test). Karar kuralının CI koşulu içindir.",
+    "power_at_oof_acc_diff": "Gerçek test farkı OOF accuracy farkına eşitse beklenen güç (yalnız train'den).",
+    "approximation": "OOF modelleri dış fold'un train'iyle (~2904 satır) eğitildi, final modeller 3630 satırla; psi ve SE yaklaşıktır. McNemar gücü test içi grup bağımlılığını yok sayar (TEST_PLAN['limitations']). Karar kuralı iki koşulu birlikte istediği için ortak güç her birinin gücünden yüksek olamaz.",
+    "primary_proxy": "Birincil karşılaştırmanın (BERTurk fine-tuning - char_lr) OOF'u Faz 4'te üretilecek (TEST_PLAN['power']); donmuş BERTurk/e5 + LR yalnız kaba vekildir, fine-tuned modelin char_lr ile uyuşmazlığını temsil etmeyebilir."
+  },
+  "test_plan_power": "Güç analizi yalnızca train OOF tahminlerinden (paired_test --power -> outputs/metrics/test_power_<ts>.json): model çifti başına uyuşmazlık oranı psi ve test boyutuyla %80 güçteki MDE (exact McNemar, psi alternatif altında sabit tutulur; birincil için α = 0.05, ikincil için Holm'un en kötü adımı α/4 ile en iyi adımı α arasında). Birincil çiftin gücü, Faz 4'ün seed 42 OOF tahminleri (char_lr'nin 1. tekrar dış fold'larıyla aynı fold'lar, phase4_berturk_ft_<ts>.json + preds npz) üretilince aynı CLI ile hesaplanır; o zamana dek donmuş encoder'lar yalnız kaba vekildir. Küçük farkların yakalanması beklenmez; anlamsız sonuç eşdeğerlik kanıtı sayılmaz.",
+  "test": null
+}
