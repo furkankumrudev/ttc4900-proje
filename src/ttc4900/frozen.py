@@ -116,6 +116,14 @@ def edge_direction(m: dict) -> str | None:
     return None
 
 
+def official_spec(name: str, metrics_dir: Path = METRICS_DIR) -> Spec:
+    """Encoder'ın resmî (son) koşusundaki grid: kural genişlettiyse genişletilmiş grid."""
+    from ttc4900.cv_compare import latest_metrics
+
+    exp = latest_metrics(name, metrics_dir, phase=3).get("grid_expansion")
+    return expanded_spec(exp["direction"]) if exp else SPEC
+
+
 def best_encoder(metrics_dir: Path = METRICS_DIR) -> str:
     """Ham metinle dış CV ortalaması en yüksek aile üyesi (eksik sonuç varsa hata)."""
     from ttc4900.cv_compare import latest_metrics
@@ -190,7 +198,7 @@ def main() -> None:
         best = best_encoder()
         print(f"en iyi encoder (ham): {best}; C1 temiz metinle embed + CV", flush=True)
         embed_train(best, train, c1clean=True)
-        print(run(best, train, args.n_jobs, c1clean=True), flush=True)
+        print(run(best, train, args.n_jobs, c1clean=True, spec=official_spec(best)), flush=True)
         return
     for n in FAMILY if args.encoder == "all" else [args.encoder]:
         assert ENCODERS[n].max_length == 512
