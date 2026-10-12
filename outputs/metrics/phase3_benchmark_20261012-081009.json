@@ -1,0 +1,97 @@
+{
+  "phase": 3,
+  "git_commit": "21428ea",
+  "split": "split_v2",
+  "n_train": 3630,
+  "train_row_ids_sha256": "04f4a0bbd37a5b31a2c54319ea20de8ce306e9507c43685769e4b9c1750cef27",
+  "encoders": {
+    "e5_base": {
+      "model_id": "intfloat/multilingual-e5-base",
+      "revision": "d128750597153bb5987e10b1c3493a34e5a4502a",
+      "pooling": "mean",
+      "prefix": "query: ",
+      "max_length": 512,
+      "source": "model card: 'query: ' prefix for linear probing classification; 1_Pooling mean"
+    },
+    "berturk_mean": {
+      "model_id": "dbmdz/bert-base-turkish-cased",
+      "revision": "b6e1de16c983e0f2c70664591ea3f22810072608",
+      "pooling": "mean",
+      "prefix": "",
+      "max_length": 512,
+      "source": "sentence modeli değil, card pooling önermiyor; mask'li ortalama seçildi"
+    },
+    "bge_m3": {
+      "model_id": "BAAI/bge-m3",
+      "revision": "5617a9f61b028005a4858fdac845db406aefb181",
+      "pooling": "cls",
+      "prefix": "",
+      "max_length": 512,
+      "source": "1_Pooling/config.json: pooling_mode_cls_token=true; card: prefix gerekmez"
+    }
+  },
+  "test": null,
+  "experiment": "phase3_benchmark",
+  "results": {
+    "e5_base": {
+      "model_id": "intfloat/multilingual-e5-base",
+      "revision": "d128750597153bb5987e10b1c3493a34e5a4502a",
+      "n_params": 278043648,
+      "hidden_size": 768,
+      "n_texts": 64,
+      "batch_size": 16,
+      "torch_threads": 8,
+      "torch": "2.14.1+cpu",
+      "transformers": "5.19.0",
+      "device": "cpu",
+      "dtype": "float32",
+      "model_load_seconds": 97.9,
+      "seconds": 9.9,
+      "seconds_per_text": 0.15467692031250024,
+      "tokens_per_second": 2092.0622762997223,
+      "est_full_train_minutes_by_texts": 9.357953678906265,
+      "est_full_train_minutes_by_tokens": 10.042172376034056,
+      "embedding_norms_ok": true
+    },
+    "berturk_mean": {
+      "model_id": "dbmdz/bert-base-turkish-cased",
+      "revision": "b6e1de16c983e0f2c70664591ea3f22810072608",
+      "n_params": 110617344,
+      "hidden_size": 768,
+      "n_texts": 64,
+      "batch_size": 16,
+      "torch_threads": 8,
+      "torch": "2.14.1+cpu",
+      "transformers": "5.19.0",
+      "device": "cpu",
+      "dtype": "float32",
+      "model_load_seconds": 65.0,
+      "seconds": 9.65,
+      "seconds_per_text": 0.15085031562500006,
+      "tokens_per_second": 1876.3426104034702,
+      "est_full_train_minutes_by_texts": 9.126444095312504,
+      "est_full_train_minutes_by_tokens": 9.898352196993654,
+      "embedding_norms_ok": true
+    },
+    "bge_m3": {
+      "model_id": "BAAI/bge-m3",
+      "revision": "5617a9f61b028005a4858fdac845db406aefb181",
+      "n_params": 567754752,
+      "hidden_size": 1024,
+      "n_texts": 64,
+      "batch_size": 16,
+      "torch_threads": 8,
+      "torch": "2.14.1+cpu",
+      "transformers": "5.19.0",
+      "device": "cpu",
+      "dtype": "float32",
+      "model_load_seconds": 206.5,
+      "seconds": 31.84,
+      "seconds_per_text": 0.49748440468749777,
+      "tokens_per_second": 645.937333858449,
+      "est_full_train_minutes_by_texts": 30.097806483593615,
+      "est_full_train_minutes_by_tokens": 32.3323676130942,
+      "embedding_norms_ok": true
+    }
+  }
+}
