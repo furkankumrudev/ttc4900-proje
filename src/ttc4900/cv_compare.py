@@ -66,7 +66,9 @@ TEST_PLAN = {
         "char_lr olarak KALIR. U+0091-U+0094 silinmiş char_lr_c1clean yalnızca duyarlılık "
         "analizidir; final.best_params ile teste ikincil/betimsel olarak taşınır ve ham "
         "char_lr ile birlikte raporlanır. İkisi arasında test (ya da CV) sonucuna göre seçim "
-        "YAPILMAZ; BERTurk karşılaştırmasındaki referans değişmez."
+        "YAPILMAZ; BERTurk karşılaştırmasındaki referans değişmez. Testte bu çift için p "
+        "hesaplanmaz: yalnızca iki modelin skorları ve farkın paired bootstrap %95 CI'ı "
+        "betimsel raporlanır (hiçbir Holm ailesine girmez)."
     ),
     "expectation_note": (
         "CV skoru 2904 satırla eğitimi ölçer, final model 3630 satırla eğitilir; ayrıca seçilen "
@@ -286,10 +288,10 @@ def summarize(metrics: dict[str, dict]) -> dict:
                 "sütunu budur. 'p_holm' alanı p_nb_holm ile aynıdır."
             ),
             "p_007_erratum": (
-                "Raporda geçen 'düzeltilmiş p≈0.07' hiçbir tanıma karşılık gelmez: "
+                "Raporda geçen 'düzeltilmiş p≈0.07' doğru tanımların hiçbirine karşılık gelmez: "
                 "char_lr-word_lr için p_naive 0.0025, p_nb 0.113, tek yönlü p_nb 0.057, "
-                "yanlış oranla (n_val/n=0.2) p_nb 0.087; p_nb_holm 0.324. Geçerli değerler "
-                "p_table'dadır."
+                "p_nb_holm 0.324. Muhtemel kaynak: N-B'de yanlış oran (n_val/n=0.2) ile t yerine "
+                "normal yaklaşım (≈0.066; t ile 0.087). Geçerli değerler p_table'dadır."
             ),
             "grid_edges": (
                 "n_folds_*_edge: 15 dış fold'da iç CV seçiminin grid ucunda olduğu sayı; "
@@ -333,6 +335,9 @@ def c1_sensitivity(metrics_dir: Path = METRICS_DIR) -> dict:
     if raw["split"] != clean["split"]:
         raise ValueError("Ham ve temiz char_lr farklı split'lerde.")
     check_same_folds(pair, metrics_dir)
+    commits = {m["git_commit"] for m in pair.values()}
+    if any(c.endswith("-dirty") for c in commits):
+        print(f"UYARI: kirli commit'ten üretilmiş sonuç: {sorted(commits)}")
     ratio = float(np.mean([f["n_val"] / f["n_train"] for f in raw["cv"]["folds"]]))
     fr, fc = (np.array(m["cv"]["macro_f1_folds"]) for m in (raw, clean))
     res = nadeau_bengio(fr - fc, ratio)
@@ -348,18 +353,23 @@ def c1_sensitivity(metrics_dir: Path = METRICS_DIR) -> dict:
         "split": raw["split"],
         "comparison": "char_lr (ham) - char_lr_c1clean (U+0091-U+0094 silinmiş)",
         "sources": {n: m["_file"] for n, m in pair.items()},
+        "source_commits": {n: m["git_commit"] for n, m in pair.items()},
         "macro_f1_mean": {n: m["cv"]["macro_f1_mean"] for n, m in pair.items()},
         "macro_f1_std": {n: m["cv"]["macro_f1_std"] for n, m in pair.items()},
         "final_params": {n: m["final"]["best_params"] for n, m in pair.items()},
         "nadeau_bengio": res | {"fold_corr": float(np.corrcoef(fr, fc)[0, 1])},
-        "per_class_f1_diff": pc,
+        "per_class_f1_diff": pc,  # betimsel: belirsizlik ve çoklu karşılaştırma düzeltmesi yok
         "val_train_ratio": ratio,
         "rule": TEST_PLAN["sensitivity_c1"],
         "notes": {
             "family": "tek karşılaştırma, çoklu karşılaştırma düzeltmesi yok",
             "interpretation": (
                 "CI 0'ı içeriyorsa artefaktın CV skoruna etkisi ayırt edilemedi demektir, "
-                "'etkisi yok' değil; per_class_f1_diff hangi sınıfların etkilendiğini gösterir"
+                "'etkisi yok' değil",
+            ),
+            "per_class_f1_diff": (
+                "betimsel (15 fold ortalamaları farkı); CI ve düzeltme yok, sınıf bazında "
+                "'etkilendi' iddiası için kullanılmaz"
             ),
         },
         "test": None,
@@ -441,7 +451,7 @@ def main_c1() -> None:
     for n, v in out["macro_f1_mean"].items():
         print(f"  {n:16s} {v:.4f} ± {out['macro_f1_std'][n]:.4f}")
     print(f"  ham - temiz: {nb['mean_diff']:+.4f} N-B CI [{lo:+.4f}, {hi:+.4f}] "
-          f"p_NB={nb['p']:.3g} (ham p={nb['p_naive']:.3g}) corr={nb['fold_corr']:.2f}")  # fmt: skip
+          f"p_NB={nb['p']:.3g} (düz p={nb['p_naive']:.3g}) corr={nb['fold_corr']:.2f}")  # fmt: skip
     for k, v in out["per_class_f1_diff"].items():
         print(f"    {k:10s} {v:+.4f}")
 
@@ -472,7 +482,7 @@ def main() -> None:
         print(f"  {c['a']} - {c['b']}: {c['mean_diff']:+.4f} [{lo:+.4f}, {hi:+.4f}] "
               f"p_Holm={c['p_holm']:.3g} corr={c['fold_corr']:.2f}")  # fmt: skip
     print()
-    print(f"{'karşılaştırma':22s} {'fark':>8s} {'ham p':>8s} {'N-B p':>8s} {'N-B+Holm':>9s}")
+    print(f"{'karşılaştırma':22s} {'fark':>8s} {'düz p':>8s} {'N-B p':>8s} {'N-B+Holm':>9s}")
     for r in summary["p_table"]:
         print(f"{r['a'] + ' - ' + r['b']:22s} {r['mean_diff']:+8.4f} {r['p_naive']:8.4f} "
               f"{r['p_nb']:8.4f} {r['p_nb_holm']:9.4f}")  # fmt: skip

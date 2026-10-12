@@ -160,4 +160,5 @@ def test_c1_sensitivity_single_nb_comparison(tmp_path):
     assert np.isclose(out["nadeau_bengio"]["mean_diff"], np.mean(raw) - np.mean(clean))
     assert out["split"] == "split_v2" and out["test"] is None
     assert "p_holm" not in out["nadeau_bengio"]  # tek karşılaştırma
-    assert "SEÇİM" in out["rule"].upper() or "seçim" in out["rule"]
+    assert "seçim" in out["rule"] and "p hesaplanmaz" in out["rule"]
+    assert set(out["source_commits"]) == {"char_lr", "char_lr_c1clean"}
