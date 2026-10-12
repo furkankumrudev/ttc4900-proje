@@ -382,6 +382,10 @@ def c1_sensitivity(
     }
 
 
+# Model U+0091-U+0094 kontrol karakterlerini görüyor mu (tokenizer/analyzer ölçümü:
+# phase3_lengths c1_probe; char_wb analyzer'ı karakterleri olduğu gibi n-gram'a katar)
+SEES_C1 = {"char_lr": True, "berturk_mean": False, "e5_base": True, "bge_m3": True}
+
 DISPLAY3 = {
     "char_lr": "Karakter TF-IDF + LR (Faz 2, referans)",
     "berturk_mean": "BERTurk mean + LR",
@@ -433,6 +437,7 @@ def compare_to_reference(metrics_dir: Path = METRICS_DIR) -> tuple[dict, dict[st
                 "final_params": m["final"]["best_params"],
                 "source": m["_file"],
                 "git_commit": m["git_commit"],
+                "sees_c1": SEES_C1[n],
             }
             for n, m in metrics.items()
         ),
@@ -463,6 +468,7 @@ def compare_to_reference(metrics_dir: Path = METRICS_DIR) -> tuple[dict, dict[st
         "grid_edges": grid_edges(encs),
         "val_train_ratio": ratio,
         "selected_for_test": best,
+        "clean_text_descriptive": _clean_text_rows(metrics_dir, FAMILY),
         "embedding_meta": {n: encs[n].get("embedding") for n in FAMILY},
         "grid_expansion": {n: encs[n].get("grid_expansion") for n in FAMILY},
         "rules": RULES,
@@ -479,6 +485,29 @@ def compare_to_reference(metrics_dir: Path = METRICS_DIR) -> tuple[dict, dict[st
         "test": None,
     }
     return summary, metrics
+
+
+def _clean_text_rows(metrics_dir: Path, family) -> dict:
+    """Betimsel "temiz metin" satırı: C1'i görmeyen / C1'i silinmiş koşular yan yana.
+
+    Seçimde KULLANILMAZ (frozen.RULES["sensitivity_c1"], TEST_PLAN["sensitivity_c1"]).
+    """
+    rows = {}
+    for n, ph in [("char_lr_c1clean", 2), *((f + "_c1clean", 3) for f in family)]:
+        m = latest_metrics(n, metrics_dir, phase=ph)
+        if m is not None:
+            rows[n] = {"macro_f1_mean": m["cv"]["macro_f1_mean"], "source": m["_file"]}
+    for n in family:
+        if not SEES_C1[n]:
+            m = latest_metrics(n, metrics_dir, phase=3)
+            rows[n + " (C1'i zaten görmez)"] = {
+                "macro_f1_mean": m["cv"]["macro_f1_mean"],
+                "source": m["_file"],
+            }
+    return {
+        "rows": rows,
+        "note": "betimsel; seçimde ve testte kullanılmaz, fark testi yok",
+    }
 
 
 def plot3(summary: dict, metrics: dict[str, dict], path: Path) -> None:
@@ -564,6 +593,9 @@ def main_phase3() -> None:
         print(f"{r['a']:24s} {r['mean_diff']:+8.4f} [{lo:+.4f}, {hi:+.4f}] {r['p_naive']:8.2g} "
               f"{r['p_nb']:8.3g} {r['p_nb_holm']:9.3g}")  # fmt: skip
     print("seçilen (teste):", summary["selected_for_test"])
+    print("C1 görür:", {r["model"]: r["sees_c1"] for r in summary["ranking"]})
+    clean = summary["clean_text_descriptive"]["rows"]
+    print("temiz metin (betimsel):", {k: round(v["macro_f1_mean"], 4) for k, v in clean.items()})
     for name, params in summary["grid_edges"].items():
         e = params["clf__C"]
         lo_n, hi_n = e["n_folds_low_edge"], e["n_folds_high_edge"]

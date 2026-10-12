@@ -23,10 +23,14 @@ ekonomi %61, kültür %53, dünya %5.
   - En çok ekonomi sınıfı etkileniyor: F1 farkı +0.017. Bu sayı betimseldir; belirsizliği
     verilmemiştir.
 - Kelime tabanlı TF-IDF modelleri etkilenmiyor: tokenizer bu karakterleri token saymıyor.
-- Transformer'lar farklı davranıyor:
+- Transformer'lar farklı davranıyor (Faz 3'te tokenizer çıktısıyla ölçüldü):
   - BERTurk tokenizer'ı bu karakterleri siliyor.
   - XLM-R tabanlı tokenizer'larda (multilingual-e5, bge-m3) bu karakterlerin gerçek sözlük
     id'leri var. Bu modeller artefaktı görebilir.
+  - Faz 3 duyarlılık analizi: en iyi dondurulmuş encoder bge-m3'te temizlik etkisi daha küçük.
+    Ham 0.9072, temiz 0.9058; fark +0.0015, N-B CI [−0.0036, +0.0065], p = 0.54.
+  - Faz 4 notu: BERTurk fine-tuning C1'i görmez, ham char_lr görür. Birincil karşılaştırmada
+    bu asimetri char_lr lehinedir.
 
 ### 2. Ajans künyeleri
 Haberlerin sonundaki ajans adı sınıfla ilişkili:

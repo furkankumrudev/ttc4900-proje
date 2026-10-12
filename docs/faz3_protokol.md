@@ -2,7 +2,9 @@
 
 Bu kurallar **CV koşmadan önce** ayrı bir commit'le donduruldu. Kaynağı `src/ttc4900/frozen.py`
 (`FAMILY`, `SPEC`, `RULES`) ve `src/ttc4900/embeddings.py` (`ENCODERS`) dosyalarıdır.
-Dondurmadan önce yalnızca etiket kullanmayan ölçümler yapıldı:
+Dondurmadan önce yalnızca şu train ölçümleri yapıldı; test kullanılmadı. Uzunluk json'unda
+sınıf başına kesilme oranı da var, yani etiket betimsel olarak kullanıldı. Ancak %40 parçalama
+kararı etiketsiz genel orana dayanır:
 
 - `outputs/metrics/phase3_lengths_20261012-075659.json`: token uzunlukları
 - `outputs/metrics/phase3_benchmark_20261012-081009.json`: 64 metinlik CPU hız ölçümü

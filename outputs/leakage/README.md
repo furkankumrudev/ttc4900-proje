@@ -38,9 +38,12 @@ sınıfa göre çok değişiyor:
   gösteriyor. Ekonomi ile kültür ayrımında model kısmen bu artefakta dayanıyor olabilir.
   Bu bir hipotez, ölçülmedi. char_lr ile word_lr arasındaki CV farkının (+0.0076, N-B+Holm
   p=0.32) bir kısmı bu artefakttan gelebilir.
-- Faz 3/4 için: BERT tokenizer'ı kontrol karakterlerini temizleme adımında siler. Dondurulmuş
-  encoder'lar bu sinyali muhtemelen görmez, bu yüzden char_lr ile karşılaştırma artefakttan
-  etkilenebilir. Faz 3'te tokenizer çıktısına bakılarak doğrulanacak.
+- Faz 3/4 için (Faz 3'te ölçüldü, `phase3_lengths_20261012-075659.json` `c1_probe`):
+  BERTurk tokenizer'ı kontrol karakterlerini siler, yani bu sinyali **görmez**. XLM-R tabanlı
+  tokenizer'lar (multilingual-e5, bge-m3) ise bu karakterlere gerçek token id'leri verir ve
+  sinyali **görür**. Bu yüzden encoder'lar arası ve char_lr'ye karşı karşılaştırmalar artefakta
+  erişim farkını içerebilir. Aynı asimetri Faz 4'ün birincil karşılaştırmasında da var:
+  BERTurk fine-tuning C1'i görmez, ham char_lr görür, bu da char_lr lehinedir.
 
 ### 2. Ajans / kaynak imzaları (şüpheli)
 | Özellik | Model, sınıf, sıra | Sınıf içi / dışı df | Not |
