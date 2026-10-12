@@ -10,6 +10,7 @@ Hiçbirinde test seti kullanılmadı.
 | `phase2_word_lr_20261011-190400.json`, `phase2_char_lr_20261011-190355.json` | ec0c2e6 | `selection_bias` 15 fold ortalamasına göre (doğrusu 0. tekrar, aynı bölümleme); npz adı zaman damgasız. |
 | `phase2_summary_20261011-191817.json` | ec0c2e6-dirty | Commit edilmemiş kodla üretildi. |
 | `phase2_summary_20261011-194634.json` | b80dcdc | `p_table` (ham / N-B / N-B+Holm) ve `grid_edges` alanlarından önce. Sayılar yenisiyle (`phase2_summary_20261011-221201.json`, dfbdc13) birebir aynı; yalnızca alan eklendi. |
+| `phase2_summary_20261011-221201.json` | dfbdc13 | `test_plan.sensitivity_c1` kuralından ve stats-reviewer düzeltmelerinden (erratum metni) önce. Sayılar yenisiyle (`phase2_summary_20261012-080135.json`) birebir aynı. |
 | `preds/cv_*.npz` | 8ab6911 / ec0c2e6 | Zaman damgasız tahmin dosyaları (json ile eşleşmesi doğrulanamaz). |
 
 Yeniden koşularda CV skorları aynı kalmalıdır (deterministik; aynı grid, aynı fold'lar).
