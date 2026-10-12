@@ -1,0 +1,177 @@
+{
+  "phase": 3,
+  "git_commit": "0bd1d64",
+  "split": "split_v2",
+  "n_train": 3630,
+  "train_row_ids_sha256": "04f4a0bbd37a5b31a2c54319ea20de8ce306e9507c43685769e4b9c1750cef27",
+  "encoders": {
+    "e5_base": {
+      "model_id": "intfloat/multilingual-e5-base",
+      "revision": "d128750597153bb5987e10b1c3493a34e5a4502a",
+      "pooling": "mean",
+      "prefix": "query: ",
+      "max_length": 512,
+      "source": "model card: 'query: ' prefix for linear probing classification; 1_Pooling mean"
+    },
+    "berturk_mean": {
+      "model_id": "dbmdz/bert-base-turkish-cased",
+      "revision": "b6e1de16c983e0f2c70664591ea3f22810072608",
+      "pooling": "mean",
+      "prefix": "",
+      "max_length": 512,
+      "source": "sentence modeli değil, card pooling önermiyor; mask'li ortalama seçildi"
+    },
+    "bge_m3": {
+      "model_id": "BAAI/bge-m3",
+      "revision": "5617a9f61b028005a4858fdac845db406aefb181",
+      "pooling": "cls",
+      "prefix": "",
+      "max_length": 512,
+      "source": "1_Pooling/config.json: pooling_mode_cls_token=true; card: prefix gerekmez"
+    }
+  },
+  "test": null,
+  "experiment": "phase3_token_lengths",
+  "results": {
+    "e5_base": {
+      "model_id": "intfloat/multilingual-e5-base",
+      "revision": "d128750597153bb5987e10b1c3493a34e5a4502a",
+      "tokenizer": "XLMRobertaTokenizer",
+      "prefix": "query: ",
+      "max_length": 512,
+      "tokens": {
+        "mean": 456.7710743801653,
+        "median": 352.0,
+        "p75": 596.75,
+        "p95": 1119.0,
+        "max": 4261
+      },
+      "tokens_per_word_median": 1.705156831472621,
+      "frac_truncated": 0.3165289256198347,
+      "frac_truncated_by_class": {
+        "dunya": 0.16051660516605165,
+        "ekonomi": 0.4365942028985507,
+        "kultur": 0.2831858407079646,
+        "saglik": 0.49604743083003955,
+        "siyaset": 0.4528985507246377,
+        "spor": 0.18110236220472442,
+        "teknoloji": 0.19305019305019305
+      },
+      "frac_tokens_dropped": 0.23976420906362117,
+      "total_tokens_after_truncation": 1260531,
+      "c1_probe": {
+        "tokens": [
+          "▁piyasa",
+          "▁",
+          "",
+          "▁güçlü",
+          "▁",
+          "",
+          "▁dedi",
+          "▁",
+          "▁yatırım",
+          "▁",
+          ""
+        ],
+        "tokens_without_c1": [
+          "▁piyasa",
+          "▁güçlü",
+          "▁dedi",
+          "▁yatırım"
+        ],
+        "c1_visible_to_model": true
+      }
+    },
+    "berturk_mean": {
+      "model_id": "dbmdz/bert-base-turkish-cased",
+      "revision": "b6e1de16c983e0f2c70664591ea3f22810072608",
+      "tokenizer": "BertTokenizer",
+      "prefix": "",
+      "max_length": 512,
+      "tokens": {
+        "mean": 366.89338842975206,
+        "median": 283.0,
+        "p75": 481.0,
+        "p95": 887.1999999999989,
+        "max": 3496
+      },
+      "tokens_per_word_median": 1.3712512843565374,
+      "frac_truncated": 0.2231404958677686,
+      "frac_truncated_by_class": {
+        "dunya": 0.11254612546125461,
+        "ekonomi": 0.3079710144927536,
+        "kultur": 0.18805309734513273,
+        "saglik": 0.3359683794466403,
+        "siyaset": 0.3423913043478261,
+        "spor": 0.12598425196850394,
+        "teknoloji": 0.13706563706563707
+      },
+      "frac_tokens_dropped": 0.1632807062199707,
+      "total_tokens_after_truncation": 1114362,
+      "c1_probe": {
+        "tokens": [
+          "piyasa",
+          "güçlü",
+          "dedi",
+          "yatırım"
+        ],
+        "tokens_without_c1": [
+          "piyasa",
+          "güçlü",
+          "dedi",
+          "yatırım"
+        ],
+        "c1_visible_to_model": false
+      }
+    },
+    "bge_m3": {
+      "model_id": "BAAI/bge-m3",
+      "revision": "5617a9f61b028005a4858fdac845db406aefb181",
+      "tokenizer": "XLMRobertaTokenizer",
+      "prefix": "",
+      "max_length": 512,
+      "tokens": {
+        "mean": 453.7710743801653,
+        "median": 349.0,
+        "p75": 593.75,
+        "p95": 1116.0,
+        "max": 4258
+      },
+      "tokens_per_word_median": 1.6903382228148867,
+      "frac_truncated": 0.3143250688705234,
+      "frac_truncated_by_class": {
+        "dunya": 0.16051660516605165,
+        "ekonomi": 0.43478260869565216,
+        "kultur": 0.2831858407079646,
+        "saglik": 0.48616600790513836,
+        "siyaset": 0.45108695652173914,
+        "spor": 0.17913385826771652,
+        "teknoloji": 0.19305019305019305
+      },
+      "frac_tokens_dropped": 0.2392609469830117,
+      "total_tokens_after_truncation": 1253081,
+      "c1_probe": {
+        "tokens": [
+          "▁piyasa",
+          "▁",
+          "",
+          "▁güçlü",
+          "▁",
+          "",
+          "▁dedi",
+          "▁",
+          "▁yatırım",
+          "▁",
+          ""
+        ],
+        "tokens_without_c1": [
+          "▁piyasa",
+          "▁güçlü",
+          "▁dedi",
+          "▁yatırım"
+        ],
+        "c1_visible_to_model": true
+      }
+    }
+  }
+}

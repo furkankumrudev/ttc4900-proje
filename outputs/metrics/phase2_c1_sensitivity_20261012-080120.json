@@ -1,0 +1,76 @@
+{
+  "experiment": "phase2_c1_sensitivity",
+  "phase": 2,
+  "timestamp": "2026-10-12T08:01:19+00:00",
+  "git_commit": "0bd1d64",
+  "split": "split_v2",
+  "comparison": "char_lr (ham) - char_lr_c1clean (U+0091-U+0094 silinmiş)",
+  "sources": {
+    "char_lr": "phase2_char_lr_20261011-192701.json",
+    "char_lr_c1clean": "phase2_char_lr_c1clean_20261012-075141.json"
+  },
+  "source_commits": {
+    "char_lr": "c42a96f",
+    "char_lr_c1clean": "0bd1d64"
+  },
+  "macro_f1_mean": {
+    "char_lr": 0.905353426991854,
+    "char_lr_c1clean": 0.9008788747305113
+  },
+  "macro_f1_std": {
+    "char_lr": 0.0106843429658876,
+    "char_lr_c1clean": 0.011453895907941514
+  },
+  "final_params": {
+    "char_lr": {
+      "clf__C": 100.0,
+      "tfidf__ngram_range": [
+        2,
+        4
+      ]
+    },
+    "char_lr_c1clean": {
+      "clf__C": 100.0,
+      "tfidf__ngram_range": [
+        2,
+        4
+      ]
+    }
+  },
+  "nadeau_bengio": {
+    "mean_diff": 0.004474552261342768,
+    "std_diff": 0.003834364692998972,
+    "se_corrected": 0.0021577175416761765,
+    "se_naive": 0.0009900287066180488,
+    "ci95": [
+      -0.00015329159833102433,
+      0.00910239612101656
+    ],
+    "t": 2.0737432842422963,
+    "df": 14,
+    "p": 0.05703249558831407,
+    "p_naive": 0.0004808054747096623,
+    "n_folds_positive": 14,
+    "J": 15,
+    "fold_corr": 0.9423498685933421
+  },
+  "per_class_f1_diff": {
+    "siyaset": 0.004826455288889808,
+    "dunya": 0.010439286811646409,
+    "ekonomi": 0.01660114734756779,
+    "kultur": -0.0011245574604958897,
+    "saglik": -0.0017136487071205408,
+    "spor": 0.0006797952680579478,
+    "teknoloji": 0.0016133872808541394
+  },
+  "val_train_ratio": 0.25,
+  "rule": "C1 duyarlılık analizi (kural CV'den ÖNCE donduruldu): birincil klasik baseline ham char_lr olarak KALIR. U+0091-U+0094 silinmiş char_lr_c1clean yalnızca duyarlılık analizidir; final.best_params ile teste ikincil/betimsel olarak taşınır ve ham char_lr ile birlikte raporlanır. İkisi arasında test (ya da CV) sonucuna göre seçim YAPILMAZ; BERTurk karşılaştırmasındaki referans değişmez. Testte bu çift için p hesaplanmaz: yalnızca iki modelin skorları ve farkın paired bootstrap %95 CI'ı betimsel raporlanır (hiçbir Holm ailesine girmez).",
+  "notes": {
+    "family": "tek karşılaştırma, çoklu karşılaştırma düzeltmesi yok",
+    "interpretation": [
+      "CI 0'ı içeriyorsa artefaktın CV skoruna etkisi ayırt edilemedi demektir, 'etkisi yok' değil"
+    ],
+    "per_class_f1_diff": "betimsel (15 fold ortalamaları farkı); CI ve düzeltme yok, sınıf bazında 'etkilendi' iddiası için kullanılmaz"
+  },
+  "test": null
+}

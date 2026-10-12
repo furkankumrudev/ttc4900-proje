@@ -1,0 +1,414 @@
+{
+  "experiment": "phase2_summary",
+  "phase": 2,
+  "timestamp": "2026-10-12T08:01:48+00:00",
+  "git_commit": "162a183",
+  "split": "split_v2",
+  "ranking": [
+    {
+      "model": "char_lr",
+      "display": "Karakter TF-IDF + LR",
+      "macro_f1_mean": 0.905353426991854,
+      "macro_f1_std": 0.0106843429658876,
+      "macro_f1_nb_ci95": [
+        0.8924580779710337,
+        0.9182487760126742
+      ],
+      "macro_f1_repeat_means": [
+        0.9054117720138205,
+        0.9047914714784173,
+        0.9058570374833244
+      ],
+      "accuracy_mean": 0.904315886134068,
+      "selection_bias": 0.0027404542227383866,
+      "final_params": {
+        "clf__C": 100.0,
+        "tfidf__ngram_range": [
+          2,
+          4
+        ]
+      },
+      "source": "phase2_char_lr_20261011-192701.json",
+      "git_commit": "c42a96f"
+    },
+    {
+      "model": "word_svc",
+      "display": "Kelime TF-IDF + LinearSVC",
+      "macro_f1_mean": 0.901746255348979,
+      "macro_f1_std": 0.009383925053526912,
+      "macro_f1_nb_ci95": [
+        0.8904204312775504,
+        0.9130720794204076
+      ],
+      "macro_f1_repeat_means": [
+        0.9035467167062127,
+        0.8996868927492532,
+        0.9020051565914715
+      ],
+      "accuracy_mean": 0.9006427915518824,
+      "selection_bias": 0.0007678602738293572,
+      "final_params": {
+        "clf__C": 1.0,
+        "tfidf__ngram_range": [
+          1,
+          1
+        ]
+      },
+      "source": "phase2_word_svc_20261011-193915.json",
+      "git_commit": "c42a96f"
+    },
+    {
+      "model": "word_lr",
+      "display": "Kelime TF-IDF + LR",
+      "macro_f1_mean": 0.8977358448121285,
+      "macro_f1_std": 0.009959591655093263,
+      "macro_f1_nb_ci95": [
+        0.8857152263326087,
+        0.9097564632916484
+      ],
+      "macro_f1_repeat_means": [
+        0.8983875198097808,
+        0.8975917482568538,
+        0.897228266369751
+      ],
+      "accuracy_mean": 0.8964187327823692,
+      "selection_bias": 0.0019840812101277194,
+      "final_params": {
+        "clf__C": 100.0,
+        "tfidf__ngram_range": [
+          1,
+          1
+        ]
+      },
+      "source": "phase2_word_lr_20261011-193915.json",
+      "git_commit": "c42a96f"
+    },
+    {
+      "model": "word_cnb",
+      "display": "Kelime TF-IDF + ComplementNB",
+      "macro_f1_mean": 0.8947697246065537,
+      "macro_f1_std": 0.012002917074886576,
+      "macro_f1_nb_ci95": [
+        0.8802829372165566,
+        0.9092565119965508
+      ],
+      "macro_f1_repeat_means": [
+        0.897658182010864,
+        0.8911634764730587,
+        0.895487515335738
+      ],
+      "accuracy_mean": 0.8938475665748392,
+      "selection_bias": 0.0033166771649799642,
+      "final_params": {
+        "clf__alpha": 0.1,
+        "tfidf__ngram_range": [
+          1,
+          1
+        ]
+      },
+      "source": "phase2_word_cnb_20261011-193915.json",
+      "git_commit": "c42a96f"
+    }
+  ],
+  "paired_vs_best": [
+    {
+      "a": "char_lr",
+      "b": "word_svc",
+      "mean_diff": 0.0036071716428749696,
+      "std_diff": 0.006504262893673117,
+      "se_corrected": 0.003660153184431509,
+      "se_naive": 0.0016793934577700562,
+      "ci95": [
+        -0.004243076182833689,
+        0.011457419468583628
+      ],
+      "t": 0.9855247748149185,
+      "df": 14,
+      "p": 0.3410931859473155,
+      "p_naive": 0.04971090503964662,
+      "n_folds_positive": 11,
+      "J": 15,
+      "fold_corr": 0.7974570410554424,
+      "std_diff_if_unpaired": 0.014220169971660743,
+      "p_holm": 0.3410931859473155
+    },
+    {
+      "a": "char_lr",
+      "b": "word_lr",
+      "mean_diff": 0.007617582179725501,
+      "std_diff": 0.008012359512101599,
+      "se_corrected": 0.004508806556935983,
+      "se_naive": 0.002068782330279739,
+      "ci95": [
+        -0.002052846101987303,
+        0.017288010461438304
+      ],
+      "t": 1.689489687244894,
+      "df": 14,
+      "p": 0.11326187754874921,
+      "p_naive": 0.0024628226064053976,
+      "n_folds_positive": 12,
+      "J": 15,
+      "fold_corr": 0.700819342932489,
+      "std_diff_if_unpaired": 0.014606459206423547,
+      "p_holm": 0.3236483277888603
+    },
+    {
+      "a": "char_lr",
+      "b": "word_cnb",
+      "mean_diff": 0.01058370238530048,
+      "std_diff": 0.010949493903680465,
+      "se_corrected": 0.00616162440458139,
+      "se_naive": 0.0028271471692236055,
+      "ci95": [
+        -0.002631667613595151,
+        0.02379907238419611
+      ],
+      "t": 1.7176805482384019,
+      "df": 14,
+      "p": 0.10788277592962012,
+      "p_naive": 0.002180822758824091,
+      "n_folds_positive": 13,
+      "J": 15,
+      "fold_corr": 0.5393412557262196,
+      "std_diff_if_unpaired": 0.016069387135772027,
+      "p_holm": 0.3236483277888603
+    }
+  ],
+  "p_table": [
+    {
+      "a": "char_lr",
+      "b": "word_svc",
+      "mean_diff": 0.0036071716428749696,
+      "p_naive": 0.04971090503964662,
+      "p_nb": 0.3410931859473155,
+      "p_nb_holm": 0.3410931859473155
+    },
+    {
+      "a": "char_lr",
+      "b": "word_lr",
+      "mean_diff": 0.007617582179725501,
+      "p_naive": 0.0024628226064053976,
+      "p_nb": 0.11326187754874921,
+      "p_nb_holm": 0.3236483277888603
+    },
+    {
+      "a": "char_lr",
+      "b": "word_cnb",
+      "mean_diff": 0.01058370238530048,
+      "p_naive": 0.002180822758824091,
+      "p_nb": 0.10788277592962012,
+      "p_nb_holm": 0.3236483277888603
+    }
+  ],
+  "grid_edges": {
+    "word_lr": {
+      "tfidf__ngram_range": {
+        "grid": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        "grid_size": 2,
+        "fold_counts": {
+          "[1, 1]": 14,
+          "[1, 2]": 1
+        },
+        "n_folds": 15,
+        "n_folds_low_edge": 14,
+        "n_folds_high_edge": 1,
+        "final": [
+          1,
+          1
+        ],
+        "final_edge": "low"
+      },
+      "clf__C": {
+        "grid": [
+          10.0,
+          100.0,
+          1000.0
+        ],
+        "grid_size": 3,
+        "fold_counts": {
+          "10.0": 1,
+          "100.0": 14,
+          "1000.0": 0
+        },
+        "n_folds": 15,
+        "n_folds_low_edge": 1,
+        "n_folds_high_edge": 0,
+        "final": 100.0,
+        "final_edge": null
+      }
+    },
+    "char_lr": {
+      "tfidf__ngram_range": {
+        "grid": [
+          [
+            1,
+            3
+          ],
+          [
+            2,
+            4
+          ]
+        ],
+        "grid_size": 2,
+        "fold_counts": {
+          "[1, 3]": 0,
+          "[2, 4]": 15
+        },
+        "n_folds": 15,
+        "n_folds_low_edge": 0,
+        "n_folds_high_edge": 15,
+        "final": [
+          2,
+          4
+        ],
+        "final_edge": "high"
+      },
+      "clf__C": {
+        "grid": [
+          10.0,
+          100.0,
+          1000.0
+        ],
+        "grid_size": 3,
+        "fold_counts": {
+          "10.0": 5,
+          "100.0": 10,
+          "1000.0": 0
+        },
+        "n_folds": 15,
+        "n_folds_low_edge": 5,
+        "n_folds_high_edge": 0,
+        "final": 100.0,
+        "final_edge": null
+      }
+    },
+    "word_svc": {
+      "tfidf__ngram_range": {
+        "grid": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        "grid_size": 2,
+        "fold_counts": {
+          "[1, 1]": 13,
+          "[1, 2]": 2
+        },
+        "n_folds": 15,
+        "n_folds_low_edge": 13,
+        "n_folds_high_edge": 2,
+        "final": [
+          1,
+          1
+        ],
+        "final_edge": "low"
+      },
+      "clf__C": {
+        "grid": [
+          0.1,
+          1.0,
+          10.0
+        ],
+        "grid_size": 3,
+        "fold_counts": {
+          "0.1": 0,
+          "1.0": 11,
+          "10.0": 4
+        },
+        "n_folds": 15,
+        "n_folds_low_edge": 0,
+        "n_folds_high_edge": 4,
+        "final": 1.0,
+        "final_edge": null
+      }
+    },
+    "word_cnb": {
+      "tfidf__ngram_range": {
+        "grid": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        "grid_size": 2,
+        "fold_counts": {
+          "[1, 1]": 9,
+          "[1, 2]": 6
+        },
+        "n_folds": 15,
+        "n_folds_low_edge": 9,
+        "n_folds_high_edge": 6,
+        "final": [
+          1,
+          1
+        ],
+        "final_edge": "low"
+      },
+      "clf__alpha": {
+        "grid": [
+          0.01,
+          0.1,
+          1.0
+        ],
+        "grid_size": 3,
+        "fold_counts": {
+          "0.01": 2,
+          "0.1": 13,
+          "1.0": 0
+        },
+        "n_folds": 15,
+        "n_folds_low_edge": 2,
+        "n_folds_high_edge": 0,
+        "final": 0.1,
+        "final_edge": null
+      }
+    }
+  },
+  "val_train_ratio": 0.25,
+  "notes": {
+    "macro_f1_std": "fold skorlarının dağılımı (ddof=1); ortalamanın belirsizliği DEĞİL",
+    "macro_f1_nb_ci95": "N-B düzeltmeli ortalama CI: x̄ ± t14·sqrt(1/15 + oran)·s",
+    "repeat_means": "tekrar ortalamalarının yakınlığı yalnızca bölümleme gürültüsünün küçük olduğunu gösterir; CI olarak kullanılmaz",
+    "ci95": "marjinal %95 (çoklu karşılaştırma düzeltmesiz); p_holm Holm düzeltmeli",
+    "p_table": "p_naive: düz eşleştirilmiş t (se = s/sqrt(J)); fold'lar bağımsız sayıldığı için iyimser, karar için KULLANILMAZ. p_nb: Nadeau-Bengio düzeltmeli t (se = sqrt(1/J + n_val/n_train)·s), çoklu karşılaştırma düzeltmesiz. p_nb_holm: p_nb'lere Holm (aile = en iyiye karşı m karşılaştırma); karar sütunu budur. 'p_holm' alanı p_nb_holm ile aynıdır.",
+    "p_007_erratum": "Raporda geçen 'düzeltilmiş p≈0.07' doğru tanımların hiçbirine karşılık gelmez: char_lr-word_lr için p_naive 0.0025, p_nb 0.113, tek yönlü p_nb 0.057, p_nb_holm 0.324. Muhtemel kaynak: N-B'de yanlış oran (n_val/n=0.2) ile t yerine normal yaklaşım (≈0.066; t ile 0.087). Geçerli değerler p_table'dadır.",
+    "grid_edges": "n_folds_*_edge: 15 dış fold'da iç CV seçiminin grid ucunda olduğu sayı; final_edge: tüm train seçimi. grid_size=2 ise her seçim bir uçtadır.",
+    "not_distinguishable_from_best": "'ayırt edilemedi' demektir, 'eşdeğer' değil; ci95[1] dışlanamayan en büyük açık",
+    "grid_history": "LR grid'leri iç CV seçimleri kenarda yığıldığı için bir kez genişletildi (superseded/); dış skorlar değişmedi. char_lr'de C=100 güncel grid'de ({10,100,1000}) İÇ noktadır; üst uçta olduğu grid ilk grid'di ({1,10,100}). char_lr'de kenarda kalan ngram_range=(2,4)'tür (15/15 ve final; 2 değerli grid) ama (3,5) ilk grid'de denenip 4/15'te kalmıştı. Test kullanılmadı."
+  },
+  "method": "Eşleştirilmiş fold farkları (aynı dış fold'lar, npz'den doğrulandı), Nadeau-Bengio / Bouckaert-Frank düzeltmeli t, Holm; keşifsel, test seti kullanılmadı",
+  "selection_rule": "Birincil klasik baseline = dış CV macro-F1 ortalaması en yüksek model. Farklar CV'de ayırt edilemese de CV'si en güçlü olan seçilir (BERTurk karşılaştırmasında 'saman adam' eleştirisini önlemek için tutucu tercih). Kural testten ÖNCE donar; test sonucuna göre 'en iyi klasik' değiştirilmez.",
+  "selected_for_test": "char_lr",
+  "not_distinguishable_from_best": [
+    "word_svc",
+    "word_lr",
+    "word_cnb"
+  ],
+  "test_plan": {
+    "primary": "BERTurk vs birincil klasik baseline (McNemar + paired bootstrap, ayrı aile)",
+    "secondary": "Dört klasik modelin donmuş final.best_params konfigürasyonları betimsel raporlanır; birincil modele karşı 3 karşılaştırma ayrı bir Holm ailesi",
+    "power_warning": "908 test örneğiyle klasik modeller arası 0.004-0.01'lik farkların McNemar ile yakalanması beklenmez; anlamsız sonuç eşdeğerlik kanıtı sayılmaz",
+    "sensitivity_c1": "C1 duyarlılık analizi (kural CV'den ÖNCE donduruldu): birincil klasik baseline ham char_lr olarak KALIR. U+0091-U+0094 silinmiş char_lr_c1clean yalnızca duyarlılık analizidir; final.best_params ile teste ikincil/betimsel olarak taşınır ve ham char_lr ile birlikte raporlanır. İkisi arasında test (ya da CV) sonucuna göre seçim YAPILMAZ; BERTurk karşılaştırmasındaki referans değişmez. Testte bu çift için p hesaplanmaz: yalnızca iki modelin skorları ve farkın paired bootstrap %95 CI'ı betimsel raporlanır (hiçbir Holm ailesine girmez).",
+    "expectation_note": "CV skoru 2904 satırla eğitimi ölçer, final model 3630 satırla eğitilir; ayrıca seçilen modelin CV skoru 4 adayın maksimumudur (kazananın laneti). Test skorunun CV'den farklı çıkması tek başına anomali değildir."
+  },
+  "test": null
+}

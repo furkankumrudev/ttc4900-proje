@@ -84,6 +84,8 @@ Bunlar train ve test'te aynı dağılımla bulunduğundan test skorunu geçersiz
 "genelleme" iddiasını zayıflatır ve modeller arası karşılaştırmayı (char ile kelime, klasik ile
 transformer) çarpıtabilir.
 
-Düzeltme yapılmadı. Olası teşhis deneyi (yapılmadı, karar kullanıcının): artefaktlar silinmiş
-metinle char_lr ve word_lr CV'sini yeniden koşup skor farkına bakmak. Bu deney yalnızca train
-CV'sinde yapılır.
+Düzeltme yapılmadı. Teşhis deneyi (kural CV'den önce dondurulduktan sonra koşuldu,
+`phase2_c1_sensitivity_20261012-080120.json`): yalnızca U+0091–U+0094 silinmiş char_lr,
+aynı grid ve protokolle 0.9009 ± 0.0115 (ham 0.9054). Ham − temiz = +0.0045, N-B %95 CI
+[−0.0002, +0.0091], p = 0.057. Birincil baseline ham char_lr olarak kalır. Ayrıntı ve demo
+sınırlılıkları: `docs/shortcut_learning.md`.
