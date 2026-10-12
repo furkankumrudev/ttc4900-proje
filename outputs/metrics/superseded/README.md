@@ -13,6 +13,7 @@ Hiçbirinde test seti kullanılmadı.
 | `phase2_summary_20261011-221201.json` | dfbdc13 | `test_plan.sensitivity_c1` kuralından ve stats-reviewer düzeltmelerinden (erratum metni) önce. Sayılar yenisiyle (`phase2_summary_20261012-080148.json`) birebir aynı. |
 | `phase3_summary_20261012-091527.json` | 0e5b412 | Grid kenarı kuralından önceki Faz 3 özeti (e5_base, bge_m3 C=1e-3 alt uçta). Genişletilmiş koşularla sayılar aynı kaldı (1e-4 hiç seçilmedi); ilk koşu json'ları `outputs/metrics/` altında `grid_expansion.previous_run` olarak referanslı. |
 | `phase3_summary_20261012-091726.json` | 5b95038 | `sees_c1` sütunu ve `clean_text_descriptive` bloğundan önce (leakage-reviewer önerisi). Sayılar yenisiyle aynı. |
+| `phase3_summary_20261012-095041.json` | 154d61d | stats-reviewer not düzeltmelerinden önce (expectation_note, CI etiketi, temiz metin uyarıları). Sayılar yenisiyle aynı. |
 | `preds/cv_*.npz` | 8ab6911 / ec0c2e6 | Zaman damgasız tahmin dosyaları (json ile eşleşmesi doğrulanamaz). |
 
 Yeniden koşularda CV skorları aynı kalmalıdır (deterministik; aynı grid, aynı fold'lar).
