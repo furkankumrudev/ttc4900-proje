@@ -27,8 +27,11 @@ ekonomi %61, kültür %53, dünya %5.
   - BERTurk tokenizer'ı bu karakterleri siliyor.
   - XLM-R tabanlı tokenizer'larda (multilingual-e5, bge-m3) bu karakterlerin gerçek sözlük
     id'leri var. Bu modeller artefaktı görebilir.
-  - Faz 3 duyarlılık analizi: en iyi dondurulmuş encoder bge-m3'te temizlik etkisi daha küçük.
-    Ham 0.9072, temiz 0.9058; fark +0.0015, N-B CI [−0.0036, +0.0065], p = 0.54.
+  - Faz 3 duyarlılık analizi (bge-m3): temizliğin etkisi ayırt edilemedi.
+    Ham 0.9072, temiz 0.9058; fark +0.0015, N-B CI [−0.0036, +0.0065], p = 0.54. Bu, etkinin
+    olmadığını göstermez. Nokta tahmini char_lr'ninkinden (+0.0045) küçük, ama iki CI büyük
+    ölçüde örtüşüyor ve aradaki fark test edilmedi. Bu yüzden "bge-m3 artefakta daha az
+    dayanıyor" denemez.
   - Faz 4 notu: BERTurk fine-tuning C1'i görmez, ham char_lr görür. Birincil karşılaştırmada
     bu asimetri char_lr lehinedir.
 

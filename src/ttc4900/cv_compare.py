@@ -398,7 +398,9 @@ def compare_to_reference(metrics_dir: Path = METRICS_DIR) -> tuple[dict, dict[st
     """Faz 3: her encoder - SABİT referans char_lr (Faz 2), eşleştirilmiş fold farkları.
 
     Sütunlar: düz t p'si (karar için değil), Nadeau-Bengio p, N-B + Holm (aile = 3 encoder).
-    Referans argmax ile seçilmediği için en iyiyle karşılaştırma iyimserliği (MCB) yoktur.
+    Faz 3 içinde referans argmax ile seçilmez. Ama char_lr, Faz 2'de aynı fold'larda 4 klasik
+    modelin maksimumuydu; seçilen encoder da 3 adayın maksimumu. Bu yüzden d'de iki "kazananın
+    laneti" yan yana durur ve net yönü bilinmez.
     """
     from ttc4900.frozen import FAMILY, REFERENCE, RULES
 
@@ -476,11 +478,21 @@ def compare_to_reference(metrics_dir: Path = METRICS_DIR) -> tuple[dict, dict[st
             "p_table": (
                 "mean_diff = encoder - char_lr (pozitif: encoder daha iyi). p_naive düz "
                 "eşleştirilmiş t, karar için kullanılmaz; p_nb Nadeau-Bengio; p_nb_holm aile = 3 "
-                "encoder; ci95 marjinal (düzeltmesiz)."
+                "encoder; ci95 N-B düzeltmeli, çoklu karşılaştırma düzeltmesiz."
             ),
             "asymmetry": RULES["input_text"],
             "max_length": RULES["max_length"],
             "ranking": "encoder'lar arası sıralama betimseldir; test edilmez",
+            "expectation_note": (
+                "Seçilen encoder'ın CV skoru 3 adayın maksimumu, char_lr'ninki Faz 2'de 4 adayın "
+                "maksimumu (kazananın laneti, ikisi de yukarı yanlı). Ayırt edilemedi, eşdeğer "
+                "demek değildir; eşdeğerlik marjı önceden tanımlanmadı."
+            ),
+            "selection_bias": (
+                "0 değeri yalnızca iç seçim ile final seçimin aynı olduğunu gösterir; encoder'lar "
+                "arası argmax yanlılığını kapsamaz"
+            ),
+            "per_class_f1": "fold ortalamaları; belirsizliksiz, betimsel",
         },
         "test": None,
     }
@@ -506,7 +518,12 @@ def _clean_text_rows(metrics_dir: Path, family) -> dict:
             }
     return {
         "rows": rows,
-        "note": "betimsel; seçimde ve testte kullanılmaz, fark testi yok",
+        "note": (
+            "betimsel; seçimde ve testte kullanılmaz, fark testi yok, SIRALANMAZ. "
+            "bge_m3_c1clean yalnızca bge_m3 ham metinde en iyi çıktığı için koşuldu (seçim "
+            "yanlılığı taşır); e5_base_c1clean yok (eksik, seçici alt küme); berturk_mean "
+            "satırı ham metin koşusudur, 'C1 silinmiş' ile aynı müdahale değildir"
+        ),
     }
 
 
