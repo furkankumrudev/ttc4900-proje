@@ -323,15 +323,21 @@ def summarize(metrics: dict[str, dict]) -> dict:
 C1_PAIR = ("char_lr", "char_lr_c1clean")
 
 
-def c1_sensitivity(metrics_dir: Path = METRICS_DIR) -> dict:
-    """Tek karşılaştırma: ham char_lr - temiz char_lr, Nadeau-Bengio düzeltmeli (Holm yok, m=1).
+def c1_sensitivity(
+    metrics_dir: Path = METRICS_DIR,
+    names: tuple[str, str] = C1_PAIR,
+    phase: int = 2,
+    rule: str | None = None,
+) -> dict:
+    """Tek karşılaştırma: ham - C1 temiz model, Nadeau-Bengio düzeltmeli (Holm yok, m=1).
 
     d_j > 0: C1 artefaktı fold j'de skoru artırıyor (model kısmen kısayol kullanıyor).
+    Faz 2: char_lr; Faz 3: ham metinle en iyi encoder (frozen.RULES["sensitivity_c1"]).
     """
-    raw, clean = (latest_metrics(n, metrics_dir) for n in C1_PAIR)
+    raw, clean = (latest_metrics(n, metrics_dir, phase=phase) for n in names)
     if raw is None or clean is None:
-        raise SystemExit(f"Eksik sonuç: {C1_PAIR}")
-    pair = dict(zip(C1_PAIR, (raw, clean), strict=True))
+        raise SystemExit(f"Eksik sonuç: {names}")
+    pair = dict(zip(names, (raw, clean), strict=True))
     if raw["split"] != clean["split"]:
         raise ValueError("Ham ve temiz char_lr farklı split'lerde.")
     check_same_folds(pair, metrics_dir)
@@ -346,12 +352,12 @@ def c1_sensitivity(metrics_dir: Path = METRICS_DIR) -> dict:
         for k in raw["cv"]["per_class_f1_mean"]
     }
     return {
-        "experiment": "phase2_c1_sensitivity",
-        "phase": 2,
+        "experiment": f"phase{phase}_c1_sensitivity",
+        "phase": phase,
         "timestamp": report.now().isoformat(timespec="seconds"),
         "git_commit": report.git_commit(),
         "split": raw["split"],
-        "comparison": "char_lr (ham) - char_lr_c1clean (U+0091-U+0094 silinmiş)",
+        "comparison": f"{names[0]} (ham) - {names[1]} (U+0091-U+0094 silinmiş)",
         "sources": {n: m["_file"] for n, m in pair.items()},
         "source_commits": {n: m["git_commit"] for n, m in pair.items()},
         "macro_f1_mean": {n: m["cv"]["macro_f1_mean"] for n, m in pair.items()},
@@ -360,7 +366,7 @@ def c1_sensitivity(metrics_dir: Path = METRICS_DIR) -> dict:
         "nadeau_bengio": res | {"fold_corr": float(np.corrcoef(fr, fc)[0, 1])},
         "per_class_f1_diff": pc,  # betimsel: belirsizlik ve çoklu karşılaştırma düzeltmesi yok
         "val_train_ratio": ratio,
-        "rule": TEST_PLAN["sensitivity_c1"],
+        "rule": rule if rule is not None else TEST_PLAN["sensitivity_c1"],
         "notes": {
             "family": "tek karşılaştırma, çoklu karşılaştırma düzeltmesi yok",
             "interpretation": (
@@ -374,6 +380,208 @@ def c1_sensitivity(metrics_dir: Path = METRICS_DIR) -> dict:
         },
         "test": None,
     }
+
+
+DISPLAY3 = {
+    "char_lr": "Karakter TF-IDF + LR (Faz 2, referans)",
+    "berturk_mean": "BERTurk mean + LR",
+    "e5_base": "multilingual-e5-base + LR",
+    "bge_m3": "bge-m3 (CLS) + LR",
+}
+
+
+def compare_to_reference(metrics_dir: Path = METRICS_DIR) -> tuple[dict, dict[str, dict]]:
+    """Faz 3: her encoder - SABİT referans char_lr (Faz 2), eşleştirilmiş fold farkları.
+
+    Sütunlar: düz t p'si (karar için değil), Nadeau-Bengio p, N-B + Holm (aile = 3 encoder).
+    Referans argmax ile seçilmediği için en iyiyle karşılaştırma iyimserliği (MCB) yoktur.
+    """
+    from ttc4900.frozen import FAMILY, REFERENCE, RULES
+
+    ref = latest_metrics(REFERENCE, metrics_dir, phase=2)
+    encs = {n: latest_metrics(n, metrics_dir, phase=3) for n in FAMILY}
+    missing = [n for n, m in encs.items() if m is None] + ([REFERENCE] if ref is None else [])
+    if missing:
+        raise SystemExit(f"Eksik sonuçlar: {missing}")
+    metrics = {REFERENCE: ref, **encs}
+    if len({m["split"] for m in metrics.values()}) != 1:
+        raise ValueError("Modeller farklı split'lerde.")
+    check_same_folds(metrics, metrics_dir)
+    ratio = float(np.mean([f["n_val"] / f["n_train"] for f in ref["cv"]["folds"]]))
+    fr = np.array(ref["cv"]["macro_f1_folds"])
+    comps = []
+    for n in FAMILY:
+        fe = np.array(encs[n]["cv"]["macro_f1_folds"])
+        c = {"a": n, "b": REFERENCE, **nadeau_bengio(fe - fr, ratio)}
+        c["fold_corr"] = float(np.corrcoef(fe, fr)[0, 1])
+        comps.append(c)
+    for c, ph in zip(comps, holm([c["p"] for c in comps]), strict=True):
+        c["p_holm"] = ph
+    ranking = sorted(
+        (
+            {
+                "model": n,
+                "display": DISPLAY3[n],
+                "phase": m.get("phase"),
+                "macro_f1_mean": m["cv"]["macro_f1_mean"],
+                "macro_f1_std": m["cv"]["macro_f1_std"],
+                "macro_f1_nb_ci95": nb_mean_ci(m["cv"]["macro_f1_folds"], ratio),
+                "macro_f1_repeat_means": m["cv"]["macro_f1_repeat_means"],
+                "accuracy_mean": m["cv"]["accuracy_mean"],
+                "per_class_f1_mean": m["cv"]["per_class_f1_mean"],
+                "selection_bias": m["cv"]["selection_bias"],
+                "final_params": m["final"]["best_params"],
+                "source": m["_file"],
+                "git_commit": m["git_commit"],
+            }
+            for n, m in metrics.items()
+        ),
+        key=lambda r: -r["macro_f1_mean"],
+    )
+    best = max(FAMILY, key=lambda n: encs[n]["cv"]["macro_f1_mean"])
+    summary = {
+        "experiment": "phase3_summary",
+        "phase": 3,
+        "timestamp": report.now().isoformat(timespec="seconds"),
+        "git_commit": report.git_commit(),
+        "split": ref["split"],
+        "reference": REFERENCE,
+        "ranking": ranking,
+        "vs_reference": comps,
+        "p_table": [
+            {
+                "a": c["a"],
+                "b": c["b"],
+                "mean_diff": c["mean_diff"],
+                "ci95": c["ci95"],
+                "p_naive": c["p_naive"],
+                "p_nb": c["p"],
+                "p_nb_holm": c["p_holm"],
+            }
+            for c in comps
+        ],
+        "grid_edges": grid_edges(encs),
+        "val_train_ratio": ratio,
+        "selected_for_test": best,
+        "embedding_meta": {n: encs[n].get("embedding") for n in FAMILY},
+        "rules": RULES,
+        "notes": {
+            "p_table": (
+                "mean_diff = encoder - char_lr (pozitif: encoder daha iyi). p_naive düz "
+                "eşleştirilmiş t, karar için kullanılmaz; p_nb Nadeau-Bengio; p_nb_holm aile = 3 "
+                "encoder; ci95 marjinal (düzeltmesiz)."
+            ),
+            "asymmetry": RULES["input_text"],
+            "max_length": RULES["max_length"],
+            "ranking": "encoder'lar arası sıralama betimseldir; test edilmez",
+        },
+        "test": None,
+    }
+    return summary, metrics
+
+
+def plot3(summary: dict, metrics: dict[str, dict], path: Path) -> None:
+    """Sol: fold skorları + ortalama ± std. Sağ: encoder - char_lr farkı, N-B %95 CI."""
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    ink, ink2, grid, surf, hue, ref_c = (
+        "#0b0b0b", "#52514e", "#e4e3df", "#fcfcfb", "#2a78d6", "#8a8984"
+    )  # fmt: skip
+    names = [r["model"] for r in summary["ranking"]][::-1]
+    fig, (ax1, ax2) = plt.subplots(
+        1, 2, figsize=(13.5, 3.9), gridspec_kw={"width_ratios": [1.2, 1]}, facecolor=surf
+    )
+    rng = np.random.default_rng(0)
+    for y, name in enumerate(names):
+        col = ref_c if name == summary["reference"] else hue
+        f = np.array(metrics[name]["cv"]["macro_f1_folds"])
+        ax1.scatter(f, y + rng.uniform(-0.12, 0.12, len(f)), s=22, color=col, alpha=0.45,
+                    linewidths=0, zorder=2)  # fmt: skip
+        m, sd = f.mean(), f.std(ddof=1)
+        ax1.plot([m - sd, m + sd], [y, y], color=ink, lw=2, zorder=3, solid_capstyle="round")
+        ax1.scatter([m], [y], s=64, color=ink, zorder=4, edgecolors=surf, linewidths=2)
+        ax1.annotate(f"{m:.3f} ± {sd:.3f}", (m, y), xytext=(0, 9), textcoords="offset points",
+                     ha="center", fontsize=8.5, color=ink2)  # fmt: skip
+    ax1.set_yticks(range(len(names)), [DISPLAY3[n] for n in names])
+    ax1.set_xlabel("Dış fold macro-F1 (5 fold × 3 tekrar, aynı fold'lar)")
+    ax1.set_title("CV macro-F1: nokta = fold; çizgi = ortalama ± std (CI değil)", loc="left",
+                  fontsize=10)  # fmt: skip
+    comps = summary["vs_reference"]
+    order = [n for n in names if n != summary["reference"]]
+    by = {c["a"]: c for c in comps}
+    for y, name in enumerate(order):
+        c = by[name]
+        ax2.plot(c["ci95"], [y, y], color=hue, lw=2, solid_capstyle="round")
+        ax2.scatter([c["mean_diff"]], [y], s=64, color=hue, zorder=3, edgecolors=surf,
+                    linewidths=2)  # fmt: skip
+        ax2.annotate(f"p_Holm={c['p_holm']:.2g}", (c["ci95"][1], y), xytext=(6, 0),
+                     textcoords="offset points", va="center", fontsize=8.5, color=ink2)  # fmt: skip
+    ax2.axvline(0, color=ink2, lw=1, ls="--")
+    ax2.set_yticks(range(len(order)), [DISPLAY3[n] for n in order])
+    ax2.set_xlabel("macro-F1 farkı: encoder − karakter TF-IDF + LR")
+    ax2.set_title("Eşleştirilmiş fark, N–B %95 CI\n(çoklu karşılaştırma düzeltmesiz)", loc="left",
+                  fontsize=10)  # fmt: skip
+    lo = min(min(c["ci95"][0] for c in comps), 0)
+    hi = max(max(c["ci95"][1] for c in comps), 0)
+    ax2.set_xlim(lo - 0.005, hi + (hi - lo) * 0.45 + 0.005)
+    for ax in (ax1, ax2):
+        ax.set_facecolor(surf)
+        ax.grid(axis="x", color=grid, lw=0.8)
+        ax.set_axisbelow(True)
+        for side in ("top", "right", "left"):
+            ax.spines[side].set_visible(False)
+        ax.spines["bottom"].set_color(grid)
+        ax.tick_params(colors=ink2, length=0)
+        ax.xaxis.label.set_color(ink2)
+        ax.title.set_color(ink)
+    fig.tight_layout()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(path, dpi=150, facecolor=surf)
+    plt.close(fig)
+
+
+def main_phase3() -> None:
+    summary, metrics = compare_to_reference()
+    commits = {m["git_commit"] for m in metrics.values()}
+    if any(c.endswith("-dirty") for c in commits):
+        print(f"UYARI: kirli commit'ten sonuç: {sorted(commits)}")
+    p = report.write_metrics(summary, "phase3_summary")
+    plot3(summary, metrics, FIGURES_DIR / "phase3_cv_macro_f1.png")
+    print(p)
+    for r in summary["ranking"]:
+        lo, hi = r["macro_f1_nb_ci95"]
+        print(f"{r['display']:40s} {r['macro_f1_mean']:.4f} ± {r['macro_f1_std']:.4f} "
+              f"N-B CI [{lo:.4f}, {hi:.4f}]  C={r['final_params']}")  # fmt: skip
+    print()
+    print(f"{'encoder - char_lr':24s} {'fark':>8s} {'N-B %95 CI':>20s} {'düz p':>8s} "
+          f"{'N-B p':>8s} {'N-B+Holm':>9s}")  # fmt: skip
+    for r in summary["p_table"]:
+        lo, hi = r["ci95"]
+        print(f"{r['a']:24s} {r['mean_diff']:+8.4f} [{lo:+.4f}, {hi:+.4f}] {r['p_naive']:8.2g} "
+              f"{r['p_nb']:8.3g} {r['p_nb_holm']:9.3g}")  # fmt: skip
+    print("seçilen (teste):", summary["selected_for_test"])
+    for name, params in summary["grid_edges"].items():
+        e = params["clf__C"]
+        lo_n, hi_n = e["n_folds_low_edge"], e["n_folds_high_edge"]
+        print(f"  {name:13s} C seçimleri {e['fold_counts']} final={e['final']} "
+              f"uç={e['final_edge']} (alt {lo_n}, üst {hi_n})")  # fmt: skip
+
+
+def main_phase3_c1() -> None:
+    from ttc4900.frozen import C1_SUFFIX, RULES, best_encoder
+
+    best = best_encoder()
+    out = c1_sensitivity(names=(best, best + C1_SUFFIX), phase=3, rule=RULES["sensitivity_c1"])
+    p = report.write_metrics(out, "phase3_c1_sensitivity")
+    nb = out["nadeau_bengio"]
+    print(p)
+    for n, v in out["macro_f1_mean"].items():
+        print(f"  {n:22s} {v:.4f} ± {out['macro_f1_std'][n]:.4f}")
+    print(f"  ham - temiz: {nb['mean_diff']:+.4f} N-B CI [{nb['ci95'][0]:+.4f}, "
+          f"{nb['ci95'][1]:+.4f}] p_NB={nb['p']:.3g}")  # fmt: skip
 
 
 def plot(summary: dict, metrics: dict[str, dict], path: Path) -> None:
@@ -459,8 +667,15 @@ def main_c1() -> None:
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--c1-sensitivity", action="store_true", help="ham vs temiz char_lr")
-    if ap.parse_args().c1_sensitivity:
+    ap.add_argument("--phase3", action="store_true", help="encoder'lar vs char_lr")
+    ap.add_argument("--phase3-c1", action="store_true", help="en iyi encoder ham vs temiz")
+    args = ap.parse_args()
+    if args.c1_sensitivity:
         return main_c1()
+    if args.phase3:
+        return main_phase3()
+    if args.phase3_c1:
+        return main_phase3_c1()
     metrics = latest_phase2()
     missing = set(DISPLAY) - set(metrics)
     if missing:

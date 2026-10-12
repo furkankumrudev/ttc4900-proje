@@ -127,13 +127,13 @@ def test_grid_edges_marks_edges():
     assert e["ng"]["n_folds_high_edge"] == 3 and e["ng"]["n_folds_low_edge"] == 1
 
 
-def _write(m, name, ts, tmp_path):
+def _write(m, name, ts, tmp_path, phase=2):
     import json
 
     body = {k: v for k, v in m.items() if k != "_file"}
     body["cv"] = body["cv"] | {"per_class_f1_mean": {"a": body["cv"]["macro_f1_mean"], "b": 0.5}}
     body["preds_file"] = f"{name}.npz"
-    (tmp_path / f"phase2_{name}_{ts}.json").write_text(json.dumps(body), encoding="utf-8")
+    (tmp_path / f"phase{phase}_{name}_{ts}.json").write_text(json.dumps(body), encoding="utf-8")
 
 
 def test_latest_metrics_exact_name(tmp_path):
@@ -162,3 +162,29 @@ def test_c1_sensitivity_single_nb_comparison(tmp_path):
     assert "p_holm" not in out["nadeau_bengio"]  # tek karşılaştırma
     assert "seçim" in out["rule"] and "p hesaplanmaz" in out["rule"]
     assert set(out["source_commits"]) == {"char_lr", "char_lr_c1clean"}
+
+
+def test_compare_to_reference_fixed_ref_and_holm(tmp_path):
+    """Faz 3: fark = encoder - char_lr (sabit referans), Holm ailesi = 3 encoder."""
+    from ttc4900.cv_compare import compare_to_reference
+
+    rows, fid = np.arange(10), np.array([[0, 1, 2, 3, 4] * 2])
+    ref = [0.90, 0.91, 0.89, 0.92, 0.90]
+    scores = {
+        "berturk_mean": [0.88, 0.90, 0.87, 0.90, 0.89],
+        "e5_base": [0.91, 0.915, 0.90, 0.925, 0.905],
+        "bge_m3": [0.905, 0.91, 0.895, 0.92, 0.90],
+    }
+    _write(_fake("char_lr", ref, rows, fid, tmp_path), "char_lr", "20260101-000000", tmp_path)
+    for n, f in scores.items():
+        m = _fake(n, f, rows, fid, tmp_path) | {"phase": 3}
+        _write(m, n, "20260102-000000", tmp_path, phase=3)
+    s, metrics = compare_to_reference(tmp_path)
+    assert s["selected_for_test"] == "e5_base" and s["reference"] == "char_lr"
+    by = {c["a"]: c for c in s["vs_reference"]}
+    assert np.isclose(by["e5_base"]["mean_diff"], np.mean(scores["e5_base"]) - np.mean(ref))
+    assert all(c["b"] == "char_lr" for c in s["vs_reference"])
+    raw = [by[n]["p"] for n in scores]
+    assert np.allclose([by[n]["p_holm"] for n in scores], holm(raw))
+    assert set(s["grid_edges"]) == set(scores)  # referans grid kenarı tabloya girmez
+    assert "ASİMETRİ" in s["notes"]["asymmetry"] and s["test"] is None

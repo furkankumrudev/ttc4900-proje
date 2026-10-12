@@ -67,3 +67,45 @@ def test_encoder_specs_pinned():
     for name, spec in emb.ENCODERS.items():
         assert len(spec.revision) == 40 and int(spec.revision, 16) >= 0, name
         assert spec.pooling in {"mean", "cls"} and spec.max_length == 512, name
+
+
+@pytest.fixture
+def real_train_ids():
+    from ttc4900.data import load_split
+
+    ids = load_split()["train_ids"][:25]
+    return pd.DataFrame({"row_id": ids, "text": [f"metin {i}" for i in ids]})
+
+
+def test_embed_train_resumes_and_validates(tmp_path, monkeypatch, real_train_ids):
+    """Yarıda kesilen üretim biten parçaları yeniden hesaplamaz; sonuç bütün koşuyla aynı."""
+    monkeypatch.setattr(emb, "CACHE_DIR", tmp_path)
+    train = real_train_ids
+    calls: list[int] = []
+
+    def enc(texts):
+        calls.append(len(texts))
+        if len(calls) == 3:
+            raise KeyboardInterrupt  # 3. parçada kesinti
+        return np.array([[float(t.split()[1]), 1.0] for t in texts]), 0
+
+    with pytest.raises(KeyboardInterrupt):
+        emb.embed_train("e5_base", train, chunk=10, encode=enc)
+    assert not emb.cache_path("e5_base").exists()
+    calls.clear()
+    good = lambda texts: (np.array([[float(t.split()[1]), 1.0] for t in texts]), 0)  # noqa: E731
+    seen: list[int] = []
+    emb.embed_train("e5_base", train, chunk=10, encode=lambda t: (seen.append(len(t)), good(t))[1])
+    assert seen == [5]  # yalnızca kalan 3. parça (25 = 10 + 10 + 5)
+    X = emb.load_embeddings("e5_base", train)
+    assert np.array_equal(X[:, 0], train["row_id"].to_numpy())
+    assert not emb.cache_path("e5_base").with_suffix(".parts").exists()
+    # satır sırası farklı train -> hata (embedding'ler yanlış satırlara gitmesin)
+    with pytest.raises(ValueError):
+        emb.load_embeddings("e5_base", train.iloc[::-1].reset_index(drop=True))
+    # c1clean ayrı dosya, metin temizlenerek
+    got: list[str] = []
+    emb.embed_train("e5_base", train.assign(text=train["text"] + " \u0092"), c1clean=True,
+                    chunk=50, encode=lambda t: (got.extend(t), good(t))[1])  # fmt: skip
+    assert all("\u0092" not in t for t in got)
+    assert emb.cache_path("e5_base", c1clean=True).exists()

@@ -115,6 +115,18 @@ def macro_f1_scorer(labels: list[int]):
     return make_scorer(f1_score, average="macro", labels=labels, zero_division=0)
 
 
+def _features(train: pd.DataFrame, features: np.ndarray | None):
+    if features is None:
+        return train["text"]
+    if len(features) != len(train):
+        raise ValueError(f"features satır sayısı {len(features)} != train {len(train)}")
+    return np.asarray(features)
+
+
+def _rows(X, idx):
+    return X.iloc[idx] if isinstance(X, pd.Series) else X[idx]
+
+
 def _grid_search(spec: Spec, cv, labels: list[int], n_jobs: int) -> GridSearchCV:
     return GridSearchCV(
         spec.make(), spec.grid, scoring=macro_f1_scorer(labels), cv=cv, n_jobs=n_jobs
@@ -130,10 +142,15 @@ def nested_cv(
     outer_splits: int = OUTER_SPLITS,
     inner_splits: int = INNER_SPLITS,
     n_jobs: int = 1,
+    features: np.ndarray | None = None,
 ) -> tuple[list[dict], dict]:
-    """(fold kayıtları, dış-fold tahminleri). Her kayıt bir (tekrar, fold) çiftidir."""
+    """(fold kayıtları, dış-fold tahminleri). Her kayıt bir (tekrar, fold) çiftidir.
+
+    `features` verilirse (train satırlarına hizalı, ör. donmuş embedding [n, H]) model metin
+    yerine bunu görür; fold'lar ve gruplar yine `train`'den make_cv ile kurulur.
+    """
     train = train.reset_index(drop=True)
-    X, y = train["text"], train["label"].to_numpy()
+    X, y = _features(train, features), train["label"].to_numpy()
     y_pred = np.full((n_repeats, len(train)), -1, dtype=np.int64)
     fold_id = np.full((n_repeats, len(train)), -1, dtype=np.int64)
     folds = []
@@ -144,8 +161,8 @@ def nested_cv(
             tr_df = train.iloc[tr].reset_index(drop=True)
             inner, g_in = make_cv(tr_df, path, n_splits=inner_splits, random_state=seed)
             gs = _grid_search(spec, inner, labels, n_jobs)
-            gs.fit(tr_df["text"], tr_df["label"].to_numpy(), groups=g_in)
-            pred = gs.predict(X.iloc[va])
+            gs.fit(_rows(X, tr), tr_df["label"].to_numpy(), groups=g_in)
+            pred = gs.predict(_rows(X, va))
             y_pred[r, va], fold_id[r, va] = pred, k
             folds.append(
                 {
@@ -177,6 +194,7 @@ def final_params(
     path: Path = SPLIT_PATH,
     n_jobs: int = 1,
     n_splits: int = OUTER_SPLITS,
+    features: np.ndarray | None = None,
 ) -> tuple[dict, float]:
     """Tüm train'de seçim (test fazında kullanılacak parametreler) ve iyimser CV skoru.
 
@@ -186,7 +204,7 @@ def final_params(
     train = train.reset_index(drop=True)
     cv, g = make_cv(train, path, n_splits=n_splits, random_state=RANDOM_STATE)
     gs = _grid_search(spec, cv, labels, n_jobs)
-    gs.fit(train["text"], train["label"].to_numpy(), groups=g)
+    gs.fit(_features(train, features), train["label"].to_numpy(), groups=g)
     return gs.best_params_, float(gs.best_score_)
 
 
@@ -226,21 +244,46 @@ def run_baseline(
     inner_splits: int = INNER_SPLITS,
     n_jobs: int = 1,
 ) -> Path:
-    """Bir baseline'ı çalıştırır; metrik json'u ve dış-fold tahminlerini yazar."""
-    spec = SPECS[name]
+    """Bir Faz 2 baseline'ını çalıştırır; metrik json'u ve dış-fold tahminlerini yazar."""
+    return run_nested(
+        name, SPECS[name], train, path, out_dir, n_repeats, outer_splits, inner_splits, n_jobs
+    )
+
+
+def run_nested(
+    name: str,
+    spec: Spec,
+    train: pd.DataFrame,
+    path: Path = SPLIT_PATH,
+    out_dir: Path = METRICS_DIR,
+    n_repeats: int = N_REPEATS,
+    outer_splits: int = OUTER_SPLITS,
+    inner_splits: int = INNER_SPLITS,
+    n_jobs: int = 1,
+    features: np.ndarray | None = None,
+    phase: int = 2,
+    extra: dict | None = None,
+) -> Path:
+    """Nested CV + final seçim; `phase<phase>_<name>_<ts>.json` ve tahmin npz'i yazar.
+
+    Faz 2 (metin) ve Faz 3 (donmuş embedding, `features`) aynı protokolü paylaşır.
+    """
     split = load_split(path)
     label_names = split["label_names"]
     labels = list(range(len(label_names)))
     t0, started = time.perf_counter(), report.now()
     folds, preds = nested_cv(
-        spec, train, labels, path, n_repeats, outer_splits, inner_splits, n_jobs
+        spec, train, labels, path, n_repeats, outer_splits, inner_splits, n_jobs, features
     )
-    best, best_score = final_params(spec, train, labels, path, n_jobs, n_splits=outer_splits)
+    best, best_score = final_params(
+        spec, train, labels, path, n_jobs, n_splits=outer_splits, features=features
+    )
     stamp = f"{started:%Y%m%d-%H%M%S}"
-    preds_file = f"preds/cv_{name}_{stamp}.npz"
+    prefix = "" if phase == 2 else f"phase{phase}_"
+    preds_file = f"preds/cv_{prefix}{name}_{stamp}.npz"
     out = {
-        "experiment": f"phase2_{name}",
-        "phase": 2,
+        "experiment": f"phase{phase}_{name}",
+        "phase": phase,
         "timestamp": started.isoformat(timespec="seconds"),
         "git_commit": report.git_commit(),
         "split": Path(path).stem,
@@ -270,9 +313,10 @@ def run_baseline(
         "preds_file": preds_file,
         "test": None,
         "runtime_seconds": round(time.perf_counter() - t0, 1),
-        "notes": "Faz 2: test seti kullanılmadı.",
+        "notes": f"Faz {phase}: test seti kullanılmadı.",
+        **(extra or {}),
     }
-    path_json = report.write_metrics(out, f"phase2_{name}", out_dir, when=started)
+    path_json = report.write_metrics(out, f"phase{phase}_{name}", out_dir, when=started)
     pred_dir = Path(out_dir) / "preds"
     pred_dir.mkdir(parents=True, exist_ok=True)
     np.savez(Path(out_dir) / preds_file, **preds)  # json ile aynı zaman damgası

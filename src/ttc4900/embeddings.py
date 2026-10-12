@@ -12,12 +12,17 @@ edilir. Test satırları bu modülde hiç yüklenmez; gelirse `assert_train_only
 Kullanım:
     python -m ttc4900.embeddings --lengths              # token uzunluğu dağılımı (ağ: tokenizer)
     python -m ttc4900.embeddings --benchmark --n 64     # CPU hız ölçümü (ağ: model ağırlıkları)
+    python -m ttc4900.embeddings --embed                # FAMILY'nin tam train embedding'i
+    python -m ttc4900.embeddings --embed --encoder e5_base --c1clean   # duyarlılık analizi
 """
 
 from __future__ import annotations
 
 import argparse
 import hashlib
+import json
+import os
+import shutil
 import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -26,6 +31,7 @@ import numpy as np
 import pandas as pd
 
 from ttc4900 import report
+from ttc4900.baselines import strip_c1_quotes
 from ttc4900.data import RANDOM_STATE, SPLIT_PATH, cv_groups, load_train
 from ttc4900.paths import OUTPUTS
 
@@ -43,8 +49,11 @@ class EncoderSpec:
     source: str  # pooling/prefix kararının dayanağı
 
 
-# Aday aile; hangilerinin CV'ye gireceği token uzunluğu ve hız ölçümünden SONRA, CV'den önce
-# ayrı bir commit'le dondurulur (Faz 3 planı 3.0).
+# Aile token uzunluğu (phase3_lengths_20261012-075659) ve hız ölçümünden
+# (phase3_benchmark_20261012-081009) SONRA, CV'den ÖNCE donduruldu (bkz. ttc4900.frozen).
+# max_length: üç modelde de 512. bge-m3'ün kendi sınırı 8192 token'dır; 512 karşılaştırılabilirlik
+# için (BERT ailesinin sınırı) ve CPU maliyeti için seçildi. Bu yüzden bge-m3 uzun metin
+# avantajını bu fazda KULLANMIYOR.
 ENCODERS: dict[str, EncoderSpec] = {
     "e5_base": EncoderSpec(
         model_id="intfloat/multilingual-e5-base",
@@ -67,7 +76,7 @@ ENCODERS: dict[str, EncoderSpec] = {
         revision="5617a9f61b028005a4858fdac845db406aefb181",
         pooling="cls",
         prefix="",
-        max_length=512,  # model 8192'ye kadar destekler; CPU maliyeti için 512 (plan 3.6)
+        max_length=512,  # kendi sınırı 8192; 512 karşılaştırılabilirlik ve CPU maliyeti için
         source="1_Pooling/config.json: pooling_mode_cls_token=true; card: prefix gerekmez",
     ),
 }
@@ -154,6 +163,137 @@ def embed_texts(texts, tok, model, spec: EncoderSpec, batch_size: int = 16, devi
             h = model(**batch).last_hidden_state
             out[idx] = pool(h, batch["attention_mask"], spec.pooling).float().cpu().numpy()
     return out, int((lengths > spec.max_length).sum())
+
+
+# --------------------------------------------------------------------------- önbellek
+CHUNK = 256  # yarım kalan üretim bu büyüklükteki parçalardan devam eder
+
+
+def cache_path(name: str, c1clean: bool = False) -> Path:
+    spec = ENCODERS[name]
+    tag = "_c1clean" if c1clean else ""
+    return CACHE_DIR / f"emb_{name}{tag}_{spec.revision[:8]}_{spec.max_length}.npz"
+
+
+def _meta(name: str, train: pd.DataFrame, c1clean: bool) -> dict:
+    return {
+        "encoder": name,
+        **asdict(ENCODERS[name]),
+        "c1clean": c1clean,
+        "text_transform": "strip_c1_quotes (U+0091-U+0094 silinir)" if c1clean else "yok",
+        "n": len(train),
+        "train_row_ids_sha256": row_ids_hash(train["row_id"]),
+        "split": Path(SPLIT_PATH).stem,
+    }
+
+
+def _same(meta: dict, want: dict) -> bool:
+    return all(meta.get(k) == v for k, v in want.items())
+
+
+def load_embeddings(name: str, train: pd.DataFrame, c1clean: bool = False) -> np.ndarray:
+    """Önbellekten train'e hizalı embedding; meta (model, revision, satırlar) tutmazsa hata."""
+    p = cache_path(name, c1clean)
+    if not p.exists():
+        raise FileNotFoundError(f"{p} yok; önce: python -m ttc4900.embeddings --embed")
+    with np.load(p, allow_pickle=False) as z:  # Windows: dosya tutamacı hemen kapansın
+        meta, row_id, X = json.loads(str(z["meta"])), z["row_id"], z["X"]
+    want = _meta(name, train, c1clean)
+    if not _same(meta, want):
+        bad = {k: (meta.get(k), v) for k, v in want.items() if meta.get(k) != v}
+        raise ValueError(f"{p.name} meta uyuşmuyor: {bad}")
+    if not np.array_equal(row_id, train["row_id"].to_numpy()):
+        raise ValueError(f"{p.name} satır sırası train ile aynı değil")
+    return X
+
+
+def cache_meta(name: str, c1clean: bool = False) -> dict:
+    with np.load(cache_path(name, c1clean), allow_pickle=False) as z:
+        return json.loads(str(z["meta"]))
+
+
+def embed_train(
+    name: str,
+    train: pd.DataFrame,
+    c1clean: bool = False,
+    batch_size: int = 16,
+    device: str = "cpu",
+    chunk: int = CHUNK,
+    encode=None,
+) -> Path:
+    """Tüm train'in embedding'i -> önbellek npz. Devam edilebilir: her `chunk` satır bitince
+    `<npz>.parts/` altına yazılır; yeniden başlatılınca biten parçalar atlanır. Bitince parçalar
+    birleştirilip npz atomik olarak (geçici dosya + os.replace) yazılır.
+
+    `encode(texts) -> (E, n_trunc)` testler için enjekte edilebilir; varsayılan gerçek model.
+    """
+    assert_train_only(train)
+    train = train.reset_index(drop=True)
+    out = cache_path(name, c1clean)
+    meta = _meta(name, train, c1clean)
+    if out.exists():
+        try:
+            load_embeddings(name, train, c1clean)
+        except ValueError as e:
+            raise ValueError(f"{out} var ama geçersiz; elle silin: {e}") from e
+        print(f"{out.name}: önbellekte, atlandı", flush=True)
+        return out
+    parts = out.with_suffix(".parts")
+    parts.mkdir(parents=True, exist_ok=True)
+    meta_file = parts / "meta.json"
+    if meta_file.exists() and not _same(json.loads(meta_file.read_text("utf-8")), meta):
+        raise ValueError(f"{parts} başka bir koşudan; elle silin")
+    meta_file.write_text(json.dumps(meta, ensure_ascii=False), encoding="utf-8")
+    texts = train["text"].tolist()
+    if c1clean:
+        texts = strip_c1_quotes(texts)
+    if encode is None:
+        spec = ENCODERS[name]
+        tok, model = load_tokenizer(spec), load_model(spec, device)
+
+        def encode(t):
+            return embed_texts(t, tok, model, spec, batch_size, device)
+
+    t0 = time.perf_counter()
+    n_chunks = -(-len(texts) // chunk)
+    for c in range(n_chunks):
+        f = parts / f"{c:04d}.npz"
+        if f.exists():
+            continue
+        E, n_tr = encode(texts[c * chunk : (c + 1) * chunk])
+        tmp = parts / f"{c:04d}.tmp.npz"
+        np.savez(tmp, X=E, n_truncated=n_tr)
+        os.replace(tmp, f)
+        tag = " (c1clean)" if c1clean else ""
+        print(f"{name}{tag}: parça {c + 1}/{n_chunks} ({time.perf_counter() - t0:.0f} sn)",
+              flush=True)  # fmt: skip
+    Xs, n_trunc = [], 0
+    for c in range(n_chunks):
+        with np.load(parts / f"{c:04d}.npz") as z:
+            Xs.append(z["X"])
+            n_trunc += int(z["n_truncated"])
+    X = np.concatenate(Xs).astype(np.float32)
+    if len(X) != len(train):
+        raise ValueError(f"parçalardan {len(X)} satır geldi, train {len(train)}")
+    import torch
+    import transformers
+
+    meta |= {
+        "n_truncated": n_trunc,
+        "torch": torch.__version__,
+        "transformers": transformers.__version__,
+        "device": device,
+        "dtype": "float32",
+        "created_at": report.now().isoformat(timespec="seconds"),
+        "git_commit": report.git_commit(),
+    }
+    tmp = out.with_name(out.stem + ".tmp.npz")
+    meta_arr = np.array(json.dumps(meta, ensure_ascii=False))
+    np.savez(tmp, X=X, row_id=train["row_id"].to_numpy(), meta=meta_arr)
+    os.replace(tmp, out)
+    shutil.rmtree(parts)
+    print(f"{out}: {X.shape}, {meta['n_truncated']} metin kesildi", flush=True)
+    return out
 
 
 # --------------------------------------------------------------------------- ölçümler
@@ -250,6 +390,8 @@ def main() -> None:
     ap.add_argument("--encoder", default="all", choices=[*ENCODERS, "all"])
     ap.add_argument("--lengths", action="store_true")
     ap.add_argument("--benchmark", action="store_true")
+    ap.add_argument("--embed", action="store_true")
+    ap.add_argument("--c1clean", action="store_true", help="U+0091-U+0094 silinmiş metin")
     ap.add_argument("--n", type=int, default=64)
     ap.add_argument("--batch-size", type=int, default=16)
     args = ap.parse_args()
@@ -265,6 +407,10 @@ def main() -> None:
         "encoders": {n: asdict(ENCODERS[n]) for n in names},
         "test": None,
     }
+    if args.embed:
+        for n in names:
+            embed_train(n, train, c1clean=args.c1clean, batch_size=args.batch_size)
+        return
     if args.lengths:
         res = {n: token_length_stats(train, n) for n in names}
         p = _write(base | {"experiment": "phase3_token_lengths", "results": res}, "phase3_lengths")

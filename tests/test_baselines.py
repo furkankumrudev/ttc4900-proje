@@ -114,3 +114,34 @@ def test_c1clean_spec_matches_char_lr_except_cleaning():
     assert p_clean.named_steps["clf"].get_params() == p_raw.named_steps["clf"].get_params()
     X = p_clean[:1].fit_transform(["x\u0092 y", "z"])  # temizlik durumsuz: fit sonucu aynı
     assert X == ["x y", "z"]
+
+
+def test_features_scaler_fit_only_on_outer_train(toy, monkeypatch):
+    """Faz 3 yolu: embedding matrisiyle nested CV; StandardScaler her fit'te yalnızca o dış
+    fold'un train satırlarını görür (satır kimliği 0. sütuna gömülü)."""
+    from sklearn.preprocessing import StandardScaler
+
+    from ttc4900.frozen import SPEC
+
+    train, p = toy
+    rng = np.random.default_rng(0)
+    feats = np.column_stack([train["row_id"], rng.normal(size=len(train)) + train["label"]])
+    seen: list[set[int]] = []
+    orig = StandardScaler.fit
+
+    def spy(self, X, y=None, sample_weight=None):
+        seen.append(set(np.asarray(X)[:, 0].astype(int)))
+        return orig(self, X, y, sample_weight)
+
+    monkeypatch.setattr(StandardScaler, "fit", spy)
+    folds, preds = baselines.nested_cv(
+        SPEC, train, list(range(N_CLASSES)), p, n_repeats=1, outer_splits=3, inner_splits=2,
+        features=feats,
+    )  # fmt: skip
+    per_fold = len(SPEC.grid["clf__C"]) * 2 + 1
+    assert len(seen) == per_fold * len(folds)
+    for i, f in enumerate(folds):
+        val = set(f["val_row_ids"])
+        assert all(not (s & val) for s in seen[i * per_fold : (i + 1) * per_fold])
+    with pytest.raises(ValueError, match="satır sayısı"):
+        baselines.nested_cv(SPEC, train, [0, 1, 2], p, features=feats[:-1])
