@@ -1,0 +1,68 @@
+{
+  "experiment": "phase3_c1_sensitivity",
+  "phase": 3,
+  "timestamp": "2026-10-12T09:49:29+00:00",
+  "git_commit": "ee4b03c",
+  "split": "split_v2",
+  "comparison": "bge_m3 (ham) - bge_m3_c1clean (U+0091-U+0094 silinmiş)",
+  "sources": {
+    "bge_m3": "phase3_bge_m3_20261012-091657.json",
+    "bge_m3_c1clean": "phase3_bge_m3_c1clean_20261012-094856.json"
+  },
+  "source_commits": {
+    "bge_m3": "5b95038",
+    "bge_m3_c1clean": "ee4b03c"
+  },
+  "macro_f1_mean": {
+    "bge_m3": 0.9072491003070432,
+    "bge_m3_c1clean": 0.9057773075204324
+  },
+  "macro_f1_std": {
+    "bge_m3": 0.009444448187095472,
+    "bge_m3_c1clean": 0.01051516962563334
+  },
+  "final_params": {
+    "bge_m3": {
+      "clf__C": 0.001
+    },
+    "bge_m3_c1clean": {
+      "clf__C": 0.001
+    }
+  },
+  "nadeau_bengio": {
+    "mean_diff": 0.0014717927866109962,
+    "std_diff": 0.0041830798110095045,
+    "se_corrected": 0.0023539505000467866,
+    "se_naive": 0.0010800665629264186,
+    "ci95": [
+      -0.0035769289099068097,
+      0.006520514483128802
+    ],
+    "t": 0.6252437281844895,
+    "df": 14,
+    "p": 0.5418691234235716,
+    "p_naive": 0.19450007356066185,
+    "n_folds_positive": 9,
+    "J": 15,
+    "fold_corr": 0.9176733638567524
+  },
+  "per_class_f1_diff": {
+    "siyaset": 0.0036502017229237405,
+    "dunya": 0.0027958774141775278,
+    "ekonomi": 0.0025717034726081556,
+    "kultur": 0.0020038177663844747,
+    "saglik": 0.0020048322293948484,
+    "spor": -0.0010118723606498126,
+    "teknoloji": -0.0017120107385624195
+  },
+  "val_train_ratio": 0.25,
+  "rule": "Ham metinle CV'de en iyi çıkan encoder (test_transfer ile aynı seçim) bir kez de U+0091-U+0094 silinmiş metinle (baselines.strip_c1_quotes) embed edilip aynı protokolle koşulur. Tek karşılaştırma: ham - temiz, Nadeau-Bengio (Holm yok). İkincil duyarlılık analizi olarak raporlanır; model seçiminde KULLANILMAZ ve teste taşınmaz. En iyi berturk_mean çıkarsa tokenizer bu karakterleri zaten sildiğinden fark yapısal olarak ~0 beklenir; yine de koşulur.",
+  "notes": {
+    "family": "tek karşılaştırma, çoklu karşılaştırma düzeltmesi yok",
+    "interpretation": [
+      "CI 0'ı içeriyorsa artefaktın CV skoruna etkisi ayırt edilemedi demektir, 'etkisi yok' değil"
+    ],
+    "per_class_f1_diff": "betimsel (15 fold ortalamaları farkı); CI ve düzeltme yok, sınıf bazında 'etkilendi' iddiası için kullanılmaz"
+  },
+  "test": null
+}

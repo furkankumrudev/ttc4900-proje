@@ -1,0 +1,438 @@
+{
+  "experiment": "phase3_bge_m3_c1clean",
+  "phase": 3,
+  "timestamp": "2026-10-12T09:48:56+00:00",
+  "git_commit": "ee4b03c",
+  "split": "split_v2",
+  "seed": 42,
+  "label_names": [
+    "siyaset",
+    "dunya",
+    "ekonomi",
+    "kultur",
+    "saglik",
+    "spor",
+    "teknoloji"
+  ],
+  "params": {
+    "fixed": {
+      "features": "donmuş encoder embedding'i (pooling + L2, ttc4900.embeddings)",
+      "scale": "StandardScaler (Pipeline içinde, fold'un train kısmında fit)",
+      "clf": "LogisticRegression(lbfgs, L2, multinomial, max_iter=5000)"
+    },
+    "grid": {
+      "clf__C": [
+        0.0001,
+        0.001,
+        0.01,
+        0.1,
+        1.0,
+        10.0
+      ]
+    }
+  },
+  "cv": {
+    "scheme": "nested; dış: make_cv 5 fold x 3 tekrar (random_state 42..44), iç: make_cv 3 fold GridSearchCV; skor macro-F1 (7 sınıf)",
+    "n_folds": 5,
+    "n_repeats": 3,
+    "inner_n_folds": 3,
+    "macro_f1_folds": [
+      0.8895086738138319,
+      0.9223840292818741,
+      0.9083480893802519,
+      0.915887883059355,
+      0.904953653536477,
+      0.9044053042294037,
+      0.9067836585396398,
+      0.9021770084835306,
+      0.9032554735742923,
+      0.9132183027486936,
+      0.9068882968669981,
+      0.9145030853644007,
+      0.9120798878232386,
+      0.9028467005439321,
+      0.8794195655605641
+    ],
+    "macro_f1_mean": 0.9057773075204324,
+    "macro_f1_std": 0.01051516962563334,
+    "macro_f1_repeat_means": [
+      0.9082164658143579,
+      0.905967949515112,
+      0.9031475072318266
+    ],
+    "accuracy_mean": 0.9044995408631772,
+    "accuracy_std": 0.010446894263184863,
+    "per_class_f1_mean": {
+      "siyaset": 0.8779266482732241,
+      "dunya": 0.8629556157045076,
+      "ekonomi": 0.8537275275989821,
+      "kultur": 0.9175598848716895,
+      "saglik": 0.9507173774684197,
+      "spor": 0.9815066288002342,
+      "teknoloji": 0.896047469925969
+    },
+    "inner_best_score_mean": 0.9058067048719584,
+    "macro_f1_std_note": "fold skorlarının dağılımı; ortalamanın belirsizliği DEĞİL",
+    "selection_bias": 0.0,
+    "selection_bias_note": "final seçim skoru - dış CV 0. tekrar (aynı bölümleme); kaba",
+    "folds": [
+      {
+        "repeat": 0,
+        "fold": 0,
+        "n_train": 2904,
+        "n_val": 726,
+        "macro_f1": 0.8895086738138319,
+        "accuracy": 0.8884297520661157,
+        "per_class_f1": [
+          0.8663594470046083,
+          0.8514851485148515,
+          0.8251121076233184,
+          0.8958333333333334,
+          0.9478672985781991,
+          0.98,
+          0.8599033816425121
+        ],
+        "best_params": {
+          "clf__C": 0.001
+        },
+        "inner_best_score": 0.9107612696115434
+      },
+      {
+        "repeat": 0,
+        "fold": 1,
+        "n_train": 2904,
+        "n_val": 726,
+        "macro_f1": 0.9223840292818741,
+        "accuracy": 0.9214876033057852,
+        "per_class_f1": [
+          0.9082969432314411,
+          0.9065420560747663,
+          0.8571428571428571,
+          0.9405405405405406,
+          0.9326923076923077,
+          0.9702970297029703,
+          0.9411764705882353
+        ],
+        "best_params": {
+          "clf__C": 0.001
+        },
+        "inner_best_score": 0.9007622311337623
+      },
+      {
+        "repeat": 0,
+        "fold": 2,
+        "n_train": 2904,
+        "n_val": 726,
+        "macro_f1": 0.9083480893802519,
+        "accuracy": 0.90633608815427,
+        "per_class_f1": [
+          0.8767123287671232,
+          0.8648648648648649,
+          0.8454545454545455,
+          0.9162011173184358,
+          0.9655172413793104,
+          0.9849246231155779,
+          0.9047619047619048
+        ],
+        "best_params": {
+          "clf__C": 0.001
+        },
+        "inner_best_score": 0.9071591064544515
+      },
+      {
+        "repeat": 0,
+        "fold": 3,
+        "n_train": 2904,
+        "n_val": 726,
+        "macro_f1": 0.915887883059355,
+        "accuracy": 0.9146005509641874,
+        "per_class_f1": [
+          0.8767123287671232,
+          0.8518518518518519,
+          0.8878504672897196,
+          0.9340659340659341,
+          0.9565217391304348,
+          0.9951219512195122,
+          0.9090909090909091
+        ],
+        "best_params": {
+          "clf__C": 0.001
+        },
+        "inner_best_score": 0.9108003276244934
+      },
+      {
+        "repeat": 0,
+        "fold": 4,
+        "n_train": 2904,
+        "n_val": 726,
+        "macro_f1": 0.904953653536477,
+        "accuracy": 0.9035812672176309,
+        "per_class_f1": [
+          0.875,
+          0.8611111111111112,
+          0.8818181818181818,
+          0.9171270718232044,
+          0.94,
+          0.9803921568627451,
+          0.8792270531400966
+        ],
+        "best_params": {
+          "clf__C": 0.001
+        },
+        "inner_best_score": 0.9062152466382735
+      },
+      {
+        "repeat": 1,
+        "fold": 0,
+        "n_train": 2904,
+        "n_val": 726,
+        "macro_f1": 0.9044053042294037,
+        "accuracy": 0.9035812672176309,
+        "per_class_f1": [
+          0.8959276018099548,
+          0.8727272727272727,
+          0.8847926267281107,
+          0.8924731182795699,
+          0.9441624365482234,
+          0.9753694581280788,
+          0.8653846153846154
+        ],
+        "best_params": {
+          "clf__C": 0.001
+        },
+        "inner_best_score": 0.9011121891653997
+      },
+      {
+        "repeat": 1,
+        "fold": 1,
+        "n_train": 2904,
+        "n_val": 726,
+        "macro_f1": 0.9067836585396398,
+        "accuracy": 0.90633608815427,
+        "per_class_f1": [
+          0.8789237668161435,
+          0.8349514563106796,
+          0.8761061946902655,
+          0.8888888888888888,
+          0.9760765550239234,
+          0.9852216748768473,
+          0.9073170731707317
+        ],
+        "best_params": {
+          "clf__C": 0.001
+        },
+        "inner_best_score": 0.9065129744521053
+      },
+      {
+        "repeat": 1,
+        "fold": 2,
+        "n_train": 2904,
+        "n_val": 726,
+        "macro_f1": 0.9021770084835306,
+        "accuracy": 0.9008264462809917,
+        "per_class_f1": [
+          0.8597285067873304,
+          0.8732394366197183,
+          0.8246445497630331,
+          0.93048128342246,
+          0.926829268292683,
+          0.9852216748768473,
+          0.9150943396226415
+        ],
+        "best_params": {
+          "clf__C": 0.001
+        },
+        "inner_best_score": 0.9081200584968551
+      },
+      {
+        "repeat": 1,
+        "fold": 3,
+        "n_train": 2904,
+        "n_val": 726,
+        "macro_f1": 0.9032554735742923,
+        "accuracy": 0.9008264462809917,
+        "per_class_f1": [
+          0.8495575221238938,
+          0.8663594470046083,
+          0.8301886792452831,
+          0.9508196721311475,
+          0.9463414634146341,
+          0.98,
+          0.8995215311004785
+        ],
+        "best_params": {
+          "clf__C": 0.001
+        },
+        "inner_best_score": 0.9049766116329016
+      },
+      {
+        "repeat": 1,
+        "fold": 4,
+        "n_train": 2904,
+        "n_val": 726,
+        "macro_f1": 0.9132183027486936,
+        "accuracy": 0.9118457300275482,
+        "per_class_f1": [
+          0.9047619047619048,
+          0.8761904761904762,
+          0.8583690987124464,
+          0.918918918918919,
+          0.9611650485436893,
+          0.9950738916256158,
+          0.8780487804878049
+        ],
+        "best_params": {
+          "clf__C": 0.001
+        },
+        "inner_best_score": 0.9018296482205019
+      },
+      {
+        "repeat": 2,
+        "fold": 0,
+        "n_train": 2904,
+        "n_val": 726,
+        "macro_f1": 0.9068882968669981,
+        "accuracy": 0.90633608815427,
+        "per_class_f1": [
+          0.8738738738738738,
+          0.8584905660377359,
+          0.8990825688073395,
+          0.8961748633879781,
+          0.9560975609756097,
+          0.975609756097561,
+          0.8888888888888888
+        ],
+        "best_params": {
+          "clf__C": 0.001
+        },
+        "inner_best_score": 0.9084174955878154
+      },
+      {
+        "repeat": 2,
+        "fold": 1,
+        "n_train": 2904,
+        "n_val": 726,
+        "macro_f1": 0.9145030853644007,
+        "accuracy": 0.9132231404958677,
+        "per_class_f1": [
+          0.8899082568807339,
+          0.8599033816425121,
+          0.8611111111111112,
+          0.9411764705882353,
+          0.9560975609756097,
+          0.9900990099009901,
+          0.9032258064516129
+        ],
+        "best_params": {
+          "clf__C": 0.001
+        },
+        "inner_best_score": 0.9006625057389783
+      },
+      {
+        "repeat": 2,
+        "fold": 2,
+        "n_train": 2904,
+        "n_val": 726,
+        "macro_f1": 0.9120798878232386,
+        "accuracy": 0.9104683195592287,
+        "per_class_f1": [
+          0.8584474885844748,
+          0.8918918918918919,
+          0.8450704225352113,
+          0.9263157894736842,
+          0.9801980198019802,
+          0.9850746268656716,
+          0.8975609756097561
+        ],
+        "best_params": {
+          "clf__C": 0.001
+        },
+        "inner_best_score": 0.9017308282743276
+      },
+      {
+        "repeat": 2,
+        "fold": 3,
+        "n_train": 2904,
+        "n_val": 726,
+        "macro_f1": 0.9028467005439321,
+        "accuracy": 0.9008264462809917,
+        "per_class_f1": [
+          0.8888888888888888,
+          0.8285714285714286,
+          0.8407079646017699,
+          0.9230769230769231,
+          0.9603960396039604,
+          0.964824120603015,
+          0.9134615384615384
+        ],
+        "best_params": {
+          "clf__C": 0.01
+        },
+        "inner_best_score": 0.908910408220843
+      },
+      {
+        "repeat": 2,
+        "fold": 4,
+        "n_train": 2904,
+        "n_val": 726,
+        "macro_f1": 0.8794195655605641,
+        "accuracy": 0.8787878787878788,
+        "per_class_f1": [
+          0.8658008658008658,
+          0.8461538461538461,
+          0.7884615384615384,
+          0.8913043478260869,
+          0.9107981220657277,
+          0.9753694581280788,
+          0.8780487804878049
+        ],
+        "best_params": {
+          "clf__C": 0.001
+        },
+        "inner_best_score": 0.9091296718271221
+      }
+    ]
+  },
+  "final": {
+    "best_params": {
+      "clf__C": 0.001
+    },
+    "cv_best_score_optimistic": 0.9082164658143579,
+    "note": "tüm train'de dış CV 0. tekrarla aynı bölümlemede seçildi; skor iyimser"
+  },
+  "preds_file": "preds/cv_phase3_bge_m3_c1clean_20261012-094856.npz",
+  "test": null,
+  "runtime_seconds": 28.7,
+  "notes": "Faz 3: test seti kullanılmadı.",
+  "embedding": {
+    "encoder": "bge_m3",
+    "model_id": "BAAI/bge-m3",
+    "revision": "5617a9f61b028005a4858fdac845db406aefb181",
+    "pooling": "cls",
+    "prefix": "",
+    "max_length": 512,
+    "source": "1_Pooling/config.json: pooling_mode_cls_token=true; card: prefix gerekmez",
+    "c1clean": true,
+    "text_transform": "strip_c1_quotes (U+0091-U+0094 silinir)",
+    "n": 3630,
+    "train_row_ids_sha256": "04f4a0bbd37a5b31a2c54319ea20de8ce306e9507c43685769e4b9c1750cef27",
+    "split": "split_v2",
+    "n_truncated": 1117,
+    "torch": "2.14.1+cpu",
+    "transformers": "5.19.0",
+    "device": "cpu",
+    "dtype": "float32",
+    "created_at": "2026-10-12T09:48:56+00:00",
+    "git_commit": "ee4b03c"
+  },
+  "rules": {
+    "family": "Aile = ['berturk_mean', 'e5_base', 'bge_m3'] (m=3). Token uzunluğu ve 64 metinlik hız ölçümünden sonra, CV'den önce donduruldu; bge-m3 önceden konan <= 60 dk eşiğini (32 dk) geçtiği için dahil.",
+    "max_length": "Üç encoder'da 512 token, baştan kesme (head truncation). Kesilen metin oranı %22-32, önceden konan %40 parçalama eşiğinin altında. bge-m3'ün kendi sınırı 8192 token'dır; 512 karşılaştırılabilirlik (BERT ailesinin sınırı) ve CPU maliyeti için seçildi, bu yüzden bge-m3 uzun metin avantajını bu fazda kullanmaz.",
+    "input_text": "Ham metin (Faz 2 birincil char_lr ile aynı girdi). ASİMETRİ: e5_base ve bge_m3 (XLM-R tokenizer) U+0091-U+0094 kontrol karakterlerini gerçek token id'leriyle görür; berturk_mean (BERT normalizer'ı Cc karakterlerini siler) görmez. Encoder'lar arası ve char_lr'ye karşı farklar bu artefakta erişim farkını içerebilir.",
+    "comparison": "Her encoder için d_j = encoder_j - char_lr_j (aynı 15 dış fold, npz'den doğrulanır). Sütunlar: düz eşleştirilmiş t p'si (karar için kullanılmaz), Nadeau-Bengio düzeltmeli t (df=14, oran n_val/n_train), N-B p'lerine Holm (aile = 3 encoder). Referans sabit char_lr'dir (argmax değil). Encoder'lar arası sıralama betimseldir.",
+    "grid_edge": "Final seçim ya da dış fold seçimlerinin >= 8/15'i C grid'inin bir ucundaysa grid o yönde bir dekad genişletilip o encoder bir kez yeniden koşulur; iki koşu da raporlanır (Faz 2'deki tek genişletme ile aynı ilke).",
+    "test_transfer": "Teste taşınan tek Faz 3 konfigürasyonu: ham metinle dış CV macro-F1 ortalaması en yüksek encoder, final.best_params ile; char_lr'yi geçip geçmemesinden BAĞIMSIZ taşınır. Testte char_lr'ye karşı McNemar + paired bootstrap; Faz 2'nin ikincil Holm ailesine (birincil char_lr'ye karşı karşılaştırmalar) eklenir, aile 3'ten 4'e çıkar. Birincil aile (BERTurk fine-tuning vs char_lr) değişmez. Test embedding'i yalnızca final değerlendirmede, aynı revision/max_length/pooling ile üretilir; test sonucuna göre encoder, pooling ya da C değiştirilmez.",
+    "sensitivity_c1": "Ham metinle CV'de en iyi çıkan encoder (test_transfer ile aynı seçim) bir kez de U+0091-U+0094 silinmiş metinle (baselines.strip_c1_quotes) embed edilip aynı protokolle koşulur. Tek karşılaştırma: ham - temiz, Nadeau-Bengio (Holm yok). İkincil duyarlılık analizi olarak raporlanır; model seçiminde KULLANILMAZ ve teste taşınmaz. En iyi berturk_mean çıkarsa tokenizer bu karakterleri zaten sildiğinden fark yapısal olarak ~0 beklenir; yine de koşulur."
+  },
+  "reference": "char_lr"
+}
