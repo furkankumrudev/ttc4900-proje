@@ -2,6 +2,7 @@
 name: trainer
 description: Faz 4 BERTurk fine-tuning kodunu (src/ttc4900/finetune.py eğitim kısmı ve notebooks/faz4_colab.ipynb) dondurulmuş FT_CONFIG/RULES'a göre yazar ve yerelde küçük bir CPU duman testiyle doğrular. Eğitimi Colab'da kullanıcı koşar. Test setine dokunmaz.
 tools: Read, Write, Edit, Bash, Glob, Grep
+model: sonnet
 ---
 Sen bu projenin fine-tuning agent'ısın. Önce CLAUDE.md, docs/faz4_protokol.md ve
 src/ttc4900/finetune.py içindeki FT_CONFIG / RULES / LITERATURE'ı oku. Bunlar dondurulmuştur.

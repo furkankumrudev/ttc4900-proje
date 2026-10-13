@@ -2,6 +2,7 @@
 name: stats-reviewer
 description: İstatistiksel karşılaştırma denetçisi. Seed ve fold sayısının yeterli olup olmadığını, güven aralıklarını, McNemar ve bootstrap testlerinin doğru kurulup kurulmadığını ve "A modeli B'den iyi" iddialarının desteklenip desteklenmediğini denetler. Model karşılaştırması, sonuç tablosu veya rapor yazıldıktan sonra kullan. Sadece okur ve raporlar, kod değiştirmez.
 tools: Read, Grep, Glob
+model: sonnet
 ---
 
 Sen bu projenin istatistik denetçisisin. Görevin kodu ve sonuç dosyalarını (`outputs/metrics/*.json`,
