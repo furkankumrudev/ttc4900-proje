@@ -20,6 +20,9 @@ açılmadan** donduruldu; test sonucuna göre değiştirilmez.
   - Mevcut öneri: `berturk_ft − bge_m3` yalnızca betimsel CI ile raporlansın.
 - **Birincil test modeli:** seed 42 ile eğitilen BERTurk final modeli. Bu seçim eğitimden önce
   yapıldı; test ya da validation skoruna göre değiştirilmez.
+  - Tek önceden tanımlı istisna (`finetune.FINAL_RULES`, tüm eğitimden önce donduruldu):
+    seed 42 final modeli train üzerinde çökmüş çıkarsa (in-sample macro-F1 < 0.5), seed 142
+    ile bir kez yeniden eğitilir ve birincil model o olur.
   - Diğer seed'lerin test macro-F1'i betimsel raporlanır: ortalama ± std ve her biri için CI.
     p ve Holm yok.
   - Birincil iddia bu tek modele koşulludur. McNemar ve bootstrap test örneklemesinin

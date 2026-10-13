@@ -4,8 +4,11 @@ Bu kurallar **eğitimden önce** ayrı bir commit'le donduruldu ("Faz 4a"). Kayn
 - `src/ttc4900/finetune.py`: `FT_CONFIG`, `RULES`, `LITERATURE`
 - Test yöntemi: `src/ttc4900/test_plan.py` (`TEST_PLAN`, ayrıntısı `docs/test_protokol.md`)
 
-Ayar taraması yapılmaz. CV ya da test sonucuna göre hiçbir değer değiştirilmez. Tek önceden
-tanımlı istisna aşağıdaki "çöken koşu" kuralıdır.
+Ayar taraması yapılmaz. CV ya da test sonucuna göre hiçbir değer değiştirilmez. Önceden
+tanımlı iki istisna vardır:
+- "Çöken koşu" (`RULES["collapse"]`, Faz 4a): CV koşuları için.
+- "Çöken final model" (`FINAL_RULES["final_collapse"]`, Faz 4a eki): final modeller için.
+  Faz 4a'dan sonra, ama **tüm eğitimden (CV dahil) önce** ayrı bir commit'le donduruldu.
 
 ## Model
 - `dbmdz/bert-base-turkish-cased` @ `b6e1de16c983e0f2c70664591ea3f22810072608`. Faz 3'teki
@@ -27,9 +30,10 @@ tanımlı istisna aşağıdaki "çöken koşu" kuralıdır.
 | fp16 | True | T4 |
 | Seed | {42, 43, 44} | Dodge vd. 2020. CLAUDE.md çoklu seed ister |
 
-**Çöken koşu (Mosbach 2021):**
+**Çöken koşu (Mosbach 2021; CV koşuları için):**
 - En iyi epoch'taki val macro-F1 < 0.5 ise koşu çökmüş sayılır.
-- Koşu seed + 100 ile **bir kez** yeniden koşulur. İki koşu da raporlanır.
+- Koşu seed + 100 ile **bir kez** yeniden koşulur. İki koşu da raporlanır, yeniden koşu
+  kullanılır.
 
 ## CV
 - Dış fold'lar `make_cv(train, n_splits=5, random_state=42)` ile kurulur. Bunlar char_lr nested
@@ -54,7 +58,21 @@ tanımlı istisna aşağıdaki "çöken koşu" kuralıdır.
   - Tüm train (3630 satır) ile, validation olmadan eğitilir.
   - E_final = 15 CV koşusunun en iyi epoch'larının medyanı.
   - Schedule CV ile aynıdır (5 epoch üzerinden warmup + decay) ve eğitim E_final'da durur.
-- **Teste taşınan model:** seed 42 final modeli.
+- **Çöken final model (Faz 4a eki, tüm eğitimden önce donduruldu; `FINAL_RULES`):**
+  - Final modelde validation olmadığı için yukarıdaki çöküş kuralı uygulanamaz. Yerine:
+    final modelin tüm train (3630) üzerindeki in-sample macro-F1'i < 0.5 ise model çökmüş sayılır.
+  - Aynı E_final ile seed + 100 kullanılarak **bir kez** yeniden eğitilir. İki model de
+    raporlanır, yeniden eğitilen kullanılır (o da çökerse yine o kullanılır ve işaretlenir).
+  - Seed 42 çökerse teste taşınan birincil model seed 142 modelidir (`TEST_PLAN
+    ['primary_seed_rule']`).
+  - Ölçüt yalnızca train'dir; test ya da CV skoru kullanılmaz. Eşik CV kuralıyla aynıdır
+    (çöken model sabit sınıf tahmin eder, macro-F1 ≈ 0.04). In-sample F1 iyimser olduğu için
+    aynı eşik finalde CV'dekinden gevşektir; kural önceden kayıtlı olduğu için değiştirilmez.
+  - Faz 5 birincil modeli seed numarasından değil, `phase4_summary`'deki
+    `finals.primary_model_dir` alanından okur. Testten önce ağırlıkların sha256'sını
+    (`primary_model_sha256`) doğrular ve train in-sample macro-F1'ini `load_train()` ile yeniden
+    hesaplayarak kaydı teyit eder.
+- **Teste taşınan model:** seed 42 final modeli (yukarıdaki istisna dışında).
   - CV sonucundan bağımsızdır: char_lr'yi geçip geçmediğine bakılmaz.
   - Seed 43 ve 44'ün test skorları betimseldir (p yok).
 - **Birincil aile:** m=1 (`berturk_ft − char_lr`).

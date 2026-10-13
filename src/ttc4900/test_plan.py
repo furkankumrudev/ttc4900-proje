@@ -65,11 +65,15 @@ TEST_PLAN = {
         "sonra hiçbir aile değişmez. Mevcut öneri: berturk_ft - bge_m3 yalnız betimsel CI."
     ),
     "primary": (
-        f"BERTurk fine-tuning (seed {PRIMARY_SEED} final modeli) vs char_lr; ayrı aile, m={_M1}"
+        f"BERTurk fine-tuning (seed {PRIMARY_SEED} final modeli; istisna: primary_seed_rule) vs "
+        f"char_lr; ayrı aile, m={_M1}"
     ),
     "primary_seed_rule": (
         f"McNemar ve bootstrap'e giren BERTurk modeli seed {PRIMARY_SEED} final modelidir; bu "
-        "seçim eğitimden önce yapıldı, test (ya da validation) skoruna göre değiştirilmez. Diğer "
+        "seçim eğitimden önce yapıldı, test (ya da validation) skoruna göre değiştirilmez. Tek "
+        "önceden tanımlı istisna finetune.FINAL_RULES['final_collapse']: seed "
+        f"{PRIMARY_SEED} final modeli train üzerinde çökmüş çıkarsa (in-sample macro-F1 < 0.5) "
+        f"seed {PRIMARY_SEED}+100 ile bir kez yeniden eğitilir ve birincil model odur. Diğer "
         "seed'lerin final modellerinin test macro-F1'i betimsel raporlanır (ortalama ± std, her "
         "biri için bootstrap CI; p yok, Holm yok). Birincil iddia bu tek eğitilmiş modele "
         "koşulludur: McNemar ve bootstrap test örneklemesi belirsizliğini ölçer, seed (eğitim) "

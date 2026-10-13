@@ -1,8 +1,10 @@
 """Faz 4: BERTurk fine-tuning. Dondurulmuş konfigürasyon (FT_CONFIG) ve kurallar (RULES).
 
 Bu dosyadaki değerler EĞİTİMDEN ÖNCE ayrı bir commit'le donduruldu ("Faz 4a"). Ayar taraması
-yapılmaz; CV ya da test sonucuna göre hiçbir değer değiştirilmez (tek istisna RULES["collapse"]).
-Eğitim kodu (Trainer, Colab CLI'ı) Faz 4b'de bu dosyaya eklenir; FT_CONFIG ve RULES ona dokunmaz.
+yapılmaz; CV ya da test sonucuna göre hiçbir değer değiştirilmez. Önceden tanımlı iki istisna
+vardır: RULES["collapse"] (çöken CV koşusu) ve FINAL_RULES["final_collapse"] (çöken final model;
+Faz 4a eki, tüm eğitimden önce donduruldu). Eğitim kodu (Trainer, Colab CLI'ı) Faz 4b'de bu
+dosyaya eklenir; FT_CONFIG, RULES ve FINAL_RULES ona dokunmaz.
 
 Sezgi: Faz 3'te encoder donmuştu, öğrenilen yalnızca φ(x) üstündeki LR'ydi (konveks problem).
 Burada AutoModelForSequenceClassification = encoder + [CLS] pooler + dropout + Linear(768 -> 7);
@@ -167,5 +169,26 @@ RULES = {
         "Faz 4 test setine dokunmaz: veri yalnız load_train() ile okunur; load_train_test ve "
         "test metni/etiketi kullanılmaz. test_ids yalnız pytest'teki ayrıklık kontrolünde (id "
         "düzeyinde) okunur. Test değerlendirmesi Faz 5'tedir."
+    ),
+}
+
+# Faz 4a eki: tüm eğitimden (CV dahil) ÖNCE donduruldu (FT_CONFIG / RULES / LITERATURE'a dokunmaz).
+# Eşik ve offset FT_CONFIG'ten okunur; yeni sayı tanımlanmaz.
+FINAL_RULES = {
+    "final_collapse": (
+        "Faz 4a eki, tüm eğitimden (CV dahil) önce donduruldu. RULES['collapse'] CV koşuları "
+        "için, bu kural final modeller için geçerlidir. Final modelde validation olmadığı için "
+        "RULES['collapse'] uygulanamaz. Yerine: final modelin tüm train (3630 satır) üzerindeki "
+        f"in-sample macro-F1'i < {FT_CONFIG['collapse_threshold']} ise model çökmüş sayılır ve "
+        "aynı E_final (aynı e_final_sources) ile seed + "
+        f"{FT_CONFIG['collapse_reseed_offset']} kullanılarak BİR KEZ yeniden eğitilir. İki model "
+        "de raporlanır (ayrı json'lar), yeniden eğitilen kullanılır; o da çökerse yine o "
+        "kullanılır ve reseed_also_collapsed işaretlenir. Seed "
+        f"{PRIMARY_SEED} slotu çökerse teste taşınan birincil model seed "
+        f"{PRIMARY_SEED + FT_CONFIG['collapse_reseed_offset']} modelidir "
+        "(TEST_PLAN['primary_seed_rule']); primary_for_test ve primary_model_dir bunu gösterir. "
+        "Ölçüt yalnız train'dir; test ya da CV skoru kullanılmaz. Not: in-sample macro-F1 "
+        "iyimser olduğundan aynı eşik finalde CV'dekinden daha gevşektir (yalnız bariz çöküşü, "
+        "ör. sabit sınıf tahminini yakalar); kural bu yüzden değiştirilmez."
     ),
 }
