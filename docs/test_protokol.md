@@ -69,10 +69,13 @@ açılmadan** donduruldu; test sonucuna göre değiştirilmez.
 
 ## Güç analizi
 Kaynak: yalnızca train OOF tahminleri,
-`outputs/metrics/test_power_20261012-133032.json` (commit `489279d`).
+`outputs/metrics/test_power_20261015-215451.json` (commit `2f1ce27`, Faz 4c). Önceki sürüm
+(`test_power_20261012-133032.json`, commit `489279d`) birincil çifti yalnızca vekillerle
+veriyordu; `outputs/metrics/superseded/` altına taşındı. Ortak satırların sayıları aynı.
 
-- **psi:** iki modelden yalnızca birinin doğru olduğu OOF satırlarının oranı, 3 tekrarın
-  ortalaması.
+- **psi:** iki modelden yalnızca birinin doğru olduğu OOF satırlarının oranı.
+  - Klasik ve encoder çiftlerinde 3 tekrarın ortalamasıdır.
+  - Birincil çiftte tek tekrardır (R = 1): BERT seed 42 CV OOF'u ve char_lr repeat 0.
 - **MDE:** n = 908 ile %80 güce ulaşan en küçük fark.
   - Accuracy MDE'si exact McNemar'dan hesaplanır. psi, alternatif hipotez altında sabit tutulur.
   - macro-F1 MDE'si kaba bir normal yaklaşımdır: (z₁₋α/₂ + z₀.₈) · SE. SE, OOF grup bootstrap
@@ -82,34 +85,45 @@ Kaynak: yalnızca train OOF tahminleri,
 
 | Çift | psi | OOF Δacc | OOF ΔmacroF1 | MDE acc (α/4 ; α) | MDE macro-F1, kaba (α/4 ; α) | OOF farkında güç (α/4 ; α) |
 |---|---|---|---|---|---|---|
+| **berturk_ft − char_lr (birincil, yalnız α)** | 0.068 | +0.0135 | +0.0134 | — ; 0.025 | — ; 0.025 | — ; 0.30 |
 | char_lr − word_lr | 0.052 | +0.0079 | +0.0076 | 0.026 ; 0.022 | 0.025 ; 0.021 | 0.05 ; 0.15 |
 | char_lr − word_svc | 0.051 | +0.0037 | +0.0036 | 0.025 ; 0.022 | 0.025 ; 0.021 | 0.02 ; 0.06 |
 | char_lr − word_cnb | 0.068 | +0.0105 | +0.0106 | 0.029 ; 0.025 | 0.030 ; 0.025 | 0.08 ; 0.19 |
 | bge_m3 − char_lr | 0.074 | +0.0017 | +0.0019 | 0.031 ; 0.026 | 0.031 ; 0.026 | 0.01 ; 0.04 |
 | char_lr − char_lr_c1clean (betimsel, yalnız CI) | 0.016 | +0.0047 | +0.0044 | — | — ; 0.011 | — |
-| berturk_mean − char_lr (birincil için vekil) | 0.071 | −0.0051 | −0.0048 | 0.030 ; 0.026 | 0.030 ; 0.025 | 0.02 ; 0.07 |
-| e5_base − char_lr (birincil için vekil) | 0.074 | −0.0023 | −0.0023 | 0.031 ; 0.026 | 0.031 ; 0.026 | 0.01 ; 0.04 |
+| berturk_mean − char_lr (eski vekil, yalnız karşılaştırma) | 0.071 | −0.0051 | −0.0048 | 0.030 ; 0.026 | 0.030 ; 0.025 | 0.02 ; 0.07 |
+| e5_base − char_lr (eski vekil, yalnız karşılaştırma) | 0.074 | −0.0023 | −0.0023 | 0.031 ; 0.026 | 0.031 ; 0.026 | 0.01 ; 0.04 |
 
 **Okuma:**
 - psi ≈ 0.05–0.075 olan çiftlerde 908 test örneğiyle ancak yaklaşık **2–3 puanlık** farklar %80
   güçle yakalanabilir.
-- CV'de gözlenen farklar 0.2–1.1 puan. Bu farklar gerçekse ikincil karşılaştırmaların gücü
-  α'da bile %20'nin altında.
-- OOF farkları kazananın lanetiyle yukarı yanlı olabilir. char_lr 4 klasik adayın, bge_m3 de 3
-  encoder'ın CV maksimumuydu. Bu yüzden gerçek güç daha da düşük olabilir.
-- İkincil ailede "ayırt edilemedi" beklenen sonuçtur ve eşdeğerlik kanıtı sayılmaz.
+- **İkincil aile:**
+  - CV'de gözlenen farklar 0.2–1.1 puan. Bu farklar gerçekse ikincil karşılaştırmaların gücü
+    α'da bile %20'nin altında.
+  - Bu çiftlerde a tarafı (char_lr, bge_m3) adaylarının CV maksimumu. OOF farkları kazananın
+    lanetiyle yukarı yanlı olabilir, bu yüzden gerçek güç daha da düşük olabilir.
+  - "Ayırt edilemedi" beklenen sonuçtur ve eşdeğerlik kanıtı sayılmaz.
+- **Birincil çift:** CV farkı +1.15 puan (3 seed), seed 42 OOF farkı +1.34 puan; MDE ≈ 2.5 puan.
 
-**Birincil çift (BERTurk fine-tuning − char_lr):**
-- Gücü, Faz 4'ün seed 42 OOF tahminleriyle aynı CLI'la hesaplanacak. Bu tahminler char_lr'nin
-  1. tekrar dış fold'larıyla aynı fold'larda üretilecek (`phase4_berturk_ft_<ts>.json` +
-  preds npz).
-- O zamana kadar donmuş encoder + LR vekilleri yalnızca **kaba bir gösterge**dir. Vekillerin psi
-  değeri ≈ 0.07, bu da α = 0.05'te ≈ 2.6 puanlık bir MDE'ye karşılık gelir.
-- Fine-tuned modelin char_lr ile uyuşmazlığı farklı olabilir.
+**Birincil çift (BERTurk fine-tuning − char_lr), ayrıntı `docs/faz4_sonuclar.md`:**
+- Güç, Faz 4'ün seed 42 CV OOF'u ile hesaplandı. Bu OOF, char_lr'nin 1. tekrar dış fold'larıyla
+  aynı fold'larda üretildi (`phase4_berturk_ft_20261015-214140.json` + npz).
+- **Vekil ile karşılaştırma:** vekillerin psi değeri ≈ 0.07 idi, gerçek değer 0.068 çıktı.
+  n10/n01 = 148/99.
+- **Güç tek sayı değil:** varsayılan gerçek farka göre değişir (exact McNemar, α = 0.05).
+  - Seed 42 OOF farkında (+0.0135) güç 0.30.
+  - 3 seed ortalamasında (+0.0115) 0.23.
+  - OOF farkının kaba %95 aralığının uçlarında 0.07 ile 0.70.
+  - Karar kuralının ortak gücü bundan düşüktür.
+- **Yanlılığın yönü:**
+  - Kazanan char_lr b tarafında, BERT önceden belirlenmiş tek konfigürasyon. Bu yüzden OOF farkı
+    kazananın laneti açısından aşağı yanlıdır.
+  - Seed 42 sonuca bakılarak seçilmedi; yalnızca tek seed'in oynaklığı var.
 
 **Yaklaşıklık:**
-- OOF modelleri ~2904 satırla, final modeller 3630 satırla eğitilir. Bu yüzden psi ve SE
-  yaklaşıktır.
+- OOF modelleri ~2904 satırla (BERT fine-tuning'de validation ayrıldığı için ~2323), final
+  modeller 3630 satırla eğitilir. Bu yüzden psi ve SE yaklaşıktır.
+- Birincil OOF tek tekrar ve tek seed'dir.
 - McNemar gücü test içi grup bağımlılığını yok sayar.
 
 ## Değişiklik notu
