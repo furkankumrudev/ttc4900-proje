@@ -176,6 +176,134 @@ def test_label_encoding_matches_char_lr(train, plans, ref, split):
         finetune.check_reference(train.assign(label=perm), plans, ref, names)
 
 
+# --------------------------------------------------------------------------- fold dosyası
+@pytest.fixture(scope="module")
+def fold_file():
+    return finetune.load_fold_file()
+
+
+# Fold dosyasının içerik sha'sı (eğitimden önce sabitlendi; docs/faz4_protokol.md ile aynı)
+PHASE4_FOLDS_SHA256 = "9c0c31e8f57c0a34821f39a34c13958871c0f4df570dcfb7ef08b8e94c5cdb4b"
+
+
+def test_fold_file_content_pinned(fold_file):
+    """Fold dosyası eğitimden önce dondurulmuş içerikle aynı (değiştirilirse test düşer)."""
+    assert fold_file["_sha256"] == PHASE4_FOLDS_SHA256
+
+
+def test_fold_file_plans_equal_make_plan(train, plans, ref, fold_file):
+    """Dosyadan (make_cv'siz) kurulan plan, yerelde make_cv ile kurulanla birebir aynı."""
+    file_plans = finetune.plans_from_fold_file(train, ref, fold_file)
+    assert len(file_plans) == len(plans) == 5
+    for a, b in zip(file_plans, plans, strict=True):
+        assert a.fold == b.fold
+        for f in ("outer_train", "outer_val", "fit", "val"):
+            assert np.array_equal(getattr(a, f), getattr(b, f)), (a.fold, f)
+
+
+def test_fold_file_matches_reference(ref, fold_file):
+    finetune.check_fold_file(fold_file, ref)
+    fp = fold_file["train_fingerprint"]
+    assert fp["n"] == 3630 and fp["row_id_sha256"] == row_ids_hash(ref["row_id"])
+    assert fp["label_sha256"] == row_ids_hash(ref["y_true"]) and len(fp["text_sha256"]) == 64
+    assert fold_file["reference"]["preds_file"] == ref["preds_file"]
+    major, minor = (int(x) for x in fold_file["generated_with"]["sklearn"].split(".")[:2])
+    assert (major, minor) >= (1, 8)  # char_lr fold'larını veren StratifiedGroupKFold davranışı
+    assert sum(fold_file["n_val"].values()) == sum(
+        len(v) for v in fold_file["val_row_ids"].values()
+    )
+
+
+def test_fold_file_tampering_rejected(train, ref, fold_file, plans, split):
+    def bad(change_ref=None, **change):
+        f = json.loads(json.dumps({k: v for k, v in fold_file.items()})) | change
+        return f, ref | (change_ref or {})
+
+    f, r = bad(reference=fold_file["reference"] | {"preds_file": "preds/baska.npz"})
+    with pytest.raises(ValueError, match="npz"):
+        finetune.plans_from_fold_file(train, r, f)
+    f, r = bad(change_ref={"fold_id0": np.roll(ref["fold_id0"], 1)})
+    with pytest.raises(ValueError, match="sha256"):
+        finetune.plans_from_fold_file(train, r, f)
+    ids = train["row_id"].to_numpy()
+    vr = fold_file["val_row_ids"]
+    oof0 = [int(i) for i in ids[plans[0].outer_val[:1]]]  # dış val satırı validation'a
+    with pytest.raises(ValueError, match="alt kümesi"):
+        finetune.build_plans(train, ref["fold_id0"], vr | {"0": vr["0"] + oof0})
+    # bir yakın-tekrar grubunu böl: fold 0 val'indeki çok üyeli grubun bir üyesi fit'e kayar
+    g = cv_groups(train)
+    gv = g[plans[0].val]
+    multi = next(x for x in set(gv.tolist()) if (gv == x).sum() >= 2)
+    drop = int(ids[plans[0].val][gv == multi][0])
+    with pytest.raises(ValueError, match="grup"):
+        finetune.build_plans(train, ref["fold_id0"], vr | {"0": [i for i in vr["0"] if i != drop]})
+    with pytest.raises(ValueError, match="train'de olmayan"):
+        finetune.build_plans(train, ref["fold_id0"], vr | {"0": vr["0"] + [split["test_ids"][0]]})
+    with pytest.raises(ValueError, match="anahtar"):
+        finetune.build_plans(train, ref["fold_id0"], {k: v for k, v in vr.items() if k != "4"})
+    with pytest.raises(ValueError, match="boyut"):  # dosyadaki n_val ile uyuşmayan val
+        finetune.build_plans(
+            train, ref["fold_id0"], vr | {"0": vr["0"][:-1]}, n_val=fold_file["n_val"]
+        )
+    y = train["label"].to_numpy()
+    # tek sınıflı val: fold 0 val'inin yalnız tüm üyeleri 0. sınıftan olan grupları (grup bölünmez)
+    v0, gv0 = plans[0].val, g[plans[0].val]
+    pure = {x for x in set(gv0.tolist()) if (y[v0][gv0 == x] == 0).all()}
+    one_class = [int(i) for i, x in zip(ids[v0], gv0, strict=True) if x in pure]
+    with pytest.raises(ValueError, match="her sınıfı"):  # tek sınıflı val
+        finetune.build_plans(train, ref["fold_id0"], vr | {"0": one_class})
+    with pytest.raises(ValueError, match="her sınıfı"):  # boş val
+        finetune.build_plans(train, ref["fold_id0"], vr | {"0": []})
+
+
+def test_fold_file_sha_ignores_line_endings(tmp_path, fold_file):
+    """Yerelde CRLF (git autocrlf), Colab'da LF: içerik sha'sı aynı; içerik değişince farklı."""
+    body = {k: v for k, v in fold_file.items() if not k.startswith("_")}
+    text = json.dumps(body, indent=2, ensure_ascii=False) + "\n"
+    (tmp_path / "lf.json").write_bytes(text.encode("utf-8"))
+    (tmp_path / "crlf.json").write_bytes(text.replace("\n", "\r\n").encode("utf-8"))
+    a, b = (finetune.load_fold_file(tmp_path / n)["_sha256"] for n in ("lf.json", "crlf.json"))
+    assert a == b == fold_file["_sha256"]
+    assert finetune.fold_file_sha256(body | {"n_val": {}}) != a
+
+
+def test_fingerprint_detects_order_label_text_changes():
+    df = pd.DataFrame({"row_id": [5, 7, 9], "label": [0, 1, 2], "text": ["a", "bç", "c"]})
+    folds = {"train_fingerprint": finetune.train_fingerprint(df)}
+    finetune.check_fingerprint(df, folds)
+    for changed in (
+        df.iloc[[1, 0, 2]].reset_index(drop=True),  # satır sırası
+        df.assign(label=[0, 1, 1]),  # etiket
+        df.assign(text=["a", "bc", "c"]),  # metin (tek karakter)
+        df.assign(text=["ab", "ç", "c"]),  # sınırlar kaydı, birleşik metin aynı
+    ):
+        with pytest.raises(ValueError, match="Eğitim başlamaz"):
+            finetune.check_fingerprint(changed, folds)
+    with pytest.raises(ValueError, match="metin"):
+        finetune.check_fingerprint(df.drop(columns="text"), folds)
+
+
+def test_setup_folds_does_not_run_make_cv(monkeypatch, train, ref, fold_file, plans, split):
+    """Eğitim yolu (setup_folds) make_cv/make_plan'ı hiç çağırmaz: sklearn sürümünden bağımsız."""
+
+    def boom(*a, **k):
+        raise AssertionError("eğitim yolunda make_cv çağrıldı")
+
+    monkeypatch.setattr(finetune, "make_cv", boom)
+    monkeypatch.setattr(finetune, "make_plan", boom)
+    monkeypatch.setattr(finetune, "check_fingerprint", lambda tr, f: None)  # metin ağsız yok
+    got = finetune.setup_folds(train, ref, fold_file, split["label_names"])
+    assert all(np.array_equal(a.val, b.val) and np.array_equal(a.fit, b.fit)
+               for a, b in zip(got, plans, strict=True))  # fmt: skip
+
+
+def test_write_fold_file_refuses_overwrite(tmp_path):
+    out = finetune.write_fold_file({"x": 1}, tmp_path / "f.json")
+    with pytest.raises(FileExistsError):
+        finetune.write_fold_file({"x": 2}, out)
+    assert json.loads(out.read_text(encoding="utf-8")) == {"x": 1}
+
+
 def test_smoke_subset_keeps_relations(plans):
     for p in plans:
         s = finetune.smoke_subset(p)
@@ -301,7 +429,13 @@ def _fake_world(d):
     m = {"split": "split_v2", "git_commit": "abc1234", "label_names": NAMES,
          "preds_file": preds_file, "cv": {"folds": folds}, "test": None}  # fmt: skip
     (d / "phase2_char_lr_20260101-000000.json").write_text(json.dumps(m), encoding="utf-8")
-    return {"row_id": row_id, "y": y, "plans": plans, "split_path": split_path}
+    # fold dosyası gerçekteki gibi make_plan'dan bir kez üretilir; summarize onu okur
+    text_train = train.assign(text=[f"metin {i}" for i in row_id])
+    folds = finetune.fold_file_dict(text_train, finetune.load_reference(d), NAMES, split_path)
+    folds_path = finetune.write_fold_file(folds, d / "phase4_folds_fake.json")
+    return {"row_id": row_id, "y": y, "plans": plans, "split_path": split_path,
+            "folds_path": folds_path,
+            "folds_sha": finetune.load_fold_file(folds_path)["_sha256"]}  # fmt: skip
 
 
 def _fake_run(d, w, k, seed, i, collapsed=False, reseed_of=None, err=0.1, best_epoch=None):
@@ -323,6 +457,7 @@ def _fake_run(d, w, k, seed, i, collapsed=False, reseed_of=None, err=0.1, best_e
         "split": "split_v2", "git_commit": "def5678", "label_names": NAMES, "smoke": False,
         "revision": finetune.FT_CONFIG["revision"], "ft_config": finetune.FT_CONFIG,
         "env": FAKE_ENV, "fold": k, "seed": seed, "reseed_of": reseed_of,
+        "folds": {"sha256": w["folds_sha"]},
         "collapsed": collapsed, "best_epoch": be, "best_val_macro_f1": best,
         "trainer_best_metric": best, "val_macro_f1_reloaded": best, "epochs_run": min(be + 2, 5),
         "stopped_early": be + 2 < 5, "n_fit": len(p.fit), "n_val": len(p.val),
@@ -365,7 +500,11 @@ def test_summarize_with_fake_runs(tmp_path):
     w, runs = _fake_runs(tmp_path)
     used = _used(runs)
     p_sum, p_oof = finetune.summarize(
-        tmp_path, tmp_path, when=datetime(2026, 1, 2), split_path=w["split_path"]
+        tmp_path,
+        tmp_path,
+        when=datetime(2026, 1, 2),
+        split_path=w["split_path"],
+        folds_path=w["folds_path"],
     )
     s = json.loads(p_sum.read_text(encoding="utf-8"))
     assert s["split"] == "split_v2" and s["test"] is None
@@ -462,7 +601,9 @@ def test_summarize_rejects_inconsistent_runs(tmp_path, pattern, change, match):
     w, _ = _fake_runs(tmp_path)
     _edit(tmp_path, f"phase4_{finetune.NAME}_{pattern}_*.json", **change)
     with pytest.raises(ValueError, match=match):
-        finetune.summarize(tmp_path, tmp_path, split_path=w["split_path"])
+        finetune.summarize(
+            tmp_path, tmp_path, split_path=w["split_path"], folds_path=w["folds_path"]
+        )
 
 
 def test_summarize_rejects_val_oof_overlap_and_missing(tmp_path):
@@ -471,10 +612,24 @@ def test_summarize_rejects_val_oof_overlap_and_missing(tmp_path):
     oof_ids = sorted(int(r) for r in w["row_id"][w["plans"][1].outer_val])
     _edit(tmp_path, f"phase4_{finetune.NAME}_f1_s42_*.json", val_row_ids=oof_ids[:3])
     with pytest.raises(ValueError, match="val_row_ids|kesişiyor"):
-        finetune.summarize(tmp_path, tmp_path, split_path=w["split_path"])
+        finetune.summarize(
+            tmp_path, tmp_path, split_path=w["split_path"], folds_path=w["folds_path"]
+        )
     next(tmp_path.glob(f"phase4_{finetune.NAME}_f4_s44_*.json")).unlink()
     with pytest.raises(SystemExit, match="Eksik"):
-        finetune.summarize(tmp_path, tmp_path, split_path=w["split_path"])
+        finetune.summarize(
+            tmp_path, tmp_path, split_path=w["split_path"], folds_path=w["folds_path"]
+        )
+
+
+def test_summarize_rejects_other_fold_file(tmp_path):
+    """Koşu json'u başka bir fold dosyasıyla (farklı içerik sha'sı) eğitilmişse summarize durur."""
+    w, _ = _fake_runs(tmp_path)
+    _edit(tmp_path, f"phase4_{finetune.NAME}_f2_s43_*.json", folds={"sha256": "0" * 64})
+    with pytest.raises(ValueError, match="fold dosyası sha256"):
+        finetune.summarize(
+            tmp_path, tmp_path, split_path=w["split_path"], folds_path=w["folds_path"]
+        )
 
 
 COLAB_MD = "/content/drive/MyDrive/ttc4900/faz4/models"  # başka işletim sisteminde yazılmış yol
@@ -510,7 +665,9 @@ def test_summarize_cross_checks_finals(tmp_path):
     _fake_final(tmp_path, 142, e_fin, used, 0.97, reseed_of=42, i=1)
     _fake_final(tmp_path, 43, e_fin, used, 0.99, i=2)
     _fake_final(tmp_path, 44, e_fin, used, 0.98, i=3)
-    p_sum, _ = finetune.summarize(tmp_path, tmp_path, split_path=w["split_path"])
+    p_sum, _ = finetune.summarize(
+        tmp_path, tmp_path, split_path=w["split_path"], folds_path=w["folds_path"]
+    )
     fin = json.loads(p_sum.read_text(encoding="utf-8"))["finals"]
     assert fin["slots"]["42"]["used_seed"] == 142 and fin["slots"]["42"]["collapsed"]
     assert fin["slots"]["42"]["reseed_also_collapsed"] is False
@@ -525,18 +682,28 @@ def test_summarize_cross_checks_finals(tmp_path):
     pat42 = f"phase4_{finetune.NAME}_final_s42_*.json"
     _edit(tmp_path, pat42, e_final=e_fin + 1)
     with pytest.raises(ValueError, match="e_final"):
-        finetune.summarize(tmp_path, tmp_path, split_path=w["split_path"])
+        finetune.summarize(
+            tmp_path, tmp_path, split_path=w["split_path"], folds_path=w["folds_path"]
+        )
     _edit(tmp_path, pat42, e_final=e_fin, e_final_sources=finetune.e_final_sources(used)[1:])
     with pytest.raises(ValueError, match="e_final_sources"):
-        finetune.summarize(tmp_path, tmp_path, split_path=w["split_path"])
+        finetune.summarize(
+            tmp_path, tmp_path, split_path=w["split_path"], folds_path=w["folds_path"]
+        )
     _edit(tmp_path, pat42, e_final_sources=finetune.e_final_sources(used), primary_for_test=True)
     with pytest.raises(ValueError, match="FINAL_RULES|primary"):
-        finetune.summarize(tmp_path, tmp_path, split_path=w["split_path"])
+        finetune.summarize(
+            tmp_path, tmp_path, split_path=w["split_path"], folds_path=w["folds_path"]
+        )
     _edit(tmp_path, pat42, primary_for_test=False)
-    finetune.summarize(tmp_path, tmp_path, split_path=w["split_path"])  # yeniden tutarlı
+    finetune.summarize(
+        tmp_path, tmp_path, split_path=w["split_path"], folds_path=w["folds_path"]
+    )  # yeniden tutarlı
     next(tmp_path.glob(f"phase4_{finetune.NAME}_final_s142_*.json")).unlink()
     with pytest.raises(ValueError, match="yeniden eğitimi eksik"):
-        finetune.summarize(tmp_path, tmp_path, split_path=w["split_path"])
+        finetune.summarize(
+            tmp_path, tmp_path, split_path=w["split_path"], folds_path=w["folds_path"]
+        )
 
 
 def test_final_rules_text_and_frozen_sources(monkeypatch):
@@ -792,7 +959,9 @@ def test_summarize_env_includes_finals_and_lists_extras(tmp_path):
     finetune.record_failed_attempt(
         tmp_path, {"kind": "cv", "fold": 0, "seed": 42}, RuntimeError("OOM"), {}
     )
-    p_sum, _ = finetune.summarize(tmp_path, tmp_path, split_path=w["split_path"])
+    p_sum, _ = finetune.summarize(
+        tmp_path, tmp_path, split_path=w["split_path"], folds_path=w["folds_path"]
+    )
     s = json.loads(p_sum.read_text(encoding="utf-8"))
     assert s["superseded_files"] == [
         f"superseded/phase4_{finetune.NAME}_f0_s42_20250101-000000.json"
@@ -800,7 +969,9 @@ def test_summarize_env_includes_finals_and_lists_extras(tmp_path):
     assert len(s["failed_attempts"]) == 1 and "OOM" in s["failed_attempts"][0]["error"]
     _edit(tmp_path, f"phase4_{finetune.NAME}_final_s43_*.json", env=FAKE_ENV | {"gpu": "A100"})
     with pytest.raises(ValueError, match="ortam"):  # final json'ları da ortam denetimine girer
-        finetune.summarize(tmp_path, tmp_path, split_path=w["split_path"])
+        finetune.summarize(
+            tmp_path, tmp_path, split_path=w["split_path"], folds_path=w["folds_path"]
+        )
 
 
 def test_check_env_and_phase4_records(tmp_path):

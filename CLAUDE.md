@@ -46,6 +46,10 @@ Amaç hem öğrenmek hem portfolyo oluşturmak.
   şişirir. Tekrarlı CV için `make_cv(train, random_state=r)` kullanılır (gruplar aynı kalır).
   `g` çağrı anındaki satır sırasına hizalıdır; CV'ye aynı DataFrame verilir. Train'den ayrılacak bir validation parçası (BERT early stopping, temperature scaling)
   da `train_test_split` ile değil, `make_cv` fold'larından biriyle ayrılır.
+  - `make_cv` fold'ları sklearn sürümüne bağlıdır (StratifiedGroupKFold shuffle davranışı 1.8'de
+    değişti; projenin fold'ları ≥ 1.8 ile üretildi). Başka ortamda (Colab) koşan Faz 4 eğitimi
+    `make_cv` çalıştırmaz: dış fold'lar char_lr npz'indeki `fold_id[0]`'dan, iç validation
+    yerelde üretilip commit'lenen `outputs/splits/phase4_folds.json`'dan okunur.
 - **Test seti yalnızca final değerlendirmede, bir kez kullanılır.** Hiperparametre araması, model
   seçimi, early stopping (`Trainer`'ın `eval_dataset`'i ve `load_best_model_at_end` dahil),
   cross-validation ve temperature scaling **yalnızca train içinde** yapılır (CV fold'ları ya da

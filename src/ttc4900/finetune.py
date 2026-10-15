@@ -19,12 +19,15 @@ Kullanım (Faz 4b; eğitim yalnız GPU'da, --smoke dışında):
     python -m ttc4900.finetune final --out-dir <metrics> --model-dir <modeller>
     python -m ttc4900.finetune summarize                                     # CPU, yerelde
     python -m ttc4900.finetune cv --smoke ; python -m ttc4900.finetune final --smoke
+    python -m ttc4900.finetune folds    # YEREL, bir kez: outputs/splits/phase4_folds.json
+    python -m ttc4900.finetune verify   # eğitimsiz: train parmak izi + fold dosyası (Colab'da da)
 """
 
 from __future__ import annotations
 
 import argparse
 import gc
+import hashlib
 import inspect
 import json
 import re
@@ -42,9 +45,16 @@ from sklearn.metrics import accuracy_score, f1_score
 
 from ttc4900 import report
 from ttc4900.cv_compare import latest_metrics, nadeau_bengio, nb_mean_ci
-from ttc4900.data import DATASET_REVISION, RANDOM_STATE, SPLIT_PATH, load_split, make_cv
+from ttc4900.data import (
+    DATASET_REVISION,
+    RANDOM_STATE,
+    SPLIT_PATH,
+    cv_groups,
+    load_split,
+    make_cv,
+)
 from ttc4900.embeddings import ENCODERS, row_ids_hash
-from ttc4900.paths import METRICS_DIR, MODELS_DIR
+from ttc4900.paths import METRICS_DIR, MODELS_DIR, SPLITS_DIR
 from ttc4900.test_plan import PRIMARY_SEED
 
 NAME = "berturk_ft"
@@ -344,6 +354,231 @@ def check_reference(
         raise ValueError(f"Dış fold'lar {REFERENCE} fold_id[0] ile aynı değil.")
 
 
+# --------------------------------------------------------------------------- fold dosyası
+# StratifiedGroupKFold(shuffle=True) aynı girdi ve random_state ile sklearn < 1.8 ve >= 1.8'de
+# FARKLI fold'lar üretir (1.7.2 ile 1.8.0 arasında değişti; Colab'da 1.6.1 vardı). Bu yüzden eğitim
+# (cv/final/smoke) ve summarize make_cv'yi çalıştırmaz: dış fold'lar char_lr npz'indeki
+# fold_id[0]'dan, iç validation parçaları yerelde bir kez make_plan (= make_cv) ile üretilip
+# commit'lenen FOLDS_PATH'ten okunur. Fold'ların kendisi değişmez: Faz 4a'da tanımlanan make_cv
+# çağrılarının (char_lr ile aynı, sklearn 1.9.1) çıktısıdır. Train'in parmak izi (row_id sırası,
+# etiketler, metin) dosyadakiyle aynı değilse eğitim başlamaz.
+FOLDS_PATH = SPLITS_DIR / "phase4_folds.json"
+FOLD_SOURCE = (
+    f"Dış fold'lar: {REFERENCE} preds npz'indeki fold_id[0] (sha256 fold dosyasında). İç "
+    "validation: outputs/splits/phase4_folds.json'daki val_row_ids (yerelde make_cv(tr_df, "
+    "n_splits=5, random_state=42) fold 0 ile bir kez üretildi). Eğitim ortamında make_cv "
+    "çalıştırılmaz (StratifiedGroupKFold fold'ları sklearn sürümüne bağlı)."
+)
+
+
+def texts_sha256(texts) -> str:
+    """Metinlerin sırayla sha256'sı (her metin uzunluk önekli UTF-8: birleştirme belirsiz değil)."""
+    h = hashlib.sha256()
+    for t in texts:
+        b = str(t).encode("utf-8")
+        h.update(len(b).to_bytes(8, "little"))
+        h.update(b)
+    return h.hexdigest()
+
+
+def train_fingerprint(train: pd.DataFrame) -> dict:
+    """Train satır sırası, etiketler ve (varsa) metinlerin parmak izi."""
+    return {
+        "n": int(len(train)),
+        "row_id_sha256": row_ids_hash(train["row_id"].to_numpy()),
+        "label_sha256": row_ids_hash(train["label"].to_numpy()),
+        "text_sha256": texts_sha256(train["text"]) if "text" in train else None,
+    }
+
+
+def check_fingerprint(train: pd.DataFrame, folds: dict) -> None:
+    """Bu ortamdaki train (load_train) fold dosyasının üretildiği train ile birebir aynı mı?"""
+    got, want = train_fingerprint(train), folds["train_fingerprint"]
+    if want.get("text_sha256") is None or got["text_sha256"] is None:
+        raise ValueError("Parmak izinde metin hash'i yok: train 'text' sütunuyla verilmeli.")
+    diff = {k: (got[k], want[k]) for k in want if got.get(k) != want[k]}
+    if diff:
+        raise ValueError(
+            f"train fold dosyasıyla aynı değil (şimdiki, dosya): {diff}. Eğitim başlamaz "
+            "(satır sırası, etiket ya da metin farklı; datasets/pandas sürümünü kontrol edin)."
+        )
+
+
+def fold_file_dict(
+    train: pd.DataFrame, ref: dict, names: list[str], path: Path = SPLIT_PATH
+) -> dict:
+    """Yerelde bir kez: make_plan (make_cv) ile iç validation parçalarını üretir, dış fold'ları
+    char_lr fold_id[0] ile doğrular ve dosya içeriğini döndürür. train 'text' içermelidir."""
+    import platform
+
+    import scipy
+    import sklearn
+
+    if "text" not in train:
+        raise ValueError("fold dosyası metin parmak iziyle üretilir: train 'text' içermeli.")
+    train = train.reset_index(drop=True)
+    plans = make_plan(train, path)
+    check_reference(train, plans, ref, names)
+    ids = train["row_id"].to_numpy()
+    return {
+        "description": FOLD_SOURCE,
+        "split": SPLIT_NAME,
+        "data_revision": DATASET_REVISION,
+        "method": (
+            f"Dış: make_cv(train, n_splits={FT_CONFIG['cv_n_splits']}, random_state="
+            f"{FT_CONFIG['cv_random_state']}) = {REFERENCE} fold_id[0] (doğrulandı; dosyada "
+            "yalnız sha256). İç: dış train parçası (load_train sırası korunarak) tr_df, "
+            f"make_cv(tr_df, n_splits={FT_CONFIG['val_n_splits']}, random_state="
+            f"{FT_CONFIG['cv_random_state']}) fold {FT_CONFIG['val_fold']} = val; fit = dış "
+            "train - val."
+        ),
+        "reference": {
+            "file": ref["file"],
+            "preds_file": ref["preds_file"],
+            "fold_id0_sha256": row_ids_hash(ref["fold_id0"]),
+        },
+        "train_fingerprint": train_fingerprint(train),
+        "n_fit": {str(p.fold): len(p.fit) for p in plans},
+        "n_val": {str(p.fold): len(p.val) for p in plans},
+        "val_row_ids": {str(p.fold): sorted(int(i) for i in ids[p.val]) for p in plans},
+        "generated_with": {
+            "python": platform.python_version(),
+            "sklearn": sklearn.__version__,
+            "numpy": np.__version__,
+            "pandas": pd.__version__,
+            "scipy": scipy.__version__,
+        },
+        "created_at": report.now().isoformat(timespec="seconds"),
+    }
+
+
+def write_fold_file(obj: dict, out: Path = FOLDS_PATH) -> Path:
+    """Fold dosyası bir kez yazılır (split gibi); var olanın üzerine yazılmaz."""
+    out = Path(out)
+    if out.exists():
+        raise FileExistsError(f"{out} zaten var; fold dosyası yalnızca bir kez üretilir.")
+    out.parent.mkdir(parents=True, exist_ok=True)
+    text = json.dumps(obj, indent=2, ensure_ascii=False) + "\n"
+    out.write_text(text, encoding="utf-8", newline="\n")  # Windows'ta da LF
+    return out
+
+
+def fold_file_sha256(obj: dict) -> str:
+    """İçerik sha256'sı (kanonik JSON; '_' önekli yükleme alanları hariç). Bayt sha'sından farklı
+    olarak satır sonlarından (git autocrlf: yerelde CRLF, Colab'da LF) bağımsızdır."""
+    body = {k: v for k, v in obj.items() if not k.startswith("_")}
+    canon = json.dumps(body, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+    return hashlib.sha256(canon.encode("utf-8")).hexdigest()
+
+
+def load_fold_file(path: Path = FOLDS_PATH) -> dict:
+    path = Path(path)
+    if not path.exists():
+        raise FileNotFoundError(
+            f"{path} yok: yerelde 'python -m ttc4900.finetune folds' ile üretin."
+        )
+    obj = json.loads(path.read_text(encoding="utf-8"))
+    return obj | {"_file": path.name, "_sha256": fold_file_sha256(obj)}
+
+
+def check_fold_file(folds: dict, ref: dict) -> None:
+    """Fold dosyası bu split, veri revision'ı ve char_lr referansı (aynı npz, aynı fold_id[0],
+    aynı row_id sırası ve etiketler) için mi üretilmiş? Değilse ValueError."""
+    if folds["split"] != SPLIT_NAME or folds["data_revision"] != DATASET_REVISION:
+        raise ValueError("Fold dosyası başka bir split ya da veri revision'ı için.")
+    r = folds["reference"]
+    if r["preds_file"] != ref["preds_file"]:
+        raise ValueError(f"Fold dosyası başka bir {REFERENCE} npz'ine göre: {r['preds_file']}")
+    if r["fold_id0_sha256"] != row_ids_hash(ref["fold_id0"]):
+        raise ValueError(f"{REFERENCE} fold_id[0] fold dosyasındaki sha256 ile aynı değil.")
+    fp = folds["train_fingerprint"]
+    if fp["n"] != len(ref["row_id"]) or fp["row_id_sha256"] != row_ids_hash(ref["row_id"]):
+        raise ValueError(f"Fold dosyasının row_id sırası {REFERENCE} npz'iyle aynı değil.")
+    if fp["label_sha256"] != row_ids_hash(ref["y_true"]):
+        raise ValueError(f"Fold dosyasının etiketleri {REFERENCE} y_true ile aynı değil.")
+
+
+def build_plans(
+    train: pd.DataFrame,
+    fold0,
+    val_row_ids: dict,
+    path: Path = SPLIT_PATH,
+    n_val: dict | None = None,
+    n_fit: dict | None = None,
+) -> list[FoldPlan]:
+    """make_cv çalıştırmadan fold planı: dış fold k = {i: fold0[i] == k}, val = dosyadaki
+    val_row_ids[k], fit = dış train - val. Doğrular: val ⊂ dış train; fit/val ve dış train/val
+    yakın-tekrar grupları ayrık (cv_groups yalnız split dosyasını okur; split'in train'inde
+    olmayan satırda hata); fit ve val her sınıfı içerir; verilirse boyutlar dosyadakiyle aynı.
+    make_plan ile aynı FoldPlan'ları verir (testle doğrulanır)."""
+    train = train.reset_index(drop=True)
+    n_splits = FT_CONFIG["cv_n_splits"]
+    fold0 = np.asarray(fold0, dtype=np.int64)
+    if len(fold0) != len(train) or set(np.unique(fold0).tolist()) != set(range(n_splits)):
+        raise ValueError(f"fold_id[0] train ile hizalı değil ya da 0..{n_splits - 1} dışında.")
+    if set(val_row_ids) != {str(k) for k in range(n_splits)}:
+        raise ValueError(f"val_row_ids fold anahtarları 0..{n_splits - 1} değil.")
+    g = cv_groups(train, path)
+    pos = {int(r): i for i, r in enumerate(train["row_id"])}
+    y = train["label"].to_numpy()
+    n_classes = FT_CONFIG["num_labels"]
+    plans = []
+    for k in range(n_splits):
+        outer_val, outer_train = np.flatnonzero(fold0 == k), np.flatnonzero(fold0 != k)
+        vids = [int(r) for r in val_row_ids[str(k)]]
+        if len(set(vids)) != len(vids) or not set(vids) <= pos.keys():
+            raise ValueError(f"fold {k}: val_row_ids yinelenen ya da train'de olmayan id içeriyor.")
+        val = np.sort(np.array([pos[r] for r in vids], dtype=np.int64))
+        if not set(val.tolist()) <= set(outer_train.tolist()):
+            raise ValueError(f"fold {k}: validation dış train'in alt kümesi değil.")
+        fit = np.setdiff1d(outer_train, val)
+        if set(g[fit].tolist()) & set(g[val].tolist()):
+            raise ValueError(f"fold {k}: fit ve validation yakın-tekrar grupları ayrık değil.")
+        if set(g[outer_train].tolist()) & set(g[outer_val].tolist()):
+            raise ValueError(f"fold {k}: dış train ve dış val yakın-tekrar grupları ayrık değil.")
+        for part, idx, want in (("val", val, n_val), ("fit", fit, n_fit)):
+            if want is not None and len(idx) != int(want[str(k)]):
+                raise ValueError(f"fold {k}: {part} boyutu {len(idx)}, dosyada {want[str(k)]}.")
+            if len(np.unique(y[idx])) != n_classes:
+                raise ValueError(f"fold {k}: {part} her sınıfı içermiyor ({n_classes} sınıf).")
+        plans.append(FoldPlan(k, outer_train, outer_val, fit, val))
+    return plans
+
+
+def plans_from_fold_file(
+    train: pd.DataFrame, ref: dict, folds: dict, path: Path = SPLIT_PATH
+) -> list[FoldPlan]:
+    """Ortamdan bağımsız fold planı: dış = ref fold_id[0], iç = fold dosyası (make_cv yok)."""
+    check_fold_file(folds, ref)
+    return build_plans(
+        train, ref["fold_id0"], folds["val_row_ids"], path, folds["n_val"], folds["n_fit"]
+    )
+
+
+def setup_folds(
+    train: pd.DataFrame, ref: dict, folds: dict, names: list[str], path: Path = SPLIT_PATH
+) -> list[FoldPlan]:
+    """Eğitimden önce: train parmak izi (row_id sırası, etiket, metin) = fold dosyası; fold
+    dosyası = char_lr referansı; plan dosyalardan kurulur. Not: plan fold_id[0]'dan kurulduğu
+    için check_reference'ın fold karşılaştırması burada yapı gereği sağlanır; bağımsız değeri
+    split/etiket adı/row_id/y_true denetimleridir. Dış fold'lara bağımsız güvence build_plans'in
+    dış train/val grup ayrıklığı denetimidir."""
+    check_fingerprint(train, folds)
+    plans = plans_from_fold_file(train, ref, folds, path)
+    check_reference(train, plans, ref, names)
+    return plans
+
+
+def folds_info(folds: dict) -> dict:
+    """Koşu json'larına yazılan fold kaynağı."""
+    return {
+        "file": f"outputs/splits/{folds['_file']}",
+        "sha256": folds["_sha256"],
+        "source": FOLD_SOURCE,
+        "train_fingerprint": folds["train_fingerprint"],
+    }
+
+
 def label_maps(names: list[str]) -> tuple[dict[int, str], dict[str, int]]:
     """id2label / label2id: indeks = ClassLabel tamsayısı (data.label_names() sırası)."""
     id2label = dict(enumerate(names))
@@ -553,6 +788,8 @@ def env_info(device: str) -> dict:
 
     import accelerate
     import datasets
+    import scipy
+    import sklearn
     import torch
     import transformers
 
@@ -562,6 +799,10 @@ def env_info(device: str) -> dict:
         "transformers": transformers.__version__,
         "datasets": datasets.__version__,
         "accelerate": accelerate.__version__,
+        "sklearn": sklearn.__version__,  # bilgi: fold'lar make_cv'den değil dosyadan okunur
+        "numpy": np.__version__,
+        "pandas": pd.__version__,
+        "scipy": scipy.__version__,
         "cuda": torch.version.cuda,
         "device": device,
         "gpu": torch.cuda.get_device_name(0) if device == "cuda" else None,
@@ -793,28 +1034,37 @@ def phase4_records(out_dir: Path) -> list[dict]:
     return recs
 
 
-def _context(args) -> dict:
-    """Ortak kurulum: GPU kapısı, ortam tekliği, yalnız-train veri, etiket ve fold doğrulamaları,
-    tokenizer."""
+def load_checked_train(ref_dir: Path, folds_file: Path) -> dict:
+    """Yalnız-train veri + etiket doğrulaması + fold planı (make_cv ÇALIŞTIRILMAZ): dış fold'lar
+    char_lr fold_id[0], iç validation fold dosyası; train parmak izi dosyayla aynı olmalı."""
     from ttc4900.data import label_names, load_train
 
-    smoke = args.smoke
-    device = require_device(smoke)
-    out_dir, ckpt_dir, model_dir = resolve_dirs(args)
-    env = env_info(device)
-    check_env(phase4_records(out_dir), env)  # eğitimden önce: farklı ortamda devam yok
     train = load_train()  # test satırları belleğe hiç alınmaz
     names = label_names()
     if names != load_split()["label_names"]:
         raise ValueError("data.label_names() split dosyasındaki label_names ile aynı değil.")
     check_labels(train, names)
-    plans = make_plan(train)
-    ref = load_reference(args.ref_dir)
-    check_reference(train, plans, ref, names)  # dış fold'lar = char_lr fold_id[0], etiketler aynı
+    ref = load_reference(ref_dir)
+    folds = load_fold_file(folds_file)
+    plans = setup_folds(train, ref, folds, names)
+    return {"train": train, "names": names, "ref": ref, "folds": folds, "plans": plans}
+
+
+def _context(args) -> dict:
+    """Ortak kurulum: GPU kapısı, ortam tekliği, yalnız-train veri, etiket ve fold doğrulamaları,
+    tokenizer."""
+    smoke = args.smoke
+    device = require_device(smoke)
+    out_dir, ckpt_dir, model_dir = resolve_dirs(args)
+    env = env_info(device)
+    check_env(phase4_records(out_dir), env)  # eğitimden önce: farklı ortamda devam yok
+    d = load_checked_train(args.ref_dir, args.folds_file)
+    train, names, ref, folds, plans = (d[k] for k in ("train", "names", "ref", "folds", "plans"))
     tok = load_tokenizer()  # revision denetimi içeride (check_tokenizer_revision)
     print(
-        f"[kurulum] {len(train)} train satırı; dış fold'lar ve etiketler {ref['file']} ile "
-        f"doğrulandı; tokenizer @ {FT_CONFIG['revision'][:8]} doğrulandı; cihaz {device}",
+        f"[kurulum] {len(train)} train satırı; parmak izi {folds['_file']} ile, dış fold'lar ve "
+        f"etiketler {ref['file']} ile doğrulandı (make_cv çalıştırılmadı); tokenizer @ "
+        f"{FT_CONFIG['revision'][:8]} doğrulandı; cihaz {device}",
         flush=True,
     )
     return {
@@ -829,6 +1079,7 @@ def _context(args) -> dict:
         "names": names,
         "plans": plans,
         "ref": ref,
+        "folds": folds_info(folds),
         "tok": tok,
         "tokenizer_check": check_tokenizer_revision(tok),
     }
@@ -850,6 +1101,7 @@ def _base_record(ctx: dict, started) -> dict:
         "label_names": ctx["names"],
         "env": ctx["env"],
         "tokenizer_check": ctx["tokenizer_check"],
+        "folds": ctx.get("folds"),
         "ft_config": FT_CONFIG,
     }
 
@@ -966,8 +1218,9 @@ def _train_cv_run(ctx: dict, k: int, seed: int, reseed_of: int | None, state: di
         "val_row_ids": sorted(int(i) for i in row_id[p.val]),
         "fit_row_ids_sha256": row_ids_hash(np.sort(row_id[p.fit])),
         "eval_dataset": (
-            "validation = dış train içinden make_cv(tr_df, n_splits=5, random_state=42) fold 0; "
-            "dış val (OOF) ve test eğitimde/seçimde kullanılmadı"
+            "validation = dış train içinden make_cv(tr_df, n_splits=5, random_state=42) fold 0 "
+            "(yerelde üretilip outputs/splits/phase4_folds.json'dan okundu); dış val (OOF) ve "
+            "test eğitimde/seçimde kullanılmadı"
         ),
         "val_curve": curve,
         "best_epoch": best_ep,
@@ -1352,6 +1605,7 @@ def summarize(
     ref_dir: Path = METRICS_DIR,
     when=None,
     split_path: Path = SPLIT_PATH,
+    folds_path: Path = FOLDS_PATH,
 ):
     """15 koşuyu toplar. Yazar: phase4_summary_<ts>.json ve seed 42 OOF'u
     (phase4_berturk_ft_<ts>.json + preds npz; şekil 1 x n, char_lr repeat 0 sırası ve fold'ları).
@@ -1371,11 +1625,17 @@ def summarize(
     finals = find_finals(out_dir)  # final json'ları varsa CV ile çapraz denetlenir
     env_recs = [*runs.values(), *finals.values()]  # ortam tekliği: CV + final, gpu adı dahil
     check_env(env_recs, env_recs[0]["env"])
-    # fit/val parçaları: aynı fold planı yeniden kurulur ve TÜM koşu json'larıyla (çöken
-    # orijinaller dahil) karşılaştırılır
+    # fit/val parçaları: aynı fold planı eğitimdeki gibi dosyalardan (make_cv'siz) yeniden kurulur
+    # ve TÜM koşu json'larıyla (çöken orijinaller dahil) karşılaştırılır
     plan_train = pd.DataFrame({"row_id": ref["row_id"], "label": ref["y_true"]})
-    plans = make_plan(plan_train, split_path)
+    fold_file = load_fold_file(folds_path)
+    plans = plans_from_fold_file(plan_train, ref, fold_file, split_path)
     check_reference(plan_train, plans, ref, names)
+    for r in runs.values():  # her koşu bu fold dosyasıyla eğitilmiş olmalı
+        if (r.get("folds") or {}).get("sha256") != fold_file["_sha256"]:
+            raise ValueError(
+                f"{r['_file']}: fold dosyası sha256'sı {fold_file['_file']} ile aynı değil"
+            )
     pos = {int(r): i for i, r in enumerate(ref["row_id"])}
     rows_of = {key: _check_run_rows(r, plans[key[0]], ref, pos, out_dir) for key, r in runs.items()}
     used_keys = {id(r): key for key, r in runs.items()}
@@ -1451,7 +1711,8 @@ def summarize(
         "cv": {
             "scheme": (
                 f"make_cv {c['cv_n_splits']} fold, random_state {c['cv_random_state']} "
-                f"({REFERENCE} repeat 0 ile aynı fold'lar); seed {PRIMARY_SEED}"
+                f"({REFERENCE} repeat 0 ile aynı fold'lar; fold_id[0] + phase4_folds.json'dan "
+                f"okundu); seed {PRIMARY_SEED}"
             ),
             "n_folds": len(folds),
             "n_repeats": 1,
@@ -1469,6 +1730,7 @@ def summarize(
         ),
         "source_commits": commits,
         "fold_reference": {"file": ref["file"], "preds_file": ref["preds_file"]},
+        "fold_source": folds_info(fold_file),
         "notes": (
             f"Seed {PRIMARY_SEED} CV koşularının OOF tahminleri (her fold kendi modelinden; final "
             "model değil). paired_test --power birincil çift (berturk_ft - char_lr) için okur. "
@@ -1529,6 +1791,7 @@ def summarize(
         "phase": 4,
         "timestamp": when.isoformat(timespec="seconds"),
         "git_commit": report.git_commit(),
+        "fold_source": folds_info(fold_file),
         "split": ref["split"],
         "model_id": c["model_id"],
         "revision": c["revision"],
@@ -1747,7 +2010,7 @@ def summarize_finals(finals: dict[int, dict], e_fin: int, used: dict) -> dict:
 
 def cmd_summarize(args) -> None:
     out_dir = Path(args.out_dir) if args.out_dir else METRICS_DIR
-    p_sum, p_oof = summarize(out_dir, args.ref_dir)
+    p_sum, p_oof = summarize(out_dir, args.ref_dir, folds_path=args.folds_file)
     s = json.loads(p_sum.read_text(encoding="utf-8"))
     cv, vs = s["cv"], s["vs_reference"]
     nb = vs["nadeau_bengio"]
@@ -1772,6 +2035,33 @@ def cmd_summarize(args) -> None:
               f"{v['collapsed']}, birincil {v['primary_for_test']}")  # fmt: skip
     if "primary_model_dir" in fin:
         print(f"  birincil test modeli: seed {fin['primary_seed']} -> {fin['primary_model_dir']}")
+
+
+def cmd_folds(args) -> None:
+    """YEREL, bir kez: iç validation fold'larını make_cv ile üretir ve FOLDS_PATH'e yazar (var
+    olanın üzerine yazmaz). Dış fold'lar char_lr fold_id[0] ile doğrulanır; sklearn >= 1.8 gerekir
+    (char_lr fold'ları bu davranışla üretildi; eski sürümde check_reference hata verir)."""
+    from ttc4900.data import label_names, load_train
+
+    train = load_train()
+    names = label_names()
+    check_labels(train, names)
+    obj = fold_file_dict(train, load_reference(args.ref_dir), names)
+    out = write_fold_file(obj, args.folds_file)
+    print(out, obj["n_val"], obj["generated_with"])
+
+
+def cmd_verify(args) -> None:
+    """Eğitimsiz doğrulama (GPU gerekmez, make_cv çalıştırılmaz): load_train() parmak izi = fold
+    dosyası, fold dosyası = char_lr referansı, plan kurulur ve gruplar ayrık. Hata = eğitim yok."""
+    d = load_checked_train(args.ref_dir, args.folds_file)
+    fp = train_fingerprint(d["train"])
+    print(f"[verify] {d['folds']['_file']} sha256 {d['folds']['_sha256'][:12]}; referans "
+          f"{d['ref']['preds_file']}")  # fmt: skip
+    print(f"[verify] train parmak izi (dosyayla aynı): {fp}")
+    for p in d["plans"]:
+        print(f"  fold {p.fold}: fit {len(p.fit)}  val {len(p.val)}  oof {len(p.outer_val)}")
+    print("[verify] tamam: fold'lar dosyalardan kuruldu, make_cv çalıştırılmadı.")
 
 
 # --------------------------------------------------------------------------- CLI
@@ -1812,6 +2102,12 @@ def _parser() -> argparse.ArgumentParser:
             default=METRICS_DIR,
             help=f"{REFERENCE} referans json/npz dizini (repo içi outputs/metrics)",
         )
+        p.add_argument(
+            "--folds-file",
+            type=Path,
+            default=FOLDS_PATH,
+            help="iç validation fold dosyası (yerelde 'folds' ile bir kez üretilir, commit'lenir)",
+        )
 
     for name in ("cv", "final"):
         p = sub.add_parser(name)
@@ -1828,6 +2124,8 @@ def _parser() -> argparse.ArgumentParser:
                 "--model-dir", type=Path, default=None, help="final modeller: <model-dir>/<seed>/"
             )
     common(sub.add_parser("summarize"))
+    common(sub.add_parser("folds", help="YEREL, bir kez: fold dosyasını make_cv ile üretir"))
+    common(sub.add_parser("verify", help="eğitimsiz: train parmak izi + fold dosyası doğrulaması"))
     return ap
 
 
@@ -1840,7 +2138,9 @@ def main(argv=None) -> None:
             ap.error(f"seed'ler FT_CONFIG['seeds'] içinden olmalı; fazla: {sorted(extra)}")
         if args.cmd == "cv" and not set(args.folds) <= set(range(FT_CONFIG["cv_n_splits"])):
             ap.error(f"fold'lar 0..{FT_CONFIG['cv_n_splits'] - 1} olmalı")
-    {"cv": cmd_cv, "final": cmd_final, "summarize": cmd_summarize}[args.cmd](args)
+    cmds = {"cv": cmd_cv, "final": cmd_final, "summarize": cmd_summarize, "folds": cmd_folds,
+            "verify": cmd_verify}  # fmt: skip
+    cmds[args.cmd](args)
 
 
 if __name__ == "__main__":

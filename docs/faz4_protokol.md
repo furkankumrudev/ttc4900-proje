@@ -39,6 +39,29 @@ tanımlı iki istisna vardır:
 - Dış fold'lar `make_cv(train, n_splits=5, random_state=42)` ile kurulur. Bunlar char_lr nested
   CV'sinin 1. tekrarıyla aynı fold'lardır; eşleşme kodda npz'den doğrulanır.
 - 5 fold × 3 seed = 15 koşu.
+- **Fold kaynağı (Faz 4b düzeltmesi, eğitimden önce; hiperparametre ve kural değişmedi):**
+  - `StratifiedGroupKFold(shuffle=True)` aynı girdi ve `random_state` ile sklearn < 1.8 ve
+    ≥ 1.8'de farklı fold'lar üretir. Aynı row_id/etiket girdisiyle denendi: 1.6.1 ve 1.7.2'de
+    3630 satırın 2919'unun dış fold'u farklı; 1.8.0 ve 1.9.1'de char_lr ile birebir aynı. Colab'da
+    sklearn 1.6.1 olduğu için ilk denemede `check_reference` eğitimden önce durdu.
+  - Bu yüzden eğitim ortamında (`cv`, `final`, `--smoke`) ve `summarize`'da `make_cv`
+    çalıştırılmaz. Dış fold'lar char_lr npz'indeki `fold_id[0]`'dan okunur. İç validation
+    parçaları yerelde (sklearn 1.9.1) yukarıdaki `make_cv` çağrılarıyla **bir kez** üretilip
+    `outputs/splits/phase4_folds.json`'a yazıldı (`finetune folds`; üzerine yazılmaz).
+  - Fold'ların kendisi değişmedi: Faz 4a'daki tanımın, char_lr ile aynı sklearn davranışındaki
+    çıktısıdır. Dosyadan kurulan plan yerelde `make_cv` planıyla birebir aynıdır (test).
+  - Eğitimden önce: `load_train()`'in parmak izi (row_id sırası, etiketler, metinlerin sha256'sı)
+    dosyadakiyle, dosyadaki char_lr npz adı ve `fold_id[0]` sha256'sı referansla aynı olmalı. Val
+    dış train'in alt kümesi, fit/val ve dış train/val yakın-tekrar grupları ayrık olmalı. Biri
+    tutmazsa eğitim başlamaz. Colab sürümleriyle (Python 3.13, datasets 4.8.5, pandas 2.2.3)
+    yerelde denendi: parmak izi aynı.
+  - Val ve fit boyutları dosyadaki `n_val` / `n_fit` ile aynı olmalı ve ikisi de 7 sınıfın
+    hepsini içermeli.
+  - Her koşu json'u ve özet, fold dosyasının içerik sha256'sını taşır (`folds` / `fold_source`;
+    kanonik JSON üzerinden, satır sonundan bağımsız). `summarize` her CV koşusunun bu sha'yla
+    eğitildiğini denetler.
+  - Fold dosyasının içerik sha256'sı eğitimden önce sabitlendi: `9c0c31e8f57c0a34821f39a34c13958871c0f4df570dcfb7ef08b8e94c5cdb4b`
+    (`tests/test_finetune.py::test_fold_file_content_pinned`).
 - **Validation:** Her dış fold'un train kısmında `make_cv(tr_df, n_splits=5, random_state=42)`
   çağrılır ve ilk fold validation olur (~581 val / ~2323 fit).
   - Trainer'ın `eval_dataset`'i her zaman bu parçadır.
@@ -97,8 +120,12 @@ bunları görür (`docs/shortcut_learning.md`). Bu asimetri char_lr lehinedir.
 
 ## Colab
 1. Kod, Faz 4b commit'ine checkout edilir.
-2. Torch yeniden kurulmaz: requirements'tan torch satırı atlanır.
-3. `torch.cuda.is_available()` kontrol edilir. GPU yoksa eğitim başlamaz.
+2. Paket yükseltmesi yapılmaz: requirements'taki eğitim paketleri kuruluysa olduğu gibi
+   kullanılır, yalnız eksik olan kurulur (pip'in kurulu bir paketi değiştirmeyeceği önce
+   `--dry-run` ile doğrulanır). Torch kurulmaz. Sürümler yazdırılır ve metrik dizinine
+   `phase4_colab_env_<ts>.json` olarak kaydedilir.
+3. `torch.cuda.is_available()` kontrol edilir. GPU yoksa eğitim başlamaz. Ardından
+   `finetune verify` (eğitimsiz) train parmak izini ve fold dosyasını doğrular; hata = eğitim yok.
 4. Metrikler Drive'a yazılır ve koşu kopsa kaldığı yerden devam eder. Checkpoint'ler geçici
    diske yazılır ve silinir. Final modeller Drive'da kalır, git'e girmez.
 5. Metrikler zip olarak yerele indirilir. `summarize` ve commit yerelde yapılır.

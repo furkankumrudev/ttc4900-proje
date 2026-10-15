@@ -3,3 +3,4 @@
 *.ipynb text eol=lf
 *.png binary
 *.npz binary
+outputs/splits/*.json text eol=lf
