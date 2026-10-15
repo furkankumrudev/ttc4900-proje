@@ -1,0 +1,82 @@
+{
+  "experiment": "phase4_berturk_ft",
+  "phase": 4,
+  "timestamp": "2026-10-15T21:41:40+00:00",
+  "git_commit": "faaba3e",
+  "split": "split_v2",
+  "model_id": "dbmdz/bert-base-turkish-cased",
+  "revision": "b6e1de16c983e0f2c70664591ea3f22810072608",
+  "seed": 42,
+  "label_names": [
+    "siyaset",
+    "dunya",
+    "ekonomi",
+    "kultur",
+    "saglik",
+    "spor",
+    "teknoloji"
+  ],
+  "cv": {
+    "scheme": "make_cv 5 fold, random_state 42 (char_lr repeat 0 ile aynı fold'lar; fold_id[0] + phase4_folds.json'dan okundu); seed 42",
+    "n_folds": 5,
+    "n_repeats": 1,
+    "macro_f1_folds": [
+      0.9063970605522831,
+      0.9182707439913329,
+      0.9308162807295565,
+      0.9258157137466908,
+      0.912743790523097
+    ],
+    "macro_f1_mean": 0.9188087179085921,
+    "accuracy_folds": [
+      0.9049586776859504,
+      0.9173553719008265,
+      0.9297520661157025,
+      0.9256198347107438,
+      0.9118457300275482
+    ],
+    "pooled_oof": {
+      "macro_f1": 0.9188508564931915,
+      "accuracy": 0.9179063360881543,
+      "per_class_f1": {
+        "siyaset": 0.9112107623318386,
+        "dunya": 0.8950789229340761,
+        "ekonomi": 0.8741845293569431,
+        "kultur": 0.9245901639344263,
+        "saglik": 0.9463220675944334,
+        "spor": 0.9891625615763546,
+        "teknoloji": 0.8914069877242682
+      }
+    }
+  },
+  "preds_file": "preds/cv_phase4_berturk_ft_20261015-214140.npz",
+  "sources": [
+    "phase4_berturk_ft_f0_s42_20261015-161553.json",
+    "phase4_berturk_ft_f1_s42_20261015-163557.json",
+    "phase4_berturk_ft_f2_s42_20261015-165157.json",
+    "phase4_berturk_ft_f3_s42_20261015-171141.json",
+    "phase4_berturk_ft_f4_s42_20261015-172741.json"
+  ],
+  "reseeded_folds": [],
+  "reseeded_folds_note": "Bu fold'larda seed 42 koşusu çöktü (RULES['collapse']); o fold'ların OOF'u seed 142 koşusundandır.",
+  "source_commits": [
+    "faaba3e"
+  ],
+  "fold_reference": {
+    "file": "phase2_char_lr_20261011-192701.json",
+    "preds_file": "preds/cv_char_lr_20261011-192701.npz"
+  },
+  "fold_source": {
+    "file": "outputs/splits/phase4_folds.json",
+    "sha256": "9c0c31e8f57c0a34821f39a34c13958871c0f4df570dcfb7ef08b8e94c5cdb4b",
+    "source": "Dış fold'lar: char_lr preds npz'indeki fold_id[0] (sha256 fold dosyasında). İç validation: outputs/splits/phase4_folds.json'daki val_row_ids (yerelde make_cv(tr_df, n_splits=5, random_state=42) fold 0 ile bir kez üretildi). Eğitim ortamında make_cv çalıştırılmaz (StratifiedGroupKFold fold'ları sklearn sürümüne bağlı).",
+    "train_fingerprint": {
+      "n": 3630,
+      "row_id_sha256": "04f4a0bbd37a5b31a2c54319ea20de8ce306e9507c43685769e4b9c1750cef27",
+      "label_sha256": "5a82e163f5372bf011d38a92d076d3533bafb704dcae84360bb87743a91ed76f",
+      "text_sha256": "b012973b62569a1418404e0bcfbf57bd381ee6f3313ff64919fba62f9f3b5383"
+    }
+  },
+  "notes": "Seed 42 CV koşularının OOF tahminleri (her fold kendi modelinden; final model değil). paired_test --power birincil çift (berturk_ft - char_lr) için okur. Logitler fp16 autocast altında hesaplandı, float32 saklandı.",
+  "test": null
+}

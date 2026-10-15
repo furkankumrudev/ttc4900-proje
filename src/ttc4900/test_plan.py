@@ -129,10 +129,10 @@ TEST_PLAN = {
         "boyutuyla %80 güçteki MDE (exact McNemar, psi alternatif altında sabit tutulur; birincil "
         f"için α = {ALPHA}, ikincil için Holm'un en kötü adımı α/{_M2} ile en iyi adımı α "
         "arasında). Birincil çiftin gücü, Faz 4'ün seed "
-        f"{PRIMARY_SEED} OOF tahminleri (char_lr'nin 1. tekrar dış fold'larıyla aynı fold'lar, "
-        "phase4_berturk_ft_<ts>.json + preds npz) üretilince aynı CLI ile hesaplanır; o zamana "
-        "dek donmuş encoder'lar yalnız kaba vekildir. Küçük farkların yakalanması beklenmez; "
-        "anlamsız sonuç eşdeğerlik kanıtı sayılmaz."
+        f"{PRIMARY_SEED} OOF tahminlerinden (char_lr'nin 1. tekrar dış fold'larıyla aynı "
+        "fold'lar, phase4_berturk_ft_<ts>.json + preds npz; tek tekrar, R=1) aynı CLI ile "
+        "hesaplandı (Faz 4c); donmuş encoder vekilleri yalnız karşılaştırma için kalır. Küçük "
+        "farkların yakalanması beklenmez; anlamsız sonuç eşdeğerlik kanıtı sayılmaz."
     ),
     "sensitivity_c1": (
         "C1 duyarlılık analizi (kural CV'den ÖNCE donduruldu): birincil klasik baseline ham "
@@ -145,8 +145,9 @@ TEST_PLAN = {
         "Holm ailesine girmez)."
     ),
     "expectation_note": (
-        "CV skoru 2904 satırla eğitimi ölçer, final model 3630 satırla eğitilir; ayrıca seçilen "
-        "modelin CV skoru 4 adayın maksimumudur (kazananın laneti). Test skorunun CV'den "
-        "farklı çıkması tek başına anomali değildir."
+        "CV skoru 2904 satırla eğitimi ölçer (BERT fine-tuning CV'sinde validation ayrıldığı "
+        "için ~2323), final model 3630 satırla eğitilir; ayrıca seçilen klasik modelin CV skoru "
+        "4 adayın maksimumudur (kazananın laneti). Test skorunun CV'den farklı çıkması tek "
+        "başına anomali değildir."
     ),
 }

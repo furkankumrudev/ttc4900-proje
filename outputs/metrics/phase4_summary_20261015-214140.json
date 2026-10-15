@@ -1,0 +1,608 @@
+{
+  "experiment": "phase4_summary",
+  "phase": 4,
+  "timestamp": "2026-10-15T21:41:40+00:00",
+  "git_commit": "faaba3e",
+  "fold_source": {
+    "file": "outputs/splits/phase4_folds.json",
+    "sha256": "9c0c31e8f57c0a34821f39a34c13958871c0f4df570dcfb7ef08b8e94c5cdb4b",
+    "source": "Dış fold'lar: char_lr preds npz'indeki fold_id[0] (sha256 fold dosyasında). İç validation: outputs/splits/phase4_folds.json'daki val_row_ids (yerelde make_cv(tr_df, n_splits=5, random_state=42) fold 0 ile bir kez üretildi). Eğitim ortamında make_cv çalıştırılmaz (StratifiedGroupKFold fold'ları sklearn sürümüne bağlı).",
+    "train_fingerprint": {
+      "n": 3630,
+      "row_id_sha256": "04f4a0bbd37a5b31a2c54319ea20de8ce306e9507c43685769e4b9c1750cef27",
+      "label_sha256": "5a82e163f5372bf011d38a92d076d3533bafb704dcae84360bb87743a91ed76f",
+      "text_sha256": "b012973b62569a1418404e0bcfbf57bd381ee6f3313ff64919fba62f9f3b5383"
+    }
+  },
+  "split": "split_v2",
+  "model_id": "dbmdz/bert-base-turkish-cased",
+  "revision": "b6e1de16c983e0f2c70664591ea3f22810072608",
+  "label_names": [
+    "siyaset",
+    "dunya",
+    "ekonomi",
+    "kultur",
+    "saglik",
+    "spor",
+    "teknoloji"
+  ],
+  "cv": {
+    "seeds": [
+      42,
+      43,
+      44
+    ],
+    "macro_f1_by_fold_seed": [
+      [
+        0.9063970605522831,
+        0.8981121113102126,
+        0.8945554003617117
+      ],
+      [
+        0.9182707439913329,
+        0.9261887047547855,
+        0.9285579150961433
+      ],
+      [
+        0.9308162807295565,
+        0.9284312573658887,
+        0.9268770557910685
+      ],
+      [
+        0.9258157137466908,
+        0.9140107906032233,
+        0.9027900084800535
+      ],
+      [
+        0.912743790523097,
+        0.9163516597242287,
+        0.9231991790387049
+      ]
+    ],
+    "macro_f1_folds": [
+      0.8996881907414025,
+      0.924339121280754,
+      0.9287081979621713,
+      0.9142055042766559,
+      0.9174315430953435
+    ],
+    "macro_f1_mean": 0.9168745114712655,
+    "macro_f1_nb_ci95_ratio_char_lr": [
+      0.8960811795877892,
+      0.9376678433547418
+    ],
+    "ratio_char_lr": 0.25,
+    "macro_f1_nb_ci95_ratio_bert_fit": [
+      0.8946841300440816,
+      0.9390648928984494
+    ],
+    "ratio_bert_fit": 0.31250000926157123,
+    "macro_f1_fold_std": 0.011164229031126358,
+    "macro_f1_seed_std_by_fold": [
+      0.006076121196726227,
+      0.0053872248519501705,
+      0.001984161119819501,
+      0.011514087493912755,
+      0.005310687180062866
+    ],
+    "macro_f1_seed_std_mean": 0.006054456368494303,
+    "macro_f1_seed_std_pooled": 0.006791994477237755,
+    "macro_f1_seed_std_pooled_df": 10,
+    "macro_f1_seed_std_pooled_sigma_ci95": [
+      0.004745682305109868,
+      0.011919498961950773
+    ],
+    "macro_f1_by_seed": {
+      "42": 0.9188087179085921,
+      "43": 0.9166189047516677,
+      "44": 0.9151959117535364
+    },
+    "macro_f1_by_seed_std": 0.0018199157054186955,
+    "accuracy_folds": [
+      0.8980716253443526,
+      0.9233241505968778,
+      0.9274563820018366,
+      0.9136822773186409,
+      0.9168962350780533
+    ],
+    "accuracy_mean": 0.9158861340679523,
+    "per_class_f1_mean": {
+      "siyaset": 0.9058481510579237,
+      "dunya": 0.8905833557402798,
+      "ekonomi": 0.8741517955479285,
+      "kultur": 0.9243997943467501,
+      "saglik": 0.9464886148291015,
+      "spor": 0.9881978777208247,
+      "teknoloji": 0.8884519910560499
+    }
+  },
+  "runs": [
+    {
+      "fold": 0,
+      "slot_seed": 42,
+      "seed": 42,
+      "file": "phase4_berturk_ft_f0_s42_20261015-161553.json",
+      "oof_macro_f1": 0.9063970605522831,
+      "oof_accuracy": 0.9049586776859504,
+      "best_epoch": 4,
+      "best_val_macro_f1": 0.931346897564109,
+      "epochs_run": 5,
+      "n_fit": 2324,
+      "n_val": 580,
+      "n_oof": 726,
+      "git_commit": "faaba3e"
+    },
+    {
+      "fold": 0,
+      "slot_seed": 43,
+      "seed": 43,
+      "file": "phase4_berturk_ft_f0_s43_20261015-162250.json",
+      "oof_macro_f1": 0.8981121113102126,
+      "oof_accuracy": 0.8966942148760331,
+      "best_epoch": 4,
+      "best_val_macro_f1": 0.9298071792345556,
+      "epochs_run": 5,
+      "n_fit": 2324,
+      "n_val": 580,
+      "n_oof": 726,
+      "git_commit": "faaba3e"
+    },
+    {
+      "fold": 0,
+      "slot_seed": 44,
+      "seed": 44,
+      "file": "phase4_berturk_ft_f0_s44_20261015-162918.json",
+      "oof_macro_f1": 0.8945554003617117,
+      "oof_accuracy": 0.8925619834710744,
+      "best_epoch": 5,
+      "best_val_macro_f1": 0.9305687694521406,
+      "epochs_run": 5,
+      "n_fit": 2324,
+      "n_val": 580,
+      "n_oof": 726,
+      "git_commit": "faaba3e"
+    },
+    {
+      "fold": 1,
+      "slot_seed": 42,
+      "seed": 42,
+      "file": "phase4_berturk_ft_f1_s42_20261015-163557.json",
+      "oof_macro_f1": 0.9182707439913329,
+      "oof_accuracy": 0.9173553719008265,
+      "best_epoch": 2,
+      "best_val_macro_f1": 0.9196019316817637,
+      "epochs_run": 4,
+      "n_fit": 2323,
+      "n_val": 581,
+      "n_oof": 726,
+      "git_commit": "faaba3e"
+    },
+    {
+      "fold": 1,
+      "slot_seed": 43,
+      "seed": 43,
+      "file": "phase4_berturk_ft_f1_s43_20261015-164116.json",
+      "oof_macro_f1": 0.9261887047547855,
+      "oof_accuracy": 0.9256198347107438,
+      "best_epoch": 1,
+      "best_val_macro_f1": 0.9211474974611239,
+      "epochs_run": 3,
+      "n_fit": 2323,
+      "n_val": 581,
+      "n_oof": 726,
+      "git_commit": "faaba3e"
+    },
+    {
+      "fold": 1,
+      "slot_seed": 44,
+      "seed": 44,
+      "file": "phase4_berturk_ft_f1_s44_20261015-164521.json",
+      "oof_macro_f1": 0.9285579150961433,
+      "oof_accuracy": 0.9269972451790633,
+      "best_epoch": 5,
+      "best_val_macro_f1": 0.9134229218586637,
+      "epochs_run": 5,
+      "n_fit": 2323,
+      "n_val": 581,
+      "n_oof": 726,
+      "git_commit": "faaba3e"
+    },
+    {
+      "fold": 2,
+      "slot_seed": 42,
+      "seed": 42,
+      "file": "phase4_berturk_ft_f2_s42_20261015-165157.json",
+      "oof_macro_f1": 0.9308162807295565,
+      "oof_accuracy": 0.9297520661157025,
+      "best_epoch": 3,
+      "best_val_macro_f1": 0.9400950785644654,
+      "epochs_run": 5,
+      "n_fit": 2323,
+      "n_val": 581,
+      "n_oof": 726,
+      "git_commit": "faaba3e"
+    },
+    {
+      "fold": 2,
+      "slot_seed": 43,
+      "seed": 43,
+      "file": "phase4_berturk_ft_f2_s43_20261015-165832.json",
+      "oof_macro_f1": 0.9284312573658887,
+      "oof_accuracy": 0.9269972451790633,
+      "best_epoch": 4,
+      "best_val_macro_f1": 0.9473110265917615,
+      "epochs_run": 5,
+      "n_fit": 2323,
+      "n_val": 581,
+      "n_oof": 726,
+      "git_commit": "faaba3e"
+    },
+    {
+      "fold": 2,
+      "slot_seed": 44,
+      "seed": 44,
+      "file": "phase4_berturk_ft_f2_s44_20261015-170500.json",
+      "oof_macro_f1": 0.9268770557910685,
+      "oof_accuracy": 0.9256198347107438,
+      "best_epoch": 4,
+      "best_val_macro_f1": 0.9403156051588663,
+      "epochs_run": 5,
+      "n_fit": 2323,
+      "n_val": 581,
+      "n_oof": 726,
+      "git_commit": "faaba3e"
+    },
+    {
+      "fold": 3,
+      "slot_seed": 42,
+      "seed": 42,
+      "file": "phase4_berturk_ft_f3_s42_20261015-171141.json",
+      "oof_macro_f1": 0.9258157137466908,
+      "oof_accuracy": 0.9256198347107438,
+      "best_epoch": 3,
+      "best_val_macro_f1": 0.9163758101205159,
+      "epochs_run": 5,
+      "n_fit": 2323,
+      "n_val": 581,
+      "n_oof": 726,
+      "git_commit": "faaba3e"
+    },
+    {
+      "fold": 3,
+      "slot_seed": 43,
+      "seed": 43,
+      "file": "phase4_berturk_ft_f3_s43_20261015-171827.json",
+      "oof_macro_f1": 0.9140107906032233,
+      "oof_accuracy": 0.9132231404958677,
+      "best_epoch": 2,
+      "best_val_macro_f1": 0.9248481420141311,
+      "epochs_run": 4,
+      "n_fit": 2323,
+      "n_val": 581,
+      "n_oof": 726,
+      "git_commit": "faaba3e"
+    },
+    {
+      "fold": 3,
+      "slot_seed": 44,
+      "seed": 44,
+      "file": "phase4_berturk_ft_f3_s44_20261015-172345.json",
+      "oof_macro_f1": 0.9027900084800535,
+      "oof_accuracy": 0.9022038567493113,
+      "best_epoch": 1,
+      "best_val_macro_f1": 0.9139881953528314,
+      "epochs_run": 3,
+      "n_fit": 2323,
+      "n_val": 581,
+      "n_oof": 726,
+      "git_commit": "faaba3e"
+    },
+    {
+      "fold": 4,
+      "slot_seed": 42,
+      "seed": 42,
+      "file": "phase4_berturk_ft_f4_s42_20261015-172741.json",
+      "oof_macro_f1": 0.912743790523097,
+      "oof_accuracy": 0.9118457300275482,
+      "best_epoch": 3,
+      "best_val_macro_f1": 0.9338358859061833,
+      "epochs_run": 5,
+      "n_fit": 2323,
+      "n_val": 581,
+      "n_oof": 726,
+      "git_commit": "faaba3e"
+    },
+    {
+      "fold": 4,
+      "slot_seed": 43,
+      "seed": 43,
+      "file": "phase4_berturk_ft_f4_s43_20261015-173422.json",
+      "oof_macro_f1": 0.9163516597242287,
+      "oof_accuracy": 0.9159779614325069,
+      "best_epoch": 5,
+      "best_val_macro_f1": 0.93676862466045,
+      "epochs_run": 5,
+      "n_fit": 2323,
+      "n_val": 581,
+      "n_oof": 726,
+      "git_commit": "faaba3e"
+    },
+    {
+      "fold": 4,
+      "slot_seed": 44,
+      "seed": 44,
+      "file": "phase4_berturk_ft_f4_s44_20261015-174059.json",
+      "oof_macro_f1": 0.9231991790387049,
+      "oof_accuracy": 0.9228650137741047,
+      "best_epoch": 4,
+      "best_val_macro_f1": 0.9369305711673651,
+      "epochs_run": 5,
+      "n_fit": 2323,
+      "n_val": 581,
+      "n_oof": 726,
+      "git_commit": "faaba3e"
+    }
+  ],
+  "collapsed_slots": [],
+  "e_final": 4,
+  "best_epochs": [
+    4,
+    4,
+    5,
+    2,
+    1,
+    5,
+    3,
+    4,
+    4,
+    3,
+    2,
+    1,
+    3,
+    5,
+    4
+  ],
+  "best_epoch_distribution": {
+    "1": 2,
+    "2": 2,
+    "3": 3,
+    "4": 5,
+    "5": 3
+  },
+  "n_best_at_max_epoch": 3,
+  "frac_epochs_run_lt_max": 0.26666666666666666,
+  "env": {
+    "transformers": "5.18.0",
+    "torch": "2.11.0+cu130",
+    "gpu": "Tesla T4"
+  },
+  "finals": {
+    "rule": "Faz 4a eki, tüm eğitimden (CV dahil) önce donduruldu. RULES['collapse'] CV koşuları için, bu kural final modeller için geçerlidir. Final modelde validation olmadığı için RULES['collapse'] uygulanamaz. Yerine: final modelin tüm train (3630 satır) üzerindeki in-sample macro-F1'i < 0.5 ise model çökmüş sayılır ve aynı E_final (aynı e_final_sources) ile seed + 100 kullanılarak BİR KEZ yeniden eğitilir. İki model de raporlanır (ayrı json'lar), yeniden eğitilen kullanılır; o da çökerse yine o kullanılır ve reseed_also_collapsed işaretlenir. Seed 42 slotu çökerse teste taşınan birincil model seed 142 modelidir (TEST_PLAN['primary_seed_rule']); primary_for_test ve primary_model_dir bunu gösterir. Ölçüt yalnız train'dir; test ya da CV skoru kullanılmaz. Not: in-sample macro-F1 iyimser olduğundan aynı eşik finalde CV'dekinden daha gevşektir (yalnız bariz çöküşü, ör. sabit sınıf tahminini yakalar); kural bu yüzden değiştirilmez.",
+    "slots": {
+      "42": {
+        "used_seed": 42,
+        "used_file": "phase4_berturk_ft_final_s42_20261015-183552.json",
+        "used_model_dir": "/content/drive/MyDrive/ttc4900/faz4/models/42",
+        "used_train_in_sample_macro_f1": 0.9943174255127302,
+        "collapsed": false,
+        "original": {
+          "file": "phase4_berturk_ft_final_s42_20261015-183552.json",
+          "seed": 42,
+          "collapsed": false,
+          "train_in_sample_macro_f1": 0.9943174255127302,
+          "train_in_sample_accuracy": 0.9942148760330578,
+          "train_loss_last_epoch": 0.058257972616456155,
+          "epochs_run": 4,
+          "model_dir": "/content/drive/MyDrive/ttc4900/faz4/models/42",
+          "weights_sha256": {
+            "model.safetensors": "72cbeb438a89fd9fa592391703a1d5aa836e9546d170d405cc4b302709fb2648"
+          }
+        },
+        "reseed": null,
+        "reseed_also_collapsed": null,
+        "primary_for_test": true
+      },
+      "43": {
+        "used_seed": 43,
+        "used_file": "phase4_berturk_ft_final_s43_20261015-184316.json",
+        "used_model_dir": "/content/drive/MyDrive/ttc4900/faz4/models/43",
+        "used_train_in_sample_macro_f1": 0.9956403310675077,
+        "collapsed": false,
+        "original": {
+          "file": "phase4_berturk_ft_final_s43_20261015-184316.json",
+          "seed": 43,
+          "collapsed": false,
+          "train_in_sample_macro_f1": 0.9956403310675077,
+          "train_in_sample_accuracy": 0.9955922865013774,
+          "train_loss_last_epoch": 0.05227129679944547,
+          "epochs_run": 4,
+          "model_dir": "/content/drive/MyDrive/ttc4900/faz4/models/43",
+          "weights_sha256": {
+            "model.safetensors": "21a0cd72d6c83139cd1a84ed430d736251e66196789fd736ac67628e8602afb3"
+          }
+        },
+        "reseed": null,
+        "reseed_also_collapsed": null,
+        "primary_for_test": false
+      },
+      "44": {
+        "used_seed": 44,
+        "used_file": "phase4_berturk_ft_final_s44_20261015-185055.json",
+        "used_model_dir": "/content/drive/MyDrive/ttc4900/faz4/models/44",
+        "used_train_in_sample_macro_f1": 0.9930650257568987,
+        "collapsed": false,
+        "original": {
+          "file": "phase4_berturk_ft_final_s44_20261015-185055.json",
+          "seed": 44,
+          "collapsed": false,
+          "train_in_sample_macro_f1": 0.9930650257568987,
+          "train_in_sample_accuracy": 0.9928374655647383,
+          "train_loss_last_epoch": 0.05647038363150038,
+          "epochs_run": 4,
+          "model_dir": "/content/drive/MyDrive/ttc4900/faz4/models/44",
+          "weights_sha256": {
+            "model.safetensors": "12b126d871e34d0997cfc491728b07d2d83081f904f5d29768f053610c5d38da"
+          }
+        },
+        "reseed": null,
+        "reseed_also_collapsed": null,
+        "primary_for_test": false
+      }
+    },
+    "collapsed_slots": [],
+    "missing_slots": [],
+    "primary_slot": 42,
+    "primary_seed": 42,
+    "primary_file": "phase4_berturk_ft_final_s42_20261015-183552.json",
+    "primary_model_dir": "/content/drive/MyDrive/ttc4900/faz4/models/42",
+    "primary_model_sha256": {
+      "model.safetensors": "72cbeb438a89fd9fa592391703a1d5aa836e9546d170d405cc4b302709fb2648"
+    }
+  },
+  "final_rules": {
+    "final_collapse": "Faz 4a eki, tüm eğitimden (CV dahil) önce donduruldu. RULES['collapse'] CV koşuları için, bu kural final modeller için geçerlidir. Final modelde validation olmadığı için RULES['collapse'] uygulanamaz. Yerine: final modelin tüm train (3630 satır) üzerindeki in-sample macro-F1'i < 0.5 ise model çökmüş sayılır ve aynı E_final (aynı e_final_sources) ile seed + 100 kullanılarak BİR KEZ yeniden eğitilir. İki model de raporlanır (ayrı json'lar), yeniden eğitilen kullanılır; o da çökerse yine o kullanılır ve reseed_also_collapsed işaretlenir. Seed 42 slotu çökerse teste taşınan birincil model seed 142 modelidir (TEST_PLAN['primary_seed_rule']); primary_for_test ve primary_model_dir bunu gösterir. Ölçüt yalnız train'dir; test ya da CV skoru kullanılmaz. Not: in-sample macro-F1 iyimser olduğundan aynı eşik finalde CV'dekinden daha gevşektir (yalnız bariz çöküşü, ör. sabit sınıf tahminini yakalar); kural bu yüzden değiştirilmez."
+  },
+  "superseded_files": [],
+  "failed_attempts": [],
+  "vs_reference": {
+    "a": "berturk_ft",
+    "b": "char_lr",
+    "reference_file": "phase2_char_lr_20261011-192701.json",
+    "reference_macro_f1_folds_repeat0": [
+      0.8955363704146777,
+      0.9178682797899844,
+      0.9035912191405397,
+      0.8985937760554263,
+      0.9114692146684743
+    ],
+    "reference_macro_f1_mean_repeat0": 0.9054117720138205,
+    "d_folds": [
+      0.004151820326724787,
+      0.006470841490769597,
+      0.025116978821631553,
+      0.015611728221229582,
+      0.005962328426869168
+    ],
+    "nadeau_bengio": {
+      "mean_diff": 0.011462739457444937,
+      "std_diff": 0.008835658800104005,
+      "se_corrected": 0.0059271401109080345,
+      "se_naive": 0.003951426740605357,
+      "ci95": [
+        -0.004993639691307181,
+        0.027919118606197058
+      ],
+      "t": 1.933941031079971,
+      "df": 4,
+      "p": 0.12524651538350495,
+      "p_naive": 0.044077647371759954,
+      "n_folds_positive": 5,
+      "J": 5,
+      "fold_corr": 0.6389099314367618
+    },
+    "val_train_ratio": 0.25,
+    "val_train_ratio_rationale": "char_lr'nin kullandığı oran: repeat 0 dış fold'larında n_val/n_train (ortalama 726/2904 = 0.250). Faz 2 ve 3'teki char_lr karşılaştırmalarıyla aynı tanım. Düzeltme terimi, dış bölümlemenin yarattığı fold'lar arası train örtüşmesini (korelasyonu) yaklaşık modeller; iki prosedür aynı dış bölümlemeyi paylaşır.",
+    "sensitivity_bert_fit_ratio": {
+      "val_train_ratio": 0.31250000926157123,
+      "nadeau_bengio": {
+        "mean_diff": 0.011462739457444937,
+        "std_diff": 0.008835658800104005,
+        "se_corrected": 0.006325369140956615,
+        "se_naive": 0.003951426740605357,
+        "ci95": [
+          -0.006099300732533229,
+          0.029024779647423102
+        ],
+        "t": 1.8121850601926093,
+        "df": 4,
+        "p": 0.14418056430062393,
+        "p_naive": 0.044077647371759954,
+        "n_folds_positive": 5,
+        "J": 5
+      },
+      "note": "BERT'in gerçek eğitim boyutuyla oran (n_oof / n_fit); SE daha büyük, daha muhafazakâr. Yalnız duyarlılık; birincil değer val_train_ratio'dur."
+    },
+    "inference": "keşifsel (tek karşılaştırma, Holm yok); test iddiası Faz 5'te"
+  },
+  "notes": {
+    "cv_comparison": "Keşifsel: d_j = berturk_ft_j (seed ortalaması) - char_lr_j (repeat 0), j = 1..5; Nadeau-Bengio düzeltmeli t (J=5, df=4), Holm yok (tek karşılaştırma). Karşılaştırılan prosedürlerdir (char_lr'de iç ayarlama var, BERT'te yok). Eğitim boyutu notu: CV'de BERT ~2323 satırla (validation ayrıldığı için), char_lr 2904 satırla eğitildi; CV karşılaştırması BERT için muhafazakârdır. Final modellerde ikisi de 3630 satırla eğitilir.",
+    "input_text": "Ham metin. ASİMETRİ: BERTurk tokenizer'ı U+0091-U+0094 kontrol karakterlerini siler, char_lr görür (docs/shortcut_learning.md). Birincil karşılaştırmada bu asimetri char_lr lehinedir.",
+    "training_size": "CV'de BERT ortalama 2323 satırla (validation ayrıldı), char_lr 2904 satırla eğitildi; karşılaştırma BERT için muhafazakâr.",
+    "fold_std": "5 fold skorunun (seed ortalaması) std'si (ddof=1); CI değil",
+    "seed_std": "aynı fold'da 3 seed'in std'si (ddof=1); eğitim (seed) değişkenliği. Her biri 2 serbestlik dereceli: normal varsayımıyla σ için %95 aralık kabaca [0.52·s, 6.3·s]; tek fold'un seed std'si çok belirsizdir.",
+    "seed_std_sigma_ci95_factors": [
+      0.5206582666988174,
+      6.28473469648538
+    ],
+    "macro_f1_seed_std_mean": "fold başına s'lerin ortalaması; E[s] = c4·σ, c4(3) ≈ 0.886: σ'yı aşağı yanlı tahmin eder. Havuzlanmış değer tercih edilir.",
+    "macro_f1_seed_std_pooled": "sqrt(ortalama s²), df = 5·2 = 10 (fold'lar arası eşit seed varyansı varsayımı). σ için %95 aralık (normal varsayımı, χ²): [0.70·s_p, 1.75·s_p] -> macro_f1_seed_std_pooled_sigma_ci95.",
+    "macro_f1_by_seed_std": "seed başına 5-fold ortalamalarının std'si (ddof=1). ~σ_seed/√5 ölçeği yalnız seed'in fold'lar arası ORTAK bir ana etkisi yoksa geçerlidir. set_seed başlığı her fold'da aynı başlattığı (ve veri sırasını aynı RNG'den çektiği) için ana etki olasıdır; o durumda ≈ √(σ²_ana + σ²_etk/5). Tek koşunun seed değişkenliği değildir.",
+    "macro_f1_nb_ci95": "BERT kendi CV ortalaması (fold skoru = seed ortalaması, J=5) için Nadeau-Bengio düzeltmeli %95 CI iki oranla: ratio_char_lr (n_val/n_train = 726/2904 = 0.25; char_lr ile birincil karşılaştırmanın tanımı) ve ratio_bert_fit (n_oof/n_fit, ~0.31; BERT'in gerçek eğitim boyutu, daha geniş).",
+    "frac_epochs_run_lt_max": "epochs_run < 5 olan kullanılan koşuların oranı. Erken durmanın tamamını saymaz: patience 2 ile best_epoch = 3 olan koşular 5. epoch'ta durur ve epochs_run = 5 görünür.",
+    "best_epoch_censoring": "n_best_at_max_epoch: best epoch'u üst sınır 5'te olan koşu sayısı; bu koşularda daha uzun eğitim daha iyi olabilirdi (sağdan sansür). E_final de 5'i geçemez. 15 koşuda n_best_at_max_epoch ≤ 7 iken medyan (E_final, 8. sıra istatistiği) sansürden etkilenmez.",
+    "e_final_units": "E_final epoch biriminde aktarılır: CV'de epoch başına ~146 güncelleme (~n_fit/16), final'de ~227 (3630/16). Aynı epoch sayısı finalde daha çok güncelleme demektir; lr eğrisinin biçimi (5 epoch üzerinden) aynıdır.",
+    "reproducibility": "fp16 ve CUDA çekirdekleri (cuDNN, atomik toplamlar) nedeniyle aynı seed bit düzeyinde tekrarlanamaz; 'seed 42 final modeli' kaydedilen dosyadır (model_dir), yeniden eğitim değil.",
+    "collapse": "Başarısız koşu (Mosbach 2021): best-epoch val macro-F1 < 0.5 ise koşu 'çöktü' sayılır, seed + 100 ile BİR KEZ yeniden koşulur; iki koşu da raporlanır, yeniden koşu kullanılır. Bu, FT_CONFIG'in tek önceden tanımlı istisnasıdır; başka hiçbir durumda koşu tekrarlanmaz.",
+    "dirty_commits": false
+  },
+  "source_commits": [
+    "faaba3e"
+  ],
+  "primary_oof_file": "phase4_berturk_ft_20261015-214140.json",
+  "rules": {
+    "config_frozen": "FT_CONFIG eğitimden önce donduruldu (Faz 4a commit'i). Ayar taraması yok. Gerekçeler literatürdendir (LITERATURE): lr 2e-5 (Devlin aralığı; Sun ve Mosbach'ın küçük veri önerisi), etkin batch 16 (Devlin; 512 token fp16'da T4 belleği için 8 x 2 birikim, BERT LayerNorm kullandığı için birikim batch 16 ile eşdeğer), en fazla 5 epoch + early stopping patience 2 (Devlin 2-4 ile Mosbach'ın daha uzun eğitim önerisi arasında uzlaşma), warmup 0.1 + linear decay (Sun), weight decay 0.01 ve grad norm 1.0 (BERT standardı), max_length 512 baştan kesme (Faz 3 ile aynı).",
+    "cv_protocol": "Dış fold'lar: make_cv(train, n_splits=5, random_state=42) = char_lr nested CV'sinin 1. tekrarı (repeat 0). Yalnız bu 5 fold koşulur (5 fold x 3 seed = 15 koşu). Fold eşleşmesi kodda char_lr preds npz'indeki fold_id[0] ile doğrulanır (eşleşmiş karşılaştırma).",
+    "validation": "Early stopping ve load_best_model_at_end için validation, her dış fold'un TRAIN kısmından make_cv(tr_df, n_splits=5, random_state=42)'nin ilk fold'u (~581 val / ~2323 fit) olarak ayrılır; train_test_split kullanılmaz. Fit ve val'in grup id'leri (cv_groups) ayrık olmalı, val dış train'in alt kümesi olmalı, dış val ve test_ids ile kesişmemeli; bunlar testle doğrulanır. Trainer'ın eval_dataset'i her zaman bu validation parçasıdır.",
+    "seeds": "Seed {42, 43, 44}; her CV koşusunda ve final modelde. Fold skoru = 3 seed'in ortalaması; seed std'si fold std'sinden ayrı raporlanır (seed, başlık başlangıcını, veri sırasını ve dropout maskelerini birlikte belirler).",
+    "collapse": "Başarısız koşu (Mosbach 2021): best-epoch val macro-F1 < 0.5 ise koşu 'çöktü' sayılır, seed + 100 ile BİR KEZ yeniden koşulur; iki koşu da raporlanır, yeniden koşu kullanılır. Bu, FT_CONFIG'in tek önceden tanımlı istisnasıdır; başka hiçbir durumda koşu tekrarlanmaz.",
+    "final_model": "Final modeller tüm train (3630 satır) ile, validation olmadan eğitilir. Epoch sayısı E_final = 15 CV koşusundaki best epoch'ların medyanı (tam sayı). lr schedule CV ile aynıdır (num_train_epochs=5 üzerinden warmup + linear decay) ve eğitim E_final'ın sonunda bir callback ile durur; böylece lr eğrisi CV'deki best checkpoint'inkiyle aynı biçimdedir. Final modeller her seed için eğitilir; git'e girmez.",
+    "test_transfer": "Teste taşınan Faz 4 modeli: seed 42 final modeli (TEST_PLAN 'primary_seed_rule'). CV sonucundan BAĞIMSIZ taşınır: char_lr'yi geçip geçmediğine bakılmaz. Birincil aile m=1 (berturk_ft - char_lr), exact McNemar + grup bootstrap + TEST_PLAN karar kuralı. Diğer seed'lerin test macro-F1'i betimseldir (p yok). Test sonucuna göre konfigürasyon, epoch ya da seed değiştirilmez. Öneri: berturk_ft - bge_m3 yalnız betimsel CI; son karar TEST_PLAN['membership_note']'a göre test açılmadan önceki son commit'te FAMILIES'e yazılır.",
+    "cv_comparison": "Keşifsel: d_j = berturk_ft_j (seed ortalaması) - char_lr_j (repeat 0), j = 1..5; Nadeau-Bengio düzeltmeli t (J=5, df=4), Holm yok (tek karşılaştırma). Karşılaştırılan prosedürlerdir (char_lr'de iç ayarlama var, BERT'te yok). Eğitim boyutu notu: CV'de BERT ~2323 satırla (validation ayrıldığı için), char_lr 2904 satırla eğitildi; CV karşılaştırması BERT için muhafazakârdır. Final modellerde ikisi de 3630 satırla eğitilir.",
+    "input_text": "Ham metin. ASİMETRİ: BERTurk tokenizer'ı U+0091-U+0094 kontrol karakterlerini siler, char_lr görür (docs/shortcut_learning.md). Birincil karşılaştırmada bu asimetri char_lr lehinedir.",
+    "outputs": "Her CV koşusu: phase4_berturk_ft_f{k}_s{seed}_<ts>.json (val eğrisi, best epoch, OOF macro-F1/accuracy/sınıf F1) ve OOF npz (row_id, y_true, y_pred, logits, fold_id). Logitler Faz 6'da temperature scaling'i train içinden öğrenmek için saklanır. Özet phase4_summary_<ts>.json; ayrıca seed 42 OOF'u phase4_berturk_ft_<ts>.json + preds npz (y_pred/fold_id şekli 1 x 3630, char_lr repeat 0 fold'ları) olarak yazılır; birincil güç analizi (paired_test --power) bununla hesaplanır. Her json: split, git_commit, model revision, torch/transformers sürümü, GPU adı, test: null.",
+    "colab": "Kod Faz 4b commit'ine checkout edilerek koşulur. Kurulum Colab'ın CUDA'lı torch'una dokunmaz (requirements'tan torch satırı atlanır). Kurulumdan sonra torch.cuda.is_available() kontrol edilir; GPU yoksa eğitim başlamaz (CLI de --smoke dışında çıkar). Metrikler Drive'a yazılır, koşu kopsa kaldığı yerden devam eder; checkpoint'ler geçici diske yazılıp silinir; final modeller Drive'da, git dışında.",
+    "no_test": "Faz 4 test setine dokunmaz: veri yalnız load_train() ile okunur; load_train_test ve test metni/etiketi kullanılmaz. test_ids yalnız pytest'teki ayrıklık kontrolünde (id düzeyinde) okunur. Test değerlendirmesi Faz 5'tedir."
+  },
+  "ft_config": {
+    "model_id": "dbmdz/bert-base-turkish-cased",
+    "revision": "b6e1de16c983e0f2c70664591ea3f22810072608",
+    "head": "AutoModelForSequenceClassification(num_labels=7), id2label = split label_names",
+    "num_labels": 7,
+    "max_length": 512,
+    "truncation": "head",
+    "padding": "dinamik (DataCollatorWithPadding)",
+    "input_text": "ham metin (char_lr ile aynı girdi)",
+    "learning_rate": 2e-05,
+    "per_device_train_batch_size": 8,
+    "gradient_accumulation_steps": 2,
+    "effective_batch_size": 16,
+    "per_device_eval_batch_size": 32,
+    "num_train_epochs": 5,
+    "early_stopping_patience": 2,
+    "metric_for_best_model": "macro_f1",
+    "greater_is_better": true,
+    "load_best_model_at_end": true,
+    "eval_strategy": "epoch",
+    "save_strategy": "epoch",
+    "warmup_ratio": 0.1,
+    "lr_scheduler_type": "linear",
+    "weight_decay": 0.01,
+    "max_grad_norm": 1.0,
+    "optim": "adamw_torch",
+    "dropout": "model varsayılanı (hidden/attention 0.1)",
+    "fp16": true,
+    "seeds": [
+      42,
+      43,
+      44
+    ],
+    "primary_seed": 42,
+    "cv_random_state": 42,
+    "cv_n_splits": 5,
+    "val_n_splits": 5,
+    "val_fold": 0,
+    "collapse_threshold": 0.5,
+    "collapse_reseed_offset": 100
+  },
+  "test": null
+}

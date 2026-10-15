@@ -1,0 +1,249 @@
+{
+  "phase": 4,
+  "timestamp": "2026-10-15T18:50:55+00:00",
+  "git_commit": "faaba3e",
+  "split": "split_v2",
+  "data_revision": "236e17b0c497ceb5437c175cb1ffaae201bfb287",
+  "model_id": "dbmdz/bert-base-turkish-cased",
+  "revision": "b6e1de16c983e0f2c70664591ea3f22810072608",
+  "smoke": false,
+  "smoke_model": null,
+  "label_names": [
+    "siyaset",
+    "dunya",
+    "ekonomi",
+    "kultur",
+    "saglik",
+    "spor",
+    "teknoloji"
+  ],
+  "env": {
+    "python": "3.13.15",
+    "torch": "2.11.0+cu130",
+    "transformers": "5.18.0",
+    "datasets": "4.8.5",
+    "accelerate": "1.15.0",
+    "sklearn": "1.6.1",
+    "numpy": "2.1.3",
+    "pandas": "2.2.3",
+    "scipy": "1.16.3",
+    "cuda": "13.0",
+    "device": "cuda",
+    "gpu": "Tesla T4"
+  },
+  "tokenizer_check": {
+    "commit": "b6e1de16c983e0f2c70664591ea3f22810072608",
+    "vocab_size": 32000,
+    "vocab_sha256": "ca72d2012b1e46ed42f5df2dc9675f9da0b37a481601785cb4dff91f67fcca65"
+  },
+  "folds": {
+    "file": "outputs/splits/phase4_folds.json",
+    "sha256": "9c0c31e8f57c0a34821f39a34c13958871c0f4df570dcfb7ef08b8e94c5cdb4b",
+    "source": "Dış fold'lar: char_lr preds npz'indeki fold_id[0] (sha256 fold dosyasında). İç validation: outputs/splits/phase4_folds.json'daki val_row_ids (yerelde make_cv(tr_df, n_splits=5, random_state=42) fold 0 ile bir kez üretildi). Eğitim ortamında make_cv çalıştırılmaz (StratifiedGroupKFold fold'ları sklearn sürümüne bağlı).",
+    "train_fingerprint": {
+      "n": 3630,
+      "row_id_sha256": "04f4a0bbd37a5b31a2c54319ea20de8ce306e9507c43685769e4b9c1750cef27",
+      "label_sha256": "5a82e163f5372bf011d38a92d076d3533bafb704dcae84360bb87743a91ed76f",
+      "text_sha256": "b012973b62569a1418404e0bcfbf57bd381ee6f3313ff64919fba62f9f3b5383"
+    }
+  },
+  "ft_config": {
+    "model_id": "dbmdz/bert-base-turkish-cased",
+    "revision": "b6e1de16c983e0f2c70664591ea3f22810072608",
+    "head": "AutoModelForSequenceClassification(num_labels=7), id2label = split label_names",
+    "num_labels": 7,
+    "max_length": 512,
+    "truncation": "head",
+    "padding": "dinamik (DataCollatorWithPadding)",
+    "input_text": "ham metin (char_lr ile aynı girdi)",
+    "learning_rate": 2e-05,
+    "per_device_train_batch_size": 8,
+    "gradient_accumulation_steps": 2,
+    "effective_batch_size": 16,
+    "per_device_eval_batch_size": 32,
+    "num_train_epochs": 5,
+    "early_stopping_patience": 2,
+    "metric_for_best_model": "macro_f1",
+    "greater_is_better": true,
+    "load_best_model_at_end": true,
+    "eval_strategy": "epoch",
+    "save_strategy": "epoch",
+    "warmup_ratio": 0.1,
+    "lr_scheduler_type": "linear",
+    "weight_decay": 0.01,
+    "max_grad_norm": 1.0,
+    "optim": "adamw_torch",
+    "dropout": "model varsayılanı (hidden/attention 0.1)",
+    "fp16": true,
+    "seeds": [
+      42,
+      43,
+      44
+    ],
+    "primary_seed": 42,
+    "cv_random_state": 42,
+    "cv_n_splits": 5,
+    "val_n_splits": 5,
+    "val_fold": 0,
+    "collapse_threshold": 0.5,
+    "collapse_reseed_offset": 100
+  },
+  "experiment": "phase4_berturk_ft_final",
+  "seed": 44,
+  "n_train": 3630,
+  "validation": null,
+  "e_final": 4,
+  "e_final_rule": "Final modeller tüm train (3630 satır) ile, validation olmadan eğitilir. Epoch sayısı E_final = 15 CV koşusundaki best epoch'ların medyanı (tam sayı). lr schedule CV ile aynıdır (num_train_epochs=5 üzerinden warmup + linear decay) ve eğitim E_final'ın sonunda bir callback ile durur; böylece lr eğrisi CV'deki best checkpoint'inkiyle aynı biçimdedir. Final modeller her seed için eğitilir; git'e girmez.",
+  "e_final_sources": [
+    {
+      "fold": 0,
+      "slot_seed": 42,
+      "seed": 42,
+      "file": "phase4_berturk_ft_f0_s42_20261015-161553.json",
+      "best_epoch": 4
+    },
+    {
+      "fold": 0,
+      "slot_seed": 43,
+      "seed": 43,
+      "file": "phase4_berturk_ft_f0_s43_20261015-162250.json",
+      "best_epoch": 4
+    },
+    {
+      "fold": 0,
+      "slot_seed": 44,
+      "seed": 44,
+      "file": "phase4_berturk_ft_f0_s44_20261015-162918.json",
+      "best_epoch": 5
+    },
+    {
+      "fold": 1,
+      "slot_seed": 42,
+      "seed": 42,
+      "file": "phase4_berturk_ft_f1_s42_20261015-163557.json",
+      "best_epoch": 2
+    },
+    {
+      "fold": 1,
+      "slot_seed": 43,
+      "seed": 43,
+      "file": "phase4_berturk_ft_f1_s43_20261015-164116.json",
+      "best_epoch": 1
+    },
+    {
+      "fold": 1,
+      "slot_seed": 44,
+      "seed": 44,
+      "file": "phase4_berturk_ft_f1_s44_20261015-164521.json",
+      "best_epoch": 5
+    },
+    {
+      "fold": 2,
+      "slot_seed": 42,
+      "seed": 42,
+      "file": "phase4_berturk_ft_f2_s42_20261015-165157.json",
+      "best_epoch": 3
+    },
+    {
+      "fold": 2,
+      "slot_seed": 43,
+      "seed": 43,
+      "file": "phase4_berturk_ft_f2_s43_20261015-165832.json",
+      "best_epoch": 4
+    },
+    {
+      "fold": 2,
+      "slot_seed": 44,
+      "seed": 44,
+      "file": "phase4_berturk_ft_f2_s44_20261015-170500.json",
+      "best_epoch": 4
+    },
+    {
+      "fold": 3,
+      "slot_seed": 42,
+      "seed": 42,
+      "file": "phase4_berturk_ft_f3_s42_20261015-171141.json",
+      "best_epoch": 3
+    },
+    {
+      "fold": 3,
+      "slot_seed": 43,
+      "seed": 43,
+      "file": "phase4_berturk_ft_f3_s43_20261015-171827.json",
+      "best_epoch": 2
+    },
+    {
+      "fold": 3,
+      "slot_seed": 44,
+      "seed": 44,
+      "file": "phase4_berturk_ft_f3_s44_20261015-172345.json",
+      "best_epoch": 1
+    },
+    {
+      "fold": 4,
+      "slot_seed": 42,
+      "seed": 42,
+      "file": "phase4_berturk_ft_f4_s42_20261015-172741.json",
+      "best_epoch": 3
+    },
+    {
+      "fold": 4,
+      "slot_seed": 43,
+      "seed": 43,
+      "file": "phase4_berturk_ft_f4_s43_20261015-173422.json",
+      "best_epoch": 5
+    },
+    {
+      "fold": 4,
+      "slot_seed": 44,
+      "seed": 44,
+      "file": "phase4_berturk_ft_f4_s44_20261015-174059.json",
+      "best_epoch": 4
+    }
+  ],
+  "epochs_run": 4,
+  "train_loss_curve": [
+    {
+      "epoch": 1,
+      "train_loss": 1.1040750243065116
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.2242780004829037
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.11744661373188842
+    },
+    {
+      "epoch": 4,
+      "train_loss": 0.05647038363150038
+    }
+  ],
+  "train_loss_mean": 0.375567505538201,
+  "train_loss_last_epoch": 0.05647038363150038,
+  "train_in_sample_macro_f1": 0.9930650257568987,
+  "train_in_sample_accuracy": 0.9928374655647383,
+  "train_in_sample_note": "Final model eğitildiği train satırlarında (eval modu, dropout kapalı) değerlendirildi; genelleme ölçüsü değildir. Çöküş ölçütü olarak kullanılır: kural FINAL_RULES['final_collapse'].",
+  "final_collapse_rule": "Faz 4a eki, tüm eğitimden (CV dahil) önce donduruldu. RULES['collapse'] CV koşuları için, bu kural final modeller için geçerlidir. Final modelde validation olmadığı için RULES['collapse'] uygulanamaz. Yerine: final modelin tüm train (3630 satır) üzerindeki in-sample macro-F1'i < 0.5 ise model çökmüş sayılır ve aynı E_final (aynı e_final_sources) ile seed + 100 kullanılarak BİR KEZ yeniden eğitilir. İki model de raporlanır (ayrı json'lar), yeniden eğitilen kullanılır; o da çökerse yine o kullanılır ve reseed_also_collapsed işaretlenir. Seed 42 slotu çökerse teste taşınan birincil model seed 142 modelidir (TEST_PLAN['primary_seed_rule']); primary_for_test ve primary_model_dir bunu gösterir. Ölçüt yalnız train'dir; test ya da CV skoru kullanılmaz. Not: in-sample macro-F1 iyimser olduğundan aynı eşik finalde CV'dekinden daha gevşektir (yalnız bariz çöküşü, ör. sabit sınıf tahminini yakalar); kural bu yüzden değiştirilmez.",
+  "slot_seed": 44,
+  "reseed_of": null,
+  "collapsed": false,
+  "reseed_seed": null,
+  "reseed_also_collapsed": null,
+  "used_for_slot": true,
+  "primary_for_test": false,
+  "primary_model_dir": null,
+  "schedule": {
+    "num_train_epochs": 5,
+    "max_steps": 1135,
+    "warmup_steps": 114,
+    "global_step": 908
+  },
+  "model_dir": "/content/drive/MyDrive/ttc4900/faz4/models/44",
+  "weights_sha256": {
+    "model.safetensors": "12b126d871e34d0997cfc491728b07d2d83081f904f5d29768f053610c5d38da"
+  },
+  "runtime_seconds": 458.8,
+  "test": null
+}

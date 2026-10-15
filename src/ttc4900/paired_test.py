@@ -367,7 +367,7 @@ def power_report(
         rows.append(row)
     return {
         "experiment": "test_power",
-        "phase": "test öncesi (Faz 4'ten önce)",
+        "phase": "test öncesi (yalnız train OOF; test seti açılmadı)",
         "timestamp": report.now().isoformat(timespec="seconds"),
         "git_commit": report.git_commit(),
         "split": Path(path).stem,
@@ -402,9 +402,11 @@ def power_report(
                 "betimsel çiftte yalnız α (CI)."
             ),
             "oof_differences": (
-                "OOF farkları kazananın lanetiyle yukarı yanlı olabilir (char_lr 4 klasik adayın, "
-                "bge_m3 3 encoder'ın CV maksimumu); gerçek test farkı daha küçükse güç daha da "
-                "düşüktür."
+                "OOF farkları kazananın lanetiyle yanlı olabilir (char_lr 4 klasik adayın, bge_m3 "
+                "3 encoder'ın CV maksimumu): seçilen model a tarafındaysa fark yukarı, b "
+                "tarafındaysa aşağı yanlıdır. Birincil çiftte (berturk_ft - char_lr) BERT "
+                "önceden belirlenmiş tek konfigürasyon, kazanan char_lr b tarafında: OOF farkı "
+                "aşağı yanlı. Gerçek test farkı daha küçükse güç daha da düşüktür."
             ),
             "se_ratio_group_vs_iid_r0": (
                 "Train OOF'ta grup bootstrap SE'si / satır bootstrap SE'si (macro-F1 farkı). "
@@ -419,15 +421,17 @@ def power_report(
                 "Gerçek test farkı OOF accuracy farkına eşitse beklenen güç (yalnız train'den)."
             ),
             "approximation": (
-                "OOF modelleri dış fold'un train'iyle (~2904 satır) eğitildi, final modeller 3630 "
-                "satırla; psi ve SE yaklaşıktır. McNemar gücü test içi grup bağımlılığını yok "
+                "OOF modelleri dış fold'un train'iyle (~2904 satır; BERT fine-tuning'de validation "
+                "ayrıldığı için ~2323) eğitildi, final modeller 3630 satırla; psi ve SE "
+                "yaklaşıktır. McNemar gücü test içi grup bağımlılığını yok "
                 "sayar (TEST_PLAN['limitations']). Karar kuralı iki koşulu birlikte istediği için "
                 "ortak güç her birinin gücünden yüksek olamaz."
             ),
             "primary_proxy": (
-                "Birincil karşılaştırmanın (BERTurk fine-tuning - char_lr) OOF'u Faz 4'te "
-                "üretilecek (TEST_PLAN['power']); donmuş BERTurk/e5 + LR yalnız kaba vekildir, "
-                "fine-tuned modelin char_lr ile uyuşmazlığını temsil etmeyebilir."
+                "Birincil satır (berturk_ft - char_lr) Faz 4'ün seed 42 CV OOF'undan hesaplanır "
+                "(TEST_PLAN['power']; yoksa 'OOF yok'). Donmuş BERTurk/e5 + LR vekilleri yalnız "
+                "karşılaştırma için kalır; fine-tuned modelin char_lr ile uyuşmazlığını temsil "
+                "etmeyebilir. Birincil OOF tek tekrardır (R=1): psi ve SE tek bölümlemeden."
             ),
         },
         "test_plan_power": TEST_PLAN["power"],
