@@ -9,6 +9,7 @@ yumuşatır (T > 1) ya da sertleştirir (T < 1). Sıralama değişmez, tahmin ed
 
 Akış (sıra zorunlu, her adım temiz commit'te):
     python -m ttc4900.calibration train   # 6b: yalnız train OOF; ana kanıt
+    python -m ttc4900.calibration folds   # sonradan, betimsel: fold başına cross-fit ΔNLL
     python -m ttc4900.calibration test    # 6c: test npz skorları, TEK SEFER; teyit
 """
 
@@ -151,6 +152,17 @@ CALIB_RULES = {
         "yorumsuz. 6c: temiz commit'te test koşusu, json + figür, yorumsuz. Yorum ve belgeler "
         "sonraki commit'te."
     ),
+    "interpretation": (
+        "'Teyit edilemedi' etki olmadığı anlamına gelmez (test 908 satır, train'in dörtte biri; "
+        "CI'lar daha geniş); yorumda açıkça yazılır. Ana kanıt 6b'dir."
+    ),
+    "change_log": (
+        "6b sonuçları görüldükten sonra, 6c'den ÖNCE, kullanıcı onayıyla: (1) 'teyit edilemedi' "
+        "şablonu nedeni önceden atfetmek yerine 'olası nedenler: model uyuşmazlığı, düşük güç' "
+        "der; karar mantığı (decide) DEĞİŞMEDİ. (2) 'interpretation' kuralı eklendi. (3) Fold "
+        "başına cross-fit ΔNLL dökümü (fold_breakdown) sonradan ve betimsel olarak eklendi; "
+        "hiçbir karara girmez."
+    ),
 }
 
 SENTENCES = {
@@ -169,8 +181,8 @@ SENTENCES = {
     ),
     "teyit edilemedi": (
         "{model}: testte ΔNLL {d:+.4f} [{lo:+.4f}, {hi:+.4f}] (NLL {b:.4f} → {a:.4f}, "
-        "T̂_final = {t:.3f}); teyit edilemedi. 6b kararı değişmez; T farklı modellerden öğrenildi "
-        "(uyuşmazlık sınırlılığı)."
+        "T̂_final = {t:.3f}); teyit edilemedi; olası nedenler: model uyuşmazlığı, düşük güç. "
+        "Bu, testte etki olmadığı anlamına gelmez. 6b kararı değişmez (ana kanıt 6b)."
     ),
     "değerlendirilemez": ("{model}: T optimizasyonu sınıra düştü (T = {t:.3f}); karar verilmedi."),
     "betimsel": (
@@ -583,6 +595,87 @@ def calibrate_train(
     return report.write_metrics(out, "phase6_train_calibration", out_dir, when=started), out
 
 
+# --------------------------------------------------------------------------- sonradan: fold dökümü
+POSTHOC_NOTE = (
+    "Sonradan, betimsel: 6b sonuçları görüldükten sonra kullanıcı onayıyla eklendi; "
+    "CALIB_RULES kararlarına girmez, p yok. Her fold'da 6b'nin cross-fit T'si (diğer 4 fold'da "
+    "fit) o fold'a uygulanır; CI o fold'un grupları üzerinde grup bootstrap'iyle, T sabit. "
+    "T_own_in_sample: koşunun (char_lr'de fold'un) kendi satırlarında fit edilen T (6b per_run_T)."
+)
+
+
+def fold_breakdown(oofs: dict[str, dict], six_b: dict, groups, B: int = BOOTSTRAP_B,
+                   seed: int = BOOTSTRAP_SEED) -> dict:  # fmt: skip
+    """Fold başına cross-fit ΔNLL. 6b'nin T'leri yeniden hesaplanıp json'la denetlenir; fold
+    ΔNLL'lerinin n ağırlıklı ortalaması 6b'nin toplam ΔNLL'sine eşit olmalıdır."""
+    runs = six_b["per_run_T"]
+    out = {}
+    for n, o in oofs.items():
+        m6 = six_b["models"][n]
+        t_cf = {p["fold"]: p["T"] for p in m6["cross_fit_folds"]}
+        _, per = cross_fit(o["z"], o["y"], o["fold"])
+        if not np.allclose([p["T"] for p in per], [t_cf[p["fold"]] for p in per]):
+            raise ValueError(f"{n}: cross-fit T'leri 6b json'uyla aynı değil")
+        if n == CHAR_LR:
+            own = {r["fold"]: r["T"] for r in runs["char_lr_folds"]}
+        else:
+            own = {r["fold"]: r["T"] for r in runs["bert_runs"] if r["seed"] == BERT_SEEDS[n]}
+        rows = []
+        for k in sorted(t_cf):
+            m = o["fold"] == k
+            lps = {"x:before": log_probs(o["z"][m]), "x:after": log_probs(o["z"][m], t_cf[k])}
+            point, reps = bootstrap_metrics(lps, o["y"][m], np.asarray(groups)[m], B, seed)
+            r = before_after(point, reps, "x")["nll"]
+            rows.append({"fold": int(k), "n": int(m.sum()), "T_cross_fit": t_cf[k],
+                         "T_own_in_sample": own[k], "nll_before": r["before"],
+                         "nll_after": r["after"], "delta": r["delta"],
+                         "delta_ci95": r["delta_ci95"]})  # fmt: skip
+        total = sum(r["delta"] * r["n"] for r in rows) / sum(r["n"] for r in rows)
+        if not np.isclose(total, m6["metrics_cross_fit"]["nll"]["delta"]):
+            raise ValueError(f"{n}: fold ΔNLL'leri 6b toplamıyla tutmuyor")
+        out[n] = {"role": CALIB_MODELS[n], "folds": rows, "delta_total_6b": total}
+    return out
+
+
+def fold_breakdown_train(
+    metrics_dir: Path = METRICS_DIR,
+    preds_dir: Path = PREDS_DIR,
+    out_dir: Path = METRICS_DIR,
+    path: Path = SPLIT_PATH,
+    B: int = BOOTSTRAP_B,
+    seed: int = BOOTSTRAP_SEED,
+) -> tuple[Path, dict]:
+    """Sonradan, betimsel (POSTHOC_NOTE): yalnız train OOF ve 6b json'u; test npz'i okunmaz."""
+    head = _check_clean("fold dökümü")
+    six_b = latest_metrics("train_calibration", out_dir, phase=6)
+    if six_b is None or not _is_tracked(Path(out_dir, six_b["_file"])):
+        raise RuntimeError("commit'lenmiş phase6_train_calibration json'u yok: önce 6b")
+    oofs = {n: bert_oof(s, metrics_dir)[0] for n, s in BERT_SEEDS.items()}
+    lr = six_b["char_lr_oof"]
+    p_npz = Path(preds_dir) / lr["file"]
+    if sha256_file(p_npz) != lr["sha256"]:
+        raise ValueError(f"{p_npz.name}: sha256 6b json'undakiyle aynı değil")
+    with np.load(p_npz, allow_pickle=False) as z:
+        oofs[CHAR_LR] = _sorted(z["row_id"], z["y_true"], z["scores"], z["fold_id"])
+    groups = cv_groups(pd.DataFrame({"row_id": oofs[PRIMARY[0]]["row_id"]}), path)
+    out = {
+        "experiment": "phase6_train_folds",
+        "phase": 6,
+        "timestamp": report.now().isoformat(timespec="seconds"),
+        "git_commit": head,
+        "split": SPLIT_NAME,
+        "label": "sonradan, betimsel",
+        "note": POSTHOC_NOTE,
+        "train_calibration": {
+            "file": six_b["_file"],
+            "sha256": sha256_file(Path(out_dir, six_b["_file"])),
+        },  # fmt: skip
+        "bootstrap": {"B": B, "seed": seed, "unit": "split_v2 components (cv_groups), fold içi"},
+        "models": fold_breakdown(oofs, six_b, groups, B, seed),
+    }
+    return report.write_metrics(out, "phase6_train_folds", out_dir), out
+
+
 # --------------------------------------------------------------------------- 6c: test
 def test_logits(name: str, scores: np.ndarray) -> tuple[np.ndarray, int]:
     """BERT: logit; char_lr: log(predict_proba), p = 0 tiny'ye kırpılır. Döner: (z, kırpılan)."""
@@ -683,9 +776,12 @@ def calibrate_test(
 # --------------------------------------------------------------------------- CLI
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("cmd", choices=["train", "test"])
+    ap.add_argument("cmd", choices=["train", "folds", "test"])
     args = ap.parse_args()
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")  # cp1254 konsol: T̂, Δ, ≤
+    if args.cmd == "folds":
+        print(fold_breakdown_train()[0])
+        return
     p, out = calibrate_train() if args.cmd == "train" else calibrate_test()
     print(p, *out["sentences"], sep="\n")
 

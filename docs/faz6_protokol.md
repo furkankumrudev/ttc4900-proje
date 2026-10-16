@@ -175,8 +175,23 @@ Bunu bir AST testi denetler.
 | 6b gösterilemedi | "{model}: ΔNLL x [lo, hi], CI 0'ı içeriyor ya da 0'ın altında; iyileşme gösterilemedi. Bu, modelin kalibre olduğunu kanıtlamaz." |
 | değerlendirilemez | "{model}: T optimizasyonu sınıra düştü (T = t); karar verilmedi." |
 | 6c teyit | "{model}: testte ΔNLL +x [lo, hi]; teyit edildi (ana kanıt 6b)." |
-| 6c teyit edilemedi | "{model}: testte ΔNLL x [lo, hi]; teyit edilemedi. 6b kararı değişmez; T farklı modellerden öğrenildi (uyuşmazlık)." |
+| 6c teyit edilemedi | "{model}: testte ΔNLL x [lo, hi]; teyit edilemedi; olası nedenler: model uyuşmazlığı, düşük güç. Bu, testte etki olmadığı anlamına gelmez. 6b kararı değişmez." |
 | betimsel | "{a} − {b} (betimsel, p yok): metrik, fark, CI." |
+
+## Değişiklik notu (6b'den sonra, 6c'den önce; `CALIB_RULES['change_log']`)
+6b sonuçları görüldükten sonra, test açılmadan, kullanıcı onayıyla üç değişiklik yapıldı:
+1. **"Teyit edilemedi" şablonu.** Eski şablon nedeni önceden atfediyordu ("T farklı modellerden
+   öğrenildi"). Yeni şablon "olası nedenler: model uyuşmazlığı, düşük güç" diyor ve "etki yok"
+   okumasını açıkça dışlıyor. Karar mantığı (`decide`) değişmedi.
+2. **Yorum kuralı** (`interpretation`): "teyit edilemedi" etki olmadığı anlamına gelmez. Test
+   908 satır, train'in dörtte biri; CI'lar daha geniş.
+3. **Fold başına cross-fit ΔNLL** (`python -m ttc4900.calibration folds`): **sonradan,
+   betimsel**, hiçbir karara girmez.
+   - Her fold'a 6b'nin cross-fit T'si uygulanır. Kod, T'leri 6b json'uyla denetler.
+   - CI, fold'un grupları üzerinde grup bootstrap'iyle hesaplanır.
+   - Fold'un kendi in-sample T'si yan yana verilir.
+   - Fold ΔNLL'lerinin n ağırlıklı ortalaması 6b toplamına eşit olmalıdır; kod bunu da
+     denetler.
 
 ## Commit düzeni
 1. **6a:** `CALIB_RULES`, `calibration.py` kodu, testler ve bu belge. Hiçbir kalibrasyon sayısı

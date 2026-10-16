@@ -135,7 +135,8 @@ def test_train_path_never_touches_test():
     assert "load_train_test" not in names and "load_train_test" not in src
     forbidden = {"test_groups", "preds_path", "test_logits", "calibrate_test"}
     for fn in (cal.calibrate_train, cal.calibrate_oof, cal.bert_oof, cal.char_lr_oof,
-               cal.per_run_table, cal.t_bootstrap):  # fmt: skip
+               cal.per_run_table, cal.t_bootstrap, cal.fold_breakdown,
+               cal.fold_breakdown_train):  # fmt: skip
         tree = ast.parse(inspect.getsource(fn).lstrip())
         used = {n.id for n in ast.walk(tree) if isinstance(n, ast.Name)}
         strings = [n.value for n in ast.walk(tree) if isinstance(n, ast.Constant)
@@ -268,3 +269,33 @@ def test_calibrate_test_rejects_different_bootstrap_weights(test_world):
     _write_6b(test_world)
     with pytest.raises(ValueError, match="ağırlıkları"):
         cal.calibrate_test(**(test_world["kw"] | {"seed": 7}))
+
+
+# --------------------------------------------------------------------------- sonradan döküm
+def test_not_confirmed_sentence_lists_possible_causes_and_decision_unchanged():
+    s = cal.SENTENCES["teyit edilemedi"]
+    assert "olası nedenler: model uyuşmazlığı, düşük güç" in s
+    assert "etki olmadığı anlamına gelmez" in s and "T farklı modellerden öğrenildi" not in s
+    assert cal.decide([-0.001, 0.02], False, "test") == "teyit edilemedi"
+    assert cal.decide([0.001, 0.02], False, "test") == "teyit edildi"
+    assert (
+        "decide" in cal.CALIB_RULES["change_log"] and "DEĞİŞMEDİ" in cal.CALIB_RULES["change_log"]
+    )
+    assert "etki olmadığı anlamına gelmez" in cal.CALIB_RULES["interpretation"]
+
+
+def test_fold_breakdown_matches_6b_totals():
+    oofs = _oofs()
+    g = np.arange(700) // 2
+    core = cal.calibrate_oof(oofs, g, B=20, seed=0)
+    runs = {n: [{"fold": k, "best_epoch": 1} for k in range(5)] for n in cal.BERT_SEEDS}
+    six_b = {"models": core["models"], "per_run_T": cal.per_run_table(oofs, runs)}
+    out = cal.fold_breakdown(oofs, six_b, g, B=20, seed=0)
+    for n, m in out.items():
+        assert len(m["folds"]) == 5 and "p" not in m["folds"][0]
+        assert m["delta_total_6b"] == pytest.approx(
+            core["models"][n]["metrics_cross_fit"]["nll"]["delta"]
+        )
+    six_b["models"]["char_lr"]["cross_fit_folds"][0]["T"] += 0.5
+    with pytest.raises(ValueError, match="6b json"):
+        cal.fold_breakdown(oofs, six_b, g, B=20, seed=0)
