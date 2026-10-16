@@ -1,8 +1,8 @@
 # Kısayol öğrenme (shortcut learning) bulguları ve demo sınırlılıkları
 
 *README'nin "Sınırlılıklar" bölümü için not. Kaynaklar: `outputs/leakage/README.md`,
-`outputs/metrics/phase2_c1_sensitivity_20261012-080120.json`. Tüm sayılar yalnızca train
-(3630 haber) üzerinden; test seti kullanılmadı.*
+`outputs/metrics/phase2_c1_sensitivity_20261012-080120.json`. "Faz 5: test setinde" bölümü
+dışındaki tüm sayılar yalnızca train (3630 haber) üzerindendir.*
 
 ## Ne bulundu
 Modeller haberin konusunun yanı sıra, etiketle birlikte gelen ama konuyla ilgisi olmayan iki
@@ -18,7 +18,7 @@ ekonomi %61, kültür %53, dünya %5.
 - **Duyarlılık analizi:** aynı protokolle (nested grup-bilinçli CV, 5×3) yalnızca bu dört
   karakter silinince macro-F1 0.9054'ten 0.9009'a düşüyor.
   - Fark: +0.0045, Nadeau-Bengio %95 CI [−0.0002, +0.0091], p = 0.057.
-  - Fark 0.05 düzeyinde ayırt edilemiyor, ama CI neredeyse tamamen pozitif tarafta.
+  - Fark 0.05 düzeyinde ayırt edilemiyor (CI 0'ı içeriyor).
   - Büyüklüğü, char_lr ile kelime TF-IDF + LR arasındaki CV farkının (+0.0076) yaklaşık %60'ı.
   - En çok ekonomi sınıfı etkileniyor: F1 farkı +0.017. Bu sayı betimseldir; belirsizliği
     verilmemiştir.
@@ -35,6 +35,34 @@ ekonomi %61, kültür %53, dünya %5.
   - Faz 4 notu: BERTurk fine-tuning C1'i görmez, ham char_lr görür. Birincil karşılaştırmada
     bu asimetri char_lr lehinedir.
 
+### Faz 5: test setinde (betimsel)
+Kaynak: `outputs/metrics/phase5_test_20261016-172356.json`. Bu çift testten önce p'siz bir
+betimsel çift olarak tanımlandı ve hiçbir Holm ailesine girmez. Bu yüzden aşağıdaki CI bir test
+kararı değildir.
+
+| | macro-F1 | Fark (ham − temiz) [%95 grup bootstrap CI] |
+|---|---|---|
+| Test: char_lr (ham) | 0.9132 | |
+| Test: char_lr_c1clean | 0.9037 | **+0.0095** [+0.0020, +0.0182] |
+| CV (Faz 2, karşılaştırma için) | 0.9054 / 0.9009 | +0.0045, N-B CI [−0.0002, +0.0091] |
+
+- Testte de ham model, artefaktı görebilen model, daha yüksek skor aldı. Fark CV'dekinin
+  yaklaşık iki katı; iki CI örtüşüyor.
+- Accuracy farkı +0.0099 [+0.0022, +0.0187]: 908 satırda net 9 satır.
+- **Sınıf bazında (CI yok):** fark en büyük ekonomide (F1 0.884 vs 0.852, +0.032). Sonra
+  teknoloji (+0.016) ve siyaset (+0.011) geliyor; sağlık ve sporda fark 0. Ama bozuk tırnak
+  oranı %53 olan kültürde fark yalnızca ≈ +0.005. Sınıf bazlı örüntü C1 oranıyla tutarlı bir
+  sıralama vermiyor. Sınıf başına 114–138 satır var ve CI hesaplanmadı; bu sayılardan
+  mekanizma çıkarılmaz.
+- **Birincil karşılaştırma için anlamı:** BERTurk bu karakterleri görmez, ham char_lr görür.
+  Birincil çiftte (`berturk_ft − char_lr`, +0.0159, ayırt edilemedi) bu asimetri char_lr
+  lehinedir.
+  - Keşifsel ve sonradan tanımlanan `berturk_ft − char_lr_c1clean` farkı +0.0254
+    [+0.0085, +0.0429] çıktı (p yok).
+  - Bu sayı (berturk_ft − char_lr) + (char_lr − char_lr_c1clean) toplamıdır. Referans, test
+    sonuçları görüldükten sonra seçildiği için kanıt sayılmaz (`docs/faz5_sonuclar.md`).
+  - Önceden kaydedilmiş birincil referans ham char_lr'dir ve değişmez.
+
 ### 2. Ajans künyeleri
 Haberlerin sonundaki ajans adı sınıfla ilişkili:
 
@@ -50,7 +78,8 @@ konudan değil, bu veri kümesini toplayan kaynağın alışkanlıklarından gel
 ## Raporlanan skorlar için anlamı
 - Artefaktlar train ve test'te aynı dağılımla bulunuyor. Bu yüzden test skoru bu veri kümesi
   için geçerli bir tahmin.
-- Ama bu skor, başka kaynaklardan gelen haberlerdeki performansın **iyimser** bir tahminidir.
+- Ama bu skor, başka kaynaklardan gelen haberlerdeki performans için **iyimser** olabilir
+  (dış kaynakta ölçülmedi).
 - Modeller arası karşılaştırmalar artefakta farklı erişimden etkilenebilir: karakter ve kelime
   modelleri farklı, BERTurk ve XLM-R tabanlı modeller farklı.
 - Önceden dondurulmuş kural: birincil klasik baseline ham char_lr olarak kalır. Temizlenmiş
