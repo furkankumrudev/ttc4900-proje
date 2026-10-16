@@ -24,6 +24,7 @@ import os
 import platform
 import re
 import subprocess
+import sys
 import time
 from collections.abc import Callable
 from dataclasses import asdict
@@ -1196,6 +1197,8 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("cmd", choices=["verify", "predict", "evaluate", "v1-diagnosis"])
     args = ap.parse_args()
+    # Windows konsolu (cp1254) α, −, ≤ gibi karakterleri kodlayamıyor; çıktı UTF-8 yazılır
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     if args.cmd == "verify":
         p, out = verify_models()
         for n, r in out["models"].items():
