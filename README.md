@@ -1,7 +1,7 @@
 # TTC4900 Türkçe Haber Sınıflandırma
 
-> **Taslak.** Faz 5 (final test) sonrası yazıldı. Kalibrasyon (Faz 6), Hugging Face Hub ve
-> Gradio demosu henüz yapılmadı; ilgili bölümler eklendikçe güncellenecek.
+> **Taslak.** Faz 6 (kalibrasyon) sonrası güncellendi. Hata analizi, Hugging Face Hub ve Gradio
+> demosu henüz yapılmadı; ilgili bölümler eklendikçe güncellenecek.
 
 7 sınıflı Türkçe haber metinlerinde klasik yöntemleri (TF-IDF + doğrusal modeller) BERTurk
 fine-tuning ile karşılaştıran bir proje. Projenin odağı en yüksek skoru kovalamak değil;
@@ -51,6 +51,45 @@ puanlık farkları da içeriyor (en geniş uçlar ≈ ±2.4 puan).
   - Test tek bir 908 satırlık örneklem ve oynaması var.
 
 Ayrıntı: [`docs/faz5_sonuclar.md`](docs/faz5_sonuclar.md).
+
+## Olasılık kalibrasyonu (Faz 6)
+Temperature scaling kullanıldı: p̂ = softmax(z / T). T yalnızca train OOF tahminlerinden
+öğrenildi. Büyüklük ΔNLL = NLL(önce) − NLL(sonra); pozitif değer iyileşme demek. Ana kanıt
+train içi cross-fit değerlendirmedir; test bir kez ve teyit için kullanıldı.
+- Kurallar hiçbir sayı hesaplanmadan donduruldu.
+- Train sonuçlarından sonra, test açılmadan üç değişiklik yapıldı: sonuç cümlesi şablonu, yorum
+  kuralı ve betimsel fold dökümü. Karar mantığı değişmedi (`docs/faz6_protokol.md`).
+
+| Model | T̂ | Train ΔNLL, cross-fit [%95 CI] | Test ΔNLL [%95 CI] | Karar |
+|---|---|---|---|---|
+| BERTurk (seed 42) | 1.283 | +0.020 [+0.012, +0.028] | +0.051 [+0.033, +0.071] | gösterildi; testte **teyit edildi** |
+| char_lr | 0.916 | +0.001 [−0.001, +0.004] | −0.002 [−0.006, +0.002] | gösterilemedi; testte **teyit edilemedi** |
+
+T değerleri modeller arasında karşılaştırılamaz (logit ve decision function farklı ölçeklerde);
+anlamlı olan yalnızca T'nin 1'e göre yönü.
+
+- **BERTurk:** T > 1, model aşırı emindi. Ölçekleme testte NLL'yi ve ECE'yi düşürdü.
+  - ECE (15 bin) 0.058'den 0.041'e indi. ECE yanlı ve bin sayısına duyarlı bir kestiricidir:
+    10/15/20 bin için sonra-değerleri 0.037/0.041/0.043. Karar yalnızca NLL'ye dayanır.
+  - Kalan bir aşırı güven var: en yüksek güven bandında ortalama güven 0.98, accuracy 0.95.
+  - "Teyit edildi" bu tek eğitilmiş koşu (seed 42) ve bu test seti için geçerli. Seed 43'te
+    train içi kazanç gösterilemedi. Üç (koşu, fold) biriminde kalibrasyon NLL'yi kötüleştirdi.
+    T farklı eğitim koşularında değişiyor (15 CV koşusunda std 0.25).
+- **char_lr:** başlangıçta zaten iyi kalibreydi. ECE T = 1'de küçüktü (test 0.025) ve T = 0.92
+  yalnız hafif bir çekingenlik gösteriyor (CI 1'i dışlıyor).
+  - "Teyit edilemedi" etki olmadığı anlamına gelmez. Ancak CI üst sınırı +0.0025, büyük bir
+    kazanç beklenmiyor.
+- **Modeller arası sıralama yok.** Kalibrasyondan sonra NLL, Brier ve ECE farkları ayırt
+  edilemedi.
+  - Accuracy ile olasılık güvenilirliği farklı özelliklerdir: T = 1'de test NLL'si char_lr'de
+    0.282, BERT'te 0.338 (fark için CI hesaplanmadı). Accuracy nokta tahminleri ise ters
+    sırada (0.913 ve 0.927; Faz 5'te ayırt edilemedi). Betimseldir, sıralama değildir.
+- **Sonradan gözlemlenen hipotez (test edilmedi):** CV koşularında T, best epoch ile artıyor
+  görünüyor. Final model sabit 4 epoch eğitildiği için T̂_final onu eksik düzeltiyor olabilir.
+  Bu bir gelecek çalışma önerisi; testte başka bir T denenmedi.
+
+Ayrıntı: [`docs/faz6_sonuclar.md`](docs/faz6_sonuclar.md),
+[`docs/faz6_protokol.md`](docs/faz6_protokol.md).
 
 ## Yöntem
 ### Veri ve split
@@ -105,6 +144,9 @@ Ayrıntı: [`docs/faz5_sonuclar.md`](docs/faz5_sonuclar.md).
   iyimser olabilir. CI'lar marjinaldir.
 - **Tek kaynak ve dönem:** veri tek bir kaynaktan ve belirli bir dönemden geliyor. O dönemin
   kişi ve kurum adları güçlü özellikler.
+- **Kalibrasyon yalnız bu dağılım için geçerli.** T, CV modellerinden öğrenildi ve farklı
+  eğitilen final modele uygulandı. Başka kaynaklardan gelen metinlerde olasılıklar kalibre
+  olmayabilir.
 
 ## Yeniden üretme
 ```powershell
@@ -116,6 +158,8 @@ uv pip install --python .venv -r requirements.txt
   [`docs/faz4_protokol.md`](docs/faz4_protokol.md).
 - Final değerlendirme adımları: `python -m ttc4900.final_eval {verify, predict, evaluate,
   v1-diagnosis, exploratory}` ([`docs/faz5_protokol.md`](docs/faz5_protokol.md)).
+- Kalibrasyon: `python -m ttc4900.calibration {train, folds, test}`
+  ([`docs/faz6_protokol.md`](docs/faz6_protokol.md)).
 - Bütün metrikler `outputs/metrics/*.json` altında. Her json, üretildiği commit'i ve kullandığı
   split'i kaydeder. Model ağırlıkları git'te değil.
 
@@ -129,5 +173,9 @@ outputs/         metrics/ (json + tahmin npz'leri), splits/, figures/
 ```
 
 ## Planlanan
-- **Faz 6:** olasılık kalibrasyonu (temperature scaling, yalnız train içinde).
+- **Faz 7:** betimsel hata analizi. Model, ayar ve kural değişmeyecek.
 - Hugging Face Hub'a model yükleme ve Gradio Space demosu.
+  - Demo, seed 42 BERTurk modelini T = 1.283 ile kalibre edilmiş olasılıklarla gösterecek.
+  - BERTurk bir dağıtım tercihidir: testte char_lr'den ayırt edilemedi.
+  - Kalan kalibrasyon hatası (ECE 0.041), veri dağılımı sınırlılığı ve kısayol notları demo
+    açıklamasında yer alacak.
