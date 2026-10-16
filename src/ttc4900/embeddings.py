@@ -198,6 +198,8 @@ def load_embeddings(name: str, train: pd.DataFrame, c1clean: bool = False) -> np
         raise FileNotFoundError(f"{p} yok; önce: python -m ttc4900.embeddings --embed")
     with np.load(p, allow_pickle=False) as z:  # Windows: dosya tutamacı hemen kapansın
         meta, row_id, X = json.loads(str(z["meta"])), z["row_id"], z["X"]
+    if meta.get("side", "train") != "train":  # Faz 5 test önbelleği (final_eval) asla train değil
+        raise ValueError(f"{p.name} bir {meta['side']} önbelleği; train embedding'i değil")
     want = _meta(name, train, c1clean)
     if not _same(meta, want):
         bad = {k: (meta.get(k), v) for k, v in want.items() if meta.get(k) != v}

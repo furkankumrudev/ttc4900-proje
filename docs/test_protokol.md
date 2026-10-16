@@ -56,6 +56,9 @@ açılmadan** donduruldu; test sonucuna göre değiştirilmez.
   "Ayırt edilemedi" eşdeğerlik demek değildir; eşdeğerlik marjı tanımlanmadı.
 - **Betimsel çift:** p hesaplanmaz; yalnızca skorlar ve fark CI'ı verilir
   (`paired_test.describe_pair`).
+- **Sonuç cümleleri:** `test_plan.SENTENCES`. Şablonlar test açılmadan donduruldu. Faz 5 kodu
+  (`final_eval`) yalnızca `decide()` çıktısına göre şablon seçer. Ayrıntılar:
+  `docs/faz5_protokol.md`.
 
 ## Sınırlılık
 - McNemar test satırlarını bağımsız sayar ve test içindeki yakın-tekrar grup bağımlılığını

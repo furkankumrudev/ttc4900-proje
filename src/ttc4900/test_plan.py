@@ -166,3 +166,63 @@ TEST_PLAN = {
         "başına anomali değildir."
     ),
 }
+
+# Sonuç cümleleri: test görülmeden donduruldu ("test öncesi son commit"). final_eval yalnız
+# decide() çıktısına göre şablon seçer ve sayıları doldurur; sonuç dili sonuca göre yazılmaz.
+# Fark her zaman a - b; CI = %95 grup bootstrap (yüzdelik), p = exact McNemar.
+SENTENCES = {
+    "ayırt edildi": (
+        "{a}, test macro-F1'de {b}'den {yon} olarak ayırt edildi: fark {diff:+.4f} (%95 grup "
+        "bootstrap CI [{lo:+.4f}, {hi:+.4f}]); exact McNemar n10/n01 = {n10}/{n01}, ham p = "
+        "{p:.3g}, Holm p = {p_holm:.3g} ({aile} aile, m={m}). Üç koşul da sağlandı."
+    ),
+    "ayırt edilemedi (yön çelişkisi)": (
+        "{a} ile {b} ayırt edilemedi (yön çelişkisi): McNemar (accuracy) {mc_yon} (n10/n01 = "
+        "{n10}/{n01}, Holm p = {p_holm:.3g}), macro-F1 farkının CI'ı ise {ci_yon} (fark "
+        "{diff:+.4f}, [{lo:+.4f}, {hi:+.4f}]) ({aile} aile, m={m}). İki ölçüt farklı büyüklükleri "
+        "ölçtüğü için yön hakkında karar verilmez."
+    ),
+    "ayırt edilemedi": (
+        "{a} ile {b} test setinde ayırt edilemedi: fark {diff:+.4f} (%95 grup bootstrap CI "
+        "[{lo:+.4f}, {hi:+.4f}]); exact McNemar n10/n01 = {n10}/{n01}, Holm p = {p_holm:.3g} "
+        "({aile} aile, m={m}). Sağlanan koşullar: {saglananlar}; sağlanmayanlar: "
+        "{saglanmayanlar}. Bu bir eşdeğerlik iddiası değildir (eşdeğerlik marjı tanımlanmadı). "
+        "Test öncesi güç analizi: {guc}."
+    ),
+    "betimsel": (
+        "{a} − {b} (betimsel, p yok): macro-F1 {fa:.4f} vs {fb:.4f}, fark {diff:+.4f} (%95 grup "
+        "bootstrap CI [{lo:+.4f}, {hi:+.4f}]). Hiçbir Holm ailesine girmez; çıkarım için "
+        "kullanılmaz."
+    ),
+    "seed_ozeti": (
+        "BERTurk fine-tuning test macro-F1'i ({k} seed, betimsel): {values}; ortalama "
+        "{mean:.4f} ± {std:.4f} (std, ddof=1; aralık {lo:.4f}–{hi:.4f}). Bu {k} eğitimin "
+        "yayılımıdır, ortalamanın güven aralığı değildir; std {k} değerden kestirildiği için çok "
+        "kabadır ve ortalama birincil modeli de içerir. Birincil karar yalnız {primary} (seed "
+        "{seed}) modeline dayanır; seed std'si eğitim değişkenliğidir, test örneklemesi "
+        "belirsizliği değildir."
+    ),
+    "birincil_kosul": (
+        "Birincil iddia bu tek eğitilmiş modele koşuludur: McNemar ve bootstrap test "
+        "örneklemesinin belirsizliğini ölçer, seed'den (eğitimden) gelen belirsizliği ölçmez."
+    ),
+    "sinirliliklar": (
+        "Sınırlılıklar: exact McNemar test satırlarını bağımsız sayar ve test içi yakın-tekrar "
+        "bağımlılığını yok sayar, bu yüzden p iyimser olabilir (accuracy farkının grup bootstrap "
+        "CI'ı bunu denetlemek için sonuç json'unda acc_diff_ci95 olarak betimsel verildi; "
+        "karar kuralına girmez). Raporlanan %95 CI'lar marjinaldir, "
+        "eşzamanlı değildir. Sınıf bazlı F1'ler CI'sızdır ve gürültülüdür (sınıf başına 114–138 "
+        "test satırı). Test tahminleri yerel CPU'da fp32 ile, CV/OOF tahminleri Colab'da fp16 ile "
+        "üretildi; sınırdaki satırlarda bu küçük bir oynama yaratabilir."
+    ),
+    "seed_tutarlilik": (
+        "Diğer seed'lerle tutarlılık (betimsel, karara girmez): birincil farkın %95 CI'ı "
+        "{birincil_yon}; {ayrintilar}. Birincil karar bu satırdan bağımsızdır; satır yalnız "
+        "sonucun tek eğitime ne kadar bağlı olduğunu gösterir."
+    ),
+    "cv_test_notu": (
+        "Test skorlarının CV skorlarından farklı çıkması tek başına anomali değildir: final "
+        "modeller 3630 satırla (CV'de ~2904, BERT'te ~2323) eğitildi ve seçilen klasik modelin "
+        "CV skoru adayların maksimumudur (kazananın laneti; TEST_PLAN['expectation_note'])."
+    ),
+}

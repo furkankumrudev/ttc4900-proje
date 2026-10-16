@@ -100,17 +100,29 @@ def cluster_bootstrap(
     Ağırlıklar modellerden bağımsız çekilir: aynı (G, B, seed) aynı w dizisini verir, yani bir
     çiftin CI'ı aileye başka model eklenince değişmez.
     """
-    _, inv = np.unique(np.asarray(groups), return_inverse=True)
-    G = int(inv.max()) + 1
+    inv, G = group_index(groups)
     flats = {m: _group_confusions(y, p, inv, G, k) for m, p in preds.items()}
-    rng = np.random.default_rng(seed)
     out = {m: np.empty(B) for m in preds}
-    for start in range(0, B, chunk):
-        n = min(chunk, B - start)
-        w = rng.multinomial(G, np.full(G, 1 / G), size=n)  # (n, G)
+    for start, w in bootstrap_weights(G, B, seed, chunk):
+        n = len(w)
         for m, F in flats.items():
             out[m][start : start + n] = macro_f1_from_confusion((w @ F).reshape(n, k, k))
     return out
+
+
+def group_index(groups) -> tuple[np.ndarray, int]:
+    """Satır -> grup sırası (np.unique sıralı id düzeni) ve grup sayısı G."""
+    _, inv = np.unique(np.asarray(groups), return_inverse=True)
+    return inv, int(inv.max()) + 1
+
+
+def bootstrap_weights(G: int, B: int = BOOTSTRAP_B, seed: int = BOOTSTRAP_SEED,
+                      chunk: int = BOOTSTRAP_CHUNK):  # fmt: skip
+    """(başlangıç, w) parçaları; w ~ Multinomial(G, 1/G), (n, G). Tek kaynak: aynı (G, B, seed,
+    chunk) her çağrıda aynı diziyi verir (cluster_bootstrap ve Faz 5 accuracy CI'ı paylaşır)."""
+    rng = np.random.default_rng(seed)
+    for start in range(0, B, chunk):
+        yield start, rng.multinomial(G, np.full(G, 1 / G), size=min(chunk, B - start))
 
 
 def _pct_ci(x: np.ndarray, level: float = CI_LEVEL) -> list[float]:
