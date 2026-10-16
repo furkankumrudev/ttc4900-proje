@@ -1,0 +1,128 @@
+{
+  "experiment": "phase5_v1_leakage",
+  "phase": 5,
+  "timestamp": "2026-10-16T22:01:37+00:00",
+  "git_commit": "7a428c6",
+  "split": "split_v1",
+  "rule": "Faz 5'in ayrı ve tek 'sızıntı etkisi' teşhis deneyi; ana sonuçlar (phase5_test json'u) yazıldıktan SONRA, temiz commit'te çalışır ve ana tablolara girmez. Model: char_lr, dondurulmuş ayarlarla (C=100, char_wb, ngram (2,4); json'daki final.best_params ile aynı olduğu denetlenir), AYARLAMA YOK. split_v1 train'inde (3630) fit, split_v1 test'inde (908) tahmin. Bileşenler: split_v2.json 'components' (TF-IDF kosinüsü > 0.8 grafının bağlı bileşenleri; v1 ve v2 aynı temiz kümeyi böler). 'Sızmış' satır: bileşeninde en az bir v1 train satırı olan v1 test satırı (zincirler dahil). Birincil teşhis büyüklüğü: accuracy(sızmış) - accuracy(temiz), %95 yüzdelik grup bootstrap CI (bileşen düzeyinde ortak w ~ Multinomial(G, 1/G), B=10000, seed 42; bir bileşen iki alt kümeye bölünmez). Küçük alt kümede macro-F1 farkı verilmez; alt küme başına n, accuracy ve sınıf sayıları verilir. v1 test'in genel macro-F1/accuracy'si aynı w'lerden grup bootstrap CI ile, v2 test char_lr macro-F1'i (CI'ıyla) yanında verilir: farklı test kümeleri, p yok, v1 - v2 farkı sızıntı etkisi olarak sunulmaz. Sınırlılık: sızmış alt küme rastgele değildir (konu/sınıf bileşimi farklı olabilir), fark yalnız ezberlemeye atfedilemez; 'temiz' alt küme sızıntıdan arınmış sayılmaz (<= 0.8 benzerlikli yeniden yazımlar olabilir). char_lr'nin ayarları (C, ngram) split_v2 train'inde seçildi ve bu train v1 test satırlarının çoğunu içerir; v1 genel skoru bu yüzden tamamen görülmemiş veride ayarlanmış bir modelin skoru değildir (grid dar, etki küçük beklenir).",
+  "model": "char_lr",
+  "frozen_params": {
+    "source": "phase2_char_lr_20261011-192701.json",
+    "source_commit": "c42a96f",
+    "best_params": {
+      "clf__C": 100.0,
+      "tfidf__ngram_range": [
+        2,
+        4
+      ]
+    },
+    "fixed": {
+      "sublinear_tf": true,
+      "min_df": 2,
+      "analyzer": "char_wb",
+      "clf": "LogisticRegression(lbfgs, L2)"
+    },
+    "grid": {
+      "tfidf__ngram_range": [
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ],
+      "clf__C": [
+        10.0,
+        100.0,
+        1000.0
+      ]
+    }
+  },
+  "n_train": 3630,
+  "n_test": 908,
+  "components_source": {
+    "file": "split_v2.json",
+    "sha256": "4e2570761ba8969494821acd424cd3d95f282cbadbfdafe51f76741d67d6574a",
+    "threshold": 0.8
+  },
+  "overall_v1_test": {
+    "macro_f1": 0.9178561682379727,
+    "accuracy": 0.9162995594713657,
+    "per_class_f1": {
+      "siyaset": 0.922509225092251,
+      "dunya": 0.8888888888888888,
+      "ekonomi": 0.8593155893536122,
+      "kultur": 0.9646017699115044,
+      "saglik": 0.932806324110672,
+      "spor": 0.9765625,
+      "teknoloji": 0.8803088803088803
+    },
+    "macro_f1_ci95": [
+      0.8992431302983411,
+      0.934746146418455
+    ],
+    "accuracy_ci95": [
+      0.8976897689768977,
+      0.9338478500551268
+    ]
+  },
+  "subsets": {
+    "leaked": {
+      "n": 93,
+      "n_groups": 90,
+      "accuracy": 0.967741935483871,
+      "class_counts": {
+        "siyaset": 12,
+        "dunya": 18,
+        "ekonomi": 15,
+        "kultur": 7,
+        "saglik": 25,
+        "spor": 3,
+        "teknoloji": 13
+      }
+    },
+    "clean": {
+      "n": 815,
+      "n_groups": 804,
+      "accuracy": 0.9104294478527607,
+      "class_counts": {
+        "siyaset": 126,
+        "dunya": 118,
+        "ekonomi": 123,
+        "kultur": 106,
+        "saglik": 101,
+        "spor": 124,
+        "teknoloji": 117
+      }
+    }
+  },
+  "diagnostic": {
+    "acc_leaked_minus_clean": 0.0573124876311103,
+    "acc_diff_ci95": [
+      0.013233573202484809,
+      0.09423238160454066
+    ],
+    "bootstrap": {
+      "B": 10000,
+      "seed": 42,
+      "scheme": "split_v2 components düzeyinde grup bootstrap, ortak w",
+      "n_dropped_replicates": 0
+    }
+  },
+  "v2_reference": {
+    "source": "phase5_test_20261016-172356.json",
+    "char_lr_v2_test_macro_f1": 0.913202083851902,
+    "char_lr_v2_test_macro_f1_ci95": [
+      0.893142925860311,
+      0.9308032214740146
+    ],
+    "note": "farklı test kümeleri (kısmen örtüşür, eğitim bileşimi de farklı); yalnız yan yana. v1 - v2 farkı sızıntı etkisi olarak sunulmaz; p yok."
+  },
+  "preds_file": {
+    "file": "test_v1_char_lr.npz",
+    "sha256": "5950c3cb5c0a802fc8d07076f2c60ed9f63d1188e352835aa5c2a66bd67a46cd"
+  },
+  "runtime_seconds": 19.9
+}
