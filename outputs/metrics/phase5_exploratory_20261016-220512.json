@@ -1,0 +1,43 @@
+{
+  "experiment": "phase5_exploratory",
+  "phase": 5,
+  "timestamp": "2026-10-16T22:05:12+00:00",
+  "git_commit": "9774c34",
+  "split": "split_v2",
+  "label": "keşifsel, sonradan",
+  "note": "Keşifsel, sonradan: bu çiftler test sonuçları görüldükten SONRA tanımlandı; TEST_PLAN'da yoktur, hiçbir Holm ailesine girmez, p hesaplanmaz, karar kuralı uygulanmaz. Yalnız fark ve evaluate ile AYNI w'lerden grup bootstrap %95 CI'ı. berturk_ft - char_lr_c1clean: BERTurk tokenizer'ı U+0091-U+0094'ü siler, ham char_lr görür; çift bu girdi asimetrisini kaldırılmış hâliyle betimler.",
+  "main_results": "phase5_test_20261016-172356.json",
+  "bootstrap": {
+    "B": 10000,
+    "seed": 42,
+    "unit": "split_v2 components (test_groups)"
+  },
+  "pairs": [
+    {
+      "a": "berturk_ft",
+      "b": "char_lr_c1clean",
+      "inference": "keşifsel, sonradan; p hesaplanmaz",
+      "macro_f1_a": 0.9290876206385759,
+      "macro_f1_b": 0.9037019376268197,
+      "macro_f1_a_ci95": [
+        0.9114400454189582,
+        0.9450609686535781
+      ],
+      "macro_f1_b_ci95": [
+        0.8829181676204634,
+        0.9223064551986974
+      ],
+      "diff": 0.025385683011756144,
+      "diff_ci95": [
+        0.00854536881577474,
+        0.04291174839009382
+      ],
+      "diff_se_boot": 0.008809308036358031,
+      "acc_diff": 0.024229074889867808,
+      "acc_diff_ci95": [
+        0.006703723563447721,
+        0.04212860310421285
+      ]
+    }
+  ]
+}
