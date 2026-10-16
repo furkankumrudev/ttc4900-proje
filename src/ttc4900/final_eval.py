@@ -9,6 +9,7 @@ Akış (her adım ayrı komut; sıra zorunlu):
     python -m ttc4900.final_eval predict       # testi BİR KEZ açar; test_<model>.npz write-once
     python -m ttc4900.final_eval evaluate      # yalnız npz'ler: aileler, CI'lar, cümleler
     python -m ttc4900.final_eval v1-diagnosis  # ana sonuçlardan SONRA: split_v1 sızıntı teşhisi
+    python -m ttc4900.final_eval exploratory   # sonradan tanımlanan çiftler: fark + CI, p yok
 
 Yeniden eğitim: klasik modeller ve bge_m3 + LR, Faz 2/3 json'larındaki `final.best_params` ile
 tüm train'de (3630 satır) bir kez fit edilir; arama/ayar yok (RULES["refit"]). BERTurk modelleri
@@ -1192,10 +1193,64 @@ def v1_diagnosis(
     return report.write_metrics(out, "phase5_v1_leakage", out_dir, when=started), out
 
 
+# --------------------------------------------------------------------------- 5) keşifsel
+EXPLORATORY = (("berturk_ft", "char_lr_c1clean"),)
+EXPLORATORY_NOTE = (
+    "Keşifsel, sonradan: bu çiftler test sonuçları görüldükten SONRA tanımlandı; TEST_PLAN'da "
+    "yoktur, hiçbir Holm ailesine girmez, p hesaplanmaz, karar kuralı uygulanmaz. Yalnız fark "
+    "ve evaluate ile AYNI w'lerden grup bootstrap %95 CI'ı. berturk_ft - char_lr_c1clean: "
+    "BERTurk tokenizer'ı U+0091-U+0094'ü siler, ham char_lr görür; çift bu girdi asimetrisini "
+    "kaldırılmış hâliyle betimler."
+)
+
+
+def exploratory(
+    preds_dir: Path = PREDS_DIR,
+    out_dir: Path = METRICS_DIR,
+    path: Path = SPLIT_PATH,
+    pairs=EXPLORATORY,
+    B: int = BOOTSTRAP_B,
+    seed: int = BOOTSTRAP_SEED,
+) -> tuple[Path, dict]:
+    """Önceden kaydedilmemiş çiftler (EXPLORATORY_NOTE). evaluate'in replikatları yeniden
+    üretilir ve ana json'daki tek model CI'larıyla aynı oldukları denetlenir."""
+    main_res = latest_metrics("test", out_dir, phase=5)
+    if main_res is None:
+        raise RuntimeError("phase5_test json'u yok: keşifsel çiftler ana sonuçlardan SONRA")
+    P = load_test_preds(preds_dir, path)
+    y = P[CANDIDATES[0]]["y_true"]
+    g = test_groups(pd.DataFrame({"row_id": P[CANDIDATES[0]]["row_id"]}), path)
+    preds = {n: d["y_pred"] for n, d in P.items()}
+    reps = cluster_bootstrap(y, preds, g, B, seed)
+    acc_reps = accuracy_bootstrap(y, preds, g, B, seed)
+    for n in CANDIDATES:  # aynı w'ler: ana json'un CI'ları birebir çıkmalı
+        if not np.allclose(_pct_ci(reps[n]), main_res["models"][n]["macro_f1_ci95"]):
+            raise ValueError(f"{n}: replikatlar evaluate ile aynı değil (B/seed/gruplar?)")
+    rows = []
+    for a, b in pairs:
+        d = {"a": a, "b": b, "inference": "keşifsel, sonradan; p hesaplanmaz"}
+        d |= _effect(y, preds[a], preds[b], reps[a], reps[b])
+        d |= _acc_effect(y, preds[a], preds[b], acc_reps[a], acc_reps[b])
+        rows.append(d)
+    out = {
+        "experiment": "phase5_exploratory",
+        "phase": 5,
+        "timestamp": report.now().isoformat(timespec="seconds"),
+        "git_commit": report.git_commit(),
+        "split": Path(path).stem,
+        "label": "keşifsel, sonradan",
+        "note": EXPLORATORY_NOTE,
+        "main_results": main_res["_file"],
+        "bootstrap": {"B": B, "seed": seed, "unit": "split_v2 components (test_groups)"},
+        "pairs": rows,
+    }
+    return report.write_metrics(out, "phase5_exploratory", out_dir), out
+
+
 # --------------------------------------------------------------------------- CLI
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("cmd", choices=["verify", "predict", "evaluate", "v1-diagnosis"])
+    ap.add_argument("cmd", choices=["verify", "predict", "evaluate", "v1-diagnosis", "exploratory"])
     args = ap.parse_args()
     # Windows konsolu (cp1254) α, −, ≤ gibi karakterleri kodlayamıyor; çıktı UTF-8 yazılır
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -1217,8 +1272,10 @@ def main() -> None:
             print(*fam, sep="\n")
         s = out["sentences"]
         print(*s["betimsel"], s["seed"], s["sinirliliklar"], s["cv_test"], sep="\n")
-    else:
+    elif args.cmd == "v1-diagnosis":
         print(v1_diagnosis()[0])
+    else:
+        print(exploratory()[0])
 
 
 if __name__ == "__main__":

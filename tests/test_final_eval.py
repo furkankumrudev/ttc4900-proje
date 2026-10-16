@@ -733,3 +733,20 @@ def test_group_subset_bootstrap_drops_empty_replicates():
     mask = groups == 5
     d, dropped = final_eval.group_subset_bootstrap(y, pred, groups, mask, B=300, seed=0)
     assert dropped > 0 and len(d) == 300 - dropped and np.all(np.isfinite(d))
+
+
+# --------------------------------------------------------------------------- keşifsel
+def test_exploratory_after_main_results_no_p(world):
+    with pytest.raises(RuntimeError, match="SONRA"):
+        final_eval.exploratory(world["preds"], world["md"], world["split"], B=50)
+    _predict(world)
+    final_eval.evaluate(world["md"], world["preds"], world["md"], world["split"], B=50)
+    _, out = final_eval.exploratory(world["preds"], world["md"], world["split"], B=50)
+    (d,) = out["pairs"]
+    assert (d["a"], d["b"]) == ("berturk_ft", "char_lr_c1clean")
+    assert "p" not in d and "p_holm" not in d and "verdict" not in d
+    assert out["label"] == "keşifsel, sonradan" and "sonradan" in d["inference"]
+    assert {"diff", "diff_ci95", "acc_diff_ci95"} <= set(d)
+    assert ("berturk_ft", "char_lr_c1clean") not in final_eval.DESCRIPTIVE
+    with pytest.raises(ValueError, match="aynı değil"):  # farklı w'ler reddedilir
+        final_eval.exploratory(world["preds"], world["md"], world["split"], B=50, seed=7)
