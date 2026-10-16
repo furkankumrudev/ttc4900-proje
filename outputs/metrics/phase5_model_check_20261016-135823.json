@@ -1,0 +1,128 @@
+{
+  "experiment": "phase5_model_check",
+  "phase": 5,
+  "timestamp": "2026-10-16T13:58:23+00:00",
+  "git_commit": "30d9019",
+  "split": "split_v2",
+  "n_train": 3630,
+  "rule": "Test açılmadan, yalnız train ile (load_train): her BERTurk final modeli için (1) ağırlık dosyalarının sha256'sı Faz 4 final json'undaki weights_sha256 ile TAM eşit, (2) config id2label split label_names ile aynı, (3) yerel tokenizer HF önbelleğindeki sabit revision'ın vocab.txt'siyle aynı ve tüm train metinlerinde Hub revision tokenizer'ıyla aynı input_ids'i üretiyor, (4) train in-sample macro-F1 yerel CPU'da (fp32, eval modu) yeniden hesaplanır; |yeni - kayıt| <= 0.005 ve yeni >= 0.5 (FINAL_RULES). Kayıt Colab T4'te fp16 ile üretildi; tolerans sayısal farkı karşılar (~18 satır). Biri tutmazsa test açılmaz. Birincil model seed numarasından değil phase4_summary finals.primary_model_dir'den okunur (Colab yolu; son klasör adı outputs/models/'e eşlenir).",
+  "in_sample_tolerance": 0.005,
+  "env": {
+    "python": "3.12.15",
+    "platform": "Windows-11-10.0.26300-SP0",
+    "processor": "AMD64 Family 25 Model 68 Stepping 1, AuthenticAMD",
+    "torch": "2.14.1+cpu",
+    "torch_threads": 8,
+    "transformers": "5.19.0",
+    "tokenizers": "0.23.3",
+    "safetensors": "0.8.0",
+    "datasets": "5.1.0",
+    "accelerate": "1.15.0",
+    "sklearn": "1.9.1",
+    "numpy": "2.5.4",
+    "pandas": "3.0.6",
+    "scipy": "1.18.1",
+    "device": "cpu",
+    "dtype": "float32"
+  },
+  "models": {
+    "berturk_ft": {
+      "slot": 42,
+      "seed": 42,
+      "source": "phase4_berturk_ft_final_s42_20261015-183552.json",
+      "local_dir": "outputs\\models\\42",
+      "recorded_model_dir": "/content/drive/MyDrive/ttc4900/faz4/models/42",
+      "primary_for_test": true,
+      "weights_sha256": {
+        "model.safetensors": "72cbeb438a89fd9fa592391703a1d5aa836e9546d170d405cc4b302709fb2648"
+      },
+      "weights_sha256_recorded": {
+        "model.safetensors": "72cbeb438a89fd9fa592391703a1d5aa836e9546d170d405cc4b302709fb2648"
+      },
+      "sha256_ok": true,
+      "model_files_sha256": {
+        "config.json": "1fba8b2f8126e01ce5e33fbd45b98b5fa3fb53e9b3828c2005a82c7599017927",
+        "model.safetensors": "72cbeb438a89fd9fa592391703a1d5aa836e9546d170d405cc4b302709fb2648",
+        "tokenizer.json": "65ef5a17a6dd815398d703d17a66a3ca5e1c87dd89baf69cba64f108f16a3cbd",
+        "tokenizer_config.json": "4e5738ad97f034b944ce8b7b8c3165f7a6333b524b7b77044f7e9e9b963f4dea"
+      },
+      "id2label_ok": true,
+      "tokenizer_vocab_ok": true,
+      "tokenizer_same_ids_as_hub": true,
+      "train_in_sample_macro_f1": 0.9943174255127302,
+      "train_in_sample_accuracy": 0.9942148760330578,
+      "train_in_sample_macro_f1_recorded": 0.9943174255127302,
+      "abs_diff": 0.0,
+      "in_sample_ok": true,
+      "not_collapsed": true,
+      "passed": true,
+      "runtime_seconds": 461.3
+    },
+    "berturk_ft_s43": {
+      "slot": 43,
+      "seed": 43,
+      "source": "phase4_berturk_ft_final_s43_20261015-184316.json",
+      "local_dir": "outputs\\models\\43",
+      "recorded_model_dir": "/content/drive/MyDrive/ttc4900/faz4/models/43",
+      "primary_for_test": false,
+      "weights_sha256": {
+        "model.safetensors": "21a0cd72d6c83139cd1a84ed430d736251e66196789fd736ac67628e8602afb3"
+      },
+      "weights_sha256_recorded": {
+        "model.safetensors": "21a0cd72d6c83139cd1a84ed430d736251e66196789fd736ac67628e8602afb3"
+      },
+      "sha256_ok": true,
+      "model_files_sha256": {
+        "config.json": "1fba8b2f8126e01ce5e33fbd45b98b5fa3fb53e9b3828c2005a82c7599017927",
+        "model.safetensors": "21a0cd72d6c83139cd1a84ed430d736251e66196789fd736ac67628e8602afb3",
+        "tokenizer.json": "65ef5a17a6dd815398d703d17a66a3ca5e1c87dd89baf69cba64f108f16a3cbd",
+        "tokenizer_config.json": "4e5738ad97f034b944ce8b7b8c3165f7a6333b524b7b77044f7e9e9b963f4dea"
+      },
+      "id2label_ok": true,
+      "tokenizer_vocab_ok": true,
+      "tokenizer_same_ids_as_hub": true,
+      "train_in_sample_macro_f1": 0.9956403310675077,
+      "train_in_sample_accuracy": 0.9955922865013774,
+      "train_in_sample_macro_f1_recorded": 0.9956403310675077,
+      "abs_diff": 0.0,
+      "in_sample_ok": true,
+      "not_collapsed": true,
+      "passed": true,
+      "runtime_seconds": 596.9
+    },
+    "berturk_ft_s44": {
+      "slot": 44,
+      "seed": 44,
+      "source": "phase4_berturk_ft_final_s44_20261015-185055.json",
+      "local_dir": "outputs\\models\\44",
+      "recorded_model_dir": "/content/drive/MyDrive/ttc4900/faz4/models/44",
+      "primary_for_test": false,
+      "weights_sha256": {
+        "model.safetensors": "12b126d871e34d0997cfc491728b07d2d83081f904f5d29768f053610c5d38da"
+      },
+      "weights_sha256_recorded": {
+        "model.safetensors": "12b126d871e34d0997cfc491728b07d2d83081f904f5d29768f053610c5d38da"
+      },
+      "sha256_ok": true,
+      "model_files_sha256": {
+        "config.json": "1fba8b2f8126e01ce5e33fbd45b98b5fa3fb53e9b3828c2005a82c7599017927",
+        "model.safetensors": "12b126d871e34d0997cfc491728b07d2d83081f904f5d29768f053610c5d38da",
+        "tokenizer.json": "65ef5a17a6dd815398d703d17a66a3ca5e1c87dd89baf69cba64f108f16a3cbd",
+        "tokenizer_config.json": "4e5738ad97f034b944ce8b7b8c3165f7a6333b524b7b77044f7e9e9b963f4dea"
+      },
+      "id2label_ok": true,
+      "tokenizer_vocab_ok": true,
+      "tokenizer_same_ids_as_hub": true,
+      "train_in_sample_macro_f1": 0.9930650257568987,
+      "train_in_sample_accuracy": 0.9928374655647383,
+      "train_in_sample_macro_f1_recorded": 0.9930650257568987,
+      "abs_diff": 0.0,
+      "in_sample_ok": true,
+      "not_collapsed": true,
+      "passed": true,
+      "runtime_seconds": 576.4
+    }
+  },
+  "passed": true,
+  "test": null
+}
