@@ -9,15 +9,15 @@ açılmadan** donduruldu; test sonucuna göre değiştirilmez.
 |---|---|---|
 | Birincil | 1 | `berturk_ft − char_lr` |
 | İkincil | 4 | `char_lr − word_lr`, `char_lr − word_svc`, `char_lr − word_cnb`, `bge_m3 − char_lr` |
-| Betimsel (aile dışı, p yok) | — | `char_lr − char_lr_c1clean` |
+| Betimsel (aile dışı, p yok) | — | `char_lr − char_lr_c1clean`, `berturk_ft − bge_m3`, `berturk_ft_s43 − char_lr`, `berturk_ft_s44 − char_lr` |
 
-- **Birincil aile değişmez.**
-- **İkincil aile şimdilik m=4.** Faz 4'ten ek bir test karşılaştırması gelebilir (örn.
-  `berturk_ft − bge_m3`). Bu karşılaştırmanın hangi aileye gireceği ya da betimsel kalacağı,
-  **test açılmadan önceki son commit'te** `FAMILIES`'e yazılarak kesinleşir.
-  - İkincil aile büyürse α/m değişir; güç json'u o commit'te yeniden üretilir.
-  - O commit'ten sonra hiçbir aile değişmez.
-  - Mevcut öneri: `berturk_ft − bge_m3` yalnızca betimsel CI ile raporlansın.
+- **Aileler kesin (Faz 5a, test açılmadan):** birincil m=1, ikincil m=4. Bundan sonra
+  `FAMILIES` ve `DESCRIPTIVE` değişmez.
+- **`berturk_ft − bge_m3`:** hiçbir Holm ailesine girmez. Yalnızca fark ve grup bootstrap CI'ı
+  raporlanır; p hesaplanmaz.
+  - İkincil aile büyümediği için α/m değişmez ve güç json'u yeniden üretilmez.
+- **Seed 43 ve 44:** final modellerinin `char_lr`'ye karşı farkı da betimsel çifttir (CI, p yok).
+  - Bu çiftlerin birleşik OOF'u olmadığı için güç tablosunda yer almazlar.
 - **Birincil test modeli:** seed 42 ile eğitilen BERTurk final modeli. Bu seçim eğitimden önce
   yapıldı; test ya da validation skoruna göre değiştirilmez.
   - Tek önceden tanımlı istisna (`finetune.FINAL_RULES`, tüm eğitimden önce donduruldu):

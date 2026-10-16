@@ -257,7 +257,8 @@ SECONDARY_ALPHAS = (ALPHA / M_SECONDARY, ALPHA)
 POWER_PAIRS = [
     *(("primary", a, b) for a, b in FAMILIES["primary"]["comparisons"]),
     *(("secondary", a, b) for a, b in FAMILIES["secondary"]["comparisons"]),
-    *(("descriptive", a, b) for a, b in DESCRIPTIVE),
+    # seed 43/44 final modellerinin birleşik OOF'u yok (PHASE_OF dışı): güçleri hesaplanmaz
+    *(("descriptive", a, b) for a, b in DESCRIPTIVE if a in PHASE_OF and b in PHASE_OF),
     ("primary_proxy", "berturk_mean", "char_lr"),
     ("primary_proxy", "e5_base", "char_lr"),
 ]

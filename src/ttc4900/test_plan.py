@@ -37,11 +37,18 @@ FAMILIES: dict[str, dict] = {
         ],
         "note": (
             "Faz 2'nin 3 klasik karşılaştırması + Faz 3'ün teste taşınan encoder'ı "
-            "(frozen.RULES['test_transfer'])"
+            "(frozen.RULES['test_transfer']). m=4 kesin: berturk_ft - bge_m3 bu aileye girmez "
+            "(DESCRIPTIVE)"
         ),
     },
 }
-DESCRIPTIVE = [("char_lr", "char_lr_c1clean")]  # p yok, Holm yok; yalnız grup bootstrap CI'ı
+# p yok, Holm yok; yalnız grup bootstrap CI'ı (paired_test.describe_pair)
+DESCRIPTIVE = [
+    ("char_lr", "char_lr_c1clean"),  # C1 duyarlılığı (sensitivity_c1)
+    ("berturk_ft", "bge_m3"),  # Faz 4 vs Faz 3 en iyisi (membership_note)
+    (f"berturk_ft_s{PRIMARY_SEED + 1}", "char_lr"),  # diğer seed'ler (primary_seed_rule)
+    (f"berturk_ft_s{PRIMARY_SEED + 2}", "char_lr"),
+]
 
 _M1 = len(FAMILIES["primary"]["comparisons"])
 _M2 = len(FAMILIES["secondary"]["comparisons"])
@@ -58,11 +65,19 @@ TEST_PLAN = {
     },
     "descriptive": [f"{a} - {b}" for a, b in DESCRIPTIVE],
     "membership_note": (
-        f"Birincil aile m={_M1} ve değişmez. İkincil aile şimdilik m={_M2}. Faz 4'ten ek bir "
-        "test karşılaştırması gelirse (örn. berturk_ft - bge_m3) hangi aileye gireceği ya da "
-        "betimsel kalacağı, test açılmadan önceki son commit'te FAMILIES'e yazılarak kesinleşir; "
-        "ikincil aile büyürse güç json'u o commit'te yeniden üretilir (α/m değişir). O commit'ten "
-        "sonra hiçbir aile değişmez. Mevcut öneri: berturk_ft - bge_m3 yalnız betimsel CI."
+        f"Birincil aile m={_M1}, ikincil aile m={_M2}; ikisi de kesin (Faz 5a, test açılmadan). "
+        "Karar: berturk_ft - bge_m3 hiçbir Holm ailesine girmez, yalnız betimsel raporlanır (fark "
+        "ve grup bootstrap CI'ı; p yok). İkincil aile büyümediği için α/m ve güç json'u "
+        "değişmez. Bu karardan sonra FAMILIES ve DESCRIPTIVE değişmez."
+    ),
+    "descriptive_note": (
+        "Betimsel çiftler (DESCRIPTIVE) hiçbir Holm ailesine girmez: yalnız iki modelin skorları "
+        "ve farkın grup bootstrap %95 CI'ı (effect ile aynı ayarlar, aynı w'ler; "
+        "paired_test.describe_pair). char_lr - char_lr_c1clean: sensitivity_c1. "
+        "berturk_ft - bge_m3: membership_note. "
+        f"berturk_ft_s{PRIMARY_SEED + 1} - char_lr ve berturk_ft_s{PRIMARY_SEED + 2} - char_lr: "
+        "primary_seed_rule'daki diğer seed'lerin betimsel test skorlarının referansa göre farkı; "
+        "birincil karara girmez."
     ),
     "primary": (
         f"BERTurk fine-tuning (seed {PRIMARY_SEED} final modeli; istisna: primary_seed_rule) vs "

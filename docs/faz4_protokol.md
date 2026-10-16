@@ -101,8 +101,8 @@ tanımlı iki istisna vardır:
 - **Birincil aile:** m=1 (`berturk_ft − char_lr`).
   - Kullanılan yöntem: exact McNemar, grup bootstrap ve üç koşullu karar kuralı
     (`docs/test_protokol.md`).
-- **`berturk_ft − bge_m3`:** Öneri, yalnızca betimsel CI ile raporlanması. Son karar, test
-  açılmadan önceki son commit'te `FAMILIES`'e yazılır.
+- **`berturk_ft − bge_m3`:** Yalnızca betimsel CI ile raporlanır; p hesaplanmaz. Karar Faz 5a'da,
+  test açılmadan `test_plan.DESCRIPTIVE`'e yazıldı. İkincil aile m=4 olarak kaldı.
 - Test sonucuna göre konfigürasyon, epoch ya da seed değiştirilmez.
 
 ## Girdi asimetrisi

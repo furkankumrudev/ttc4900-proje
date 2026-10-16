@@ -156,7 +156,18 @@ def test_power_pairs_cover_families():
     pairs = {(a, b) for _, a, b in paired_test.POWER_PAIRS}
     for f in test_plan.FAMILIES.values():
         assert set(f["comparisons"]) <= pairs
-    assert set(test_plan.DESCRIPTIVE) <= pairs
+    with_oof = {(a, b) for a, b in test_plan.DESCRIPTIVE if {a, b} <= set(paired_test.PHASE_OF)}
+    assert ("berturk_ft", "bge_m3") in with_oof
+    assert with_oof <= pairs
+
+
+def test_families_frozen_phase5a():
+    """Faz 5a kararı: ikincil aile m=4, berturk_ft - bge_m3 yalnız betimsel."""
+    sec = test_plan.FAMILIES["secondary"]["comparisons"]
+    assert len(sec) == 4 and len(test_plan.FAMILIES["primary"]["comparisons"]) == 1
+    fam_pairs = {p for f in test_plan.FAMILIES.values() for p in f["comparisons"]}
+    assert ("berturk_ft", "bge_m3") in test_plan.DESCRIPTIVE
+    assert not fam_pairs & set(test_plan.DESCRIPTIVE)
 
 
 def test_describe_pair_has_no_p():
