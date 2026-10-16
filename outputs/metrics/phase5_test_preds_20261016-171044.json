@@ -1,0 +1,312 @@
+{
+  "experiment": "phase5_test_preds",
+  "phase": 5,
+  "timestamp": "2026-10-16T17:10:44+00:00",
+  "git_commit": "b50f134",
+  "model_check": "phase5_model_check_20261016-135823.json",
+  "model_check_commit": "30d9019",
+  "split": "split_v2",
+  "complete": true,
+  "n_test": 908,
+  "test_row_ids_sha256": "391e0ddd9acc24cb34a203ff92ff26df9b1d6eaa71c1d4db8357f3fa352757ef",
+  "files": {
+    "char_lr": {
+      "file": "test_char_lr.npz",
+      "sha256": "a39afae367540ec43383cc7de50c11ee0cadc3fca762b235b41f67325f0f6704",
+      "status": "üretildi"
+    },
+    "char_lr_c1clean": {
+      "file": "test_char_lr_c1clean.npz",
+      "sha256": "bf1449aabd8dc2cada4958a1bf40c0931bc9ddb9ffffa3b202522e48ee836a55",
+      "status": "üretildi"
+    },
+    "word_lr": {
+      "file": "test_word_lr.npz",
+      "sha256": "d0f5180ba4af97fac4fe5b9350d2ecafffbc459e8cc0aca71b8cc073a25e7a7a",
+      "status": "üretildi"
+    },
+    "word_svc": {
+      "file": "test_word_svc.npz",
+      "sha256": "52644a903e60fcccd15c9c5a9e77da42170357ba5a7be5d514935cc8e46db2ef",
+      "status": "üretildi"
+    },
+    "word_cnb": {
+      "file": "test_word_cnb.npz",
+      "sha256": "e6d400e9ffd9d14a9feb82ce565ea929bc318dc02df68c4a92282f1bcc1ca076",
+      "status": "üretildi"
+    },
+    "bge_m3": {
+      "file": "test_bge_m3.npz",
+      "sha256": "56c97518c67e610e030370d4a738f36ba9331d785a3be9fc0c4647f9e1183108",
+      "status": "üretildi"
+    },
+    "berturk_ft": {
+      "file": "test_berturk_ft.npz",
+      "sha256": "592ee9ab46be80aa22bdf0f8d00d21bfccb08afcc902088e1e9ae9f48db4aa3e",
+      "status": "üretildi"
+    },
+    "berturk_ft_s43": {
+      "file": "test_berturk_ft_s43.npz",
+      "sha256": "8c3810500eab77284f6e6b8d7d3099afe173f3b645e5f839c766bfcf24a94c9c",
+      "status": "üretildi"
+    },
+    "berturk_ft_s44": {
+      "file": "test_berturk_ft_s44.npz",
+      "sha256": "dc229c600e71ce10189aaefc976a2dab4f559445205809c86e9e47e1444b2fb0",
+      "status": "üretildi"
+    }
+  },
+  "models": {
+    "char_lr": {
+      "source": "phase2_char_lr_20261011-192701.json",
+      "source_commit": "c42a96f",
+      "best_params": {
+        "clf__C": 100.0,
+        "tfidf__ngram_range": [
+          2,
+          4
+        ]
+      },
+      "fixed": {
+        "sublinear_tf": true,
+        "min_df": 2,
+        "analyzer": "char_wb",
+        "clf": "LogisticRegression(lbfgs, L2)"
+      },
+      "grid": {
+        "tfidf__ngram_range": [
+          [
+            1,
+            3
+          ],
+          [
+            2,
+            4
+          ]
+        ],
+        "clf__C": [
+          10.0,
+          100.0,
+          1000.0
+        ]
+      },
+      "n_fit": 3630,
+      "fit_seconds": 11.8
+    },
+    "char_lr_c1clean": {
+      "source": "phase2_char_lr_c1clean_20261012-075141.json",
+      "source_commit": "0bd1d64",
+      "best_params": {
+        "clf__C": 100.0,
+        "tfidf__ngram_range": [
+          2,
+          4
+        ]
+      },
+      "fixed": {
+        "sublinear_tf": true,
+        "min_df": 2,
+        "analyzer": "char_wb",
+        "clf": "LogisticRegression(lbfgs, L2)",
+        "preprocess": "yalnızca U+0091-U+0094 silinir (durumsuz FunctionTransformer)"
+      },
+      "grid": {
+        "tfidf__ngram_range": [
+          [
+            1,
+            3
+          ],
+          [
+            2,
+            4
+          ]
+        ],
+        "clf__C": [
+          10.0,
+          100.0,
+          1000.0
+        ]
+      },
+      "n_fit": 3630,
+      "fit_seconds": 11.4
+    },
+    "word_lr": {
+      "source": "phase2_word_lr_20261011-193915.json",
+      "source_commit": "c42a96f",
+      "best_params": {
+        "clf__C": 100.0,
+        "tfidf__ngram_range": [
+          1,
+          1
+        ]
+      },
+      "fixed": {
+        "sublinear_tf": true,
+        "min_df": 2,
+        "analyzer": "word",
+        "clf": "LogisticRegression(lbfgs, L2)"
+      },
+      "grid": {
+        "tfidf__ngram_range": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        "clf__C": [
+          10.0,
+          100.0,
+          1000.0
+        ]
+      },
+      "n_fit": 3630,
+      "fit_seconds": 2.2
+    },
+    "word_svc": {
+      "source": "phase2_word_svc_20261011-193915.json",
+      "source_commit": "c42a96f",
+      "best_params": {
+        "clf__C": 1.0,
+        "tfidf__ngram_range": [
+          1,
+          1
+        ]
+      },
+      "fixed": {
+        "sublinear_tf": true,
+        "min_df": 2,
+        "analyzer": "word",
+        "clf": "LinearSVC(squared hinge, OvR)"
+      },
+      "grid": {
+        "tfidf__ngram_range": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        "clf__C": [
+          0.1,
+          1.0,
+          10.0
+        ]
+      },
+      "n_fit": 3630,
+      "fit_seconds": 0.8
+    },
+    "word_cnb": {
+      "source": "phase2_word_cnb_20261011-193915.json",
+      "source_commit": "c42a96f",
+      "best_params": {
+        "clf__alpha": 0.1,
+        "tfidf__ngram_range": [
+          1,
+          1
+        ]
+      },
+      "fixed": {
+        "sublinear_tf": true,
+        "min_df": 2,
+        "analyzer": "word",
+        "clf": "ComplementNB"
+      },
+      "grid": {
+        "tfidf__ngram_range": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        "clf__alpha": [
+          0.01,
+          0.1,
+          1.0
+        ]
+      },
+      "n_fit": 3630,
+      "fit_seconds": 0.7
+    },
+    "bge_m3": {
+      "source": "phase3_bge_m3_20261012-091657.json",
+      "source_commit": "5b95038",
+      "best_params": {
+        "clf__C": 0.001
+      },
+      "fixed": {
+        "features": "donmuş encoder embedding'i (pooling + L2, ttc4900.embeddings)",
+        "scale": "StandardScaler (Pipeline içinde, fold'un train kısmında fit)",
+        "clf": "LogisticRegression(lbfgs, L2, multinomial, max_iter=5000)"
+      },
+      "grid": {
+        "clf__C": [
+          0.0001,
+          0.001,
+          0.01,
+          0.1,
+          1.0,
+          10.0
+        ]
+      },
+      "n_fit": 3630,
+      "fit_seconds": 0.1,
+      "train_embedding_sha256": "33cacd85ea42b5643659c8291ceb2eefb26ec4fa356943eaa2d9ce2a3e713a9e",
+      "test_embedding_sha256": "d6409dfb4359f5694c353c597bc1dd87292131676aa6de5aea179211905a8a3f",
+      "test_embedding": {
+        "file": "emb_bge_m3_TEST_5617a9f6_512.npz",
+        "side": "test",
+        "n": 908,
+        "test_row_ids_sha256": "391e0ddd9acc24cb34a203ff92ff26df9b1d6eaa71c1d4db8357f3fa352757ef",
+        "n_truncated": 294,
+        "revision": "5617a9f61b028005a4858fdac845db406aefb181",
+        "max_length": 512,
+        "pooling": "cls"
+      }
+    }
+  },
+  "predict_seconds": {
+    "char_lr": 2.7,
+    "char_lr_c1clean": 2.7,
+    "word_lr": 0.3,
+    "word_svc": 0.3,
+    "word_cnb": 0.3,
+    "bge_m3": 428.1,
+    "berturk_ft": 100.0,
+    "berturk_ft_s43": 99.5,
+    "berturk_ft_s44": 99.9
+  },
+  "env": {
+    "python": "3.12.15",
+    "platform": "Windows-11-10.0.26300-SP0",
+    "processor": "AMD64 Family 25 Model 68 Stepping 1, AuthenticAMD",
+    "torch": "2.14.1+cpu",
+    "torch_threads": 8,
+    "transformers": "5.19.0",
+    "tokenizers": "0.23.3",
+    "safetensors": "0.8.0",
+    "datasets": "5.1.0",
+    "accelerate": "1.15.0",
+    "sklearn": "1.9.1",
+    "numpy": "2.5.4",
+    "pandas": "3.0.6",
+    "scipy": "1.18.1",
+    "device": "cpu",
+    "dtype": "float32"
+  },
+  "rules": {
+    "refit": "Klasik modeller (char_lr, char_lr_c1clean, word_lr, word_svc, word_cnb) ve bge_m3 + LR, tüm train (split_v2, 3630 satır) üzerinde, Faz 2/3 json'larındaki dondurulmuş final.best_params ile BİR KEZ fit edilir. Testten önce ya da sonra hiçbir yeniden seçim/ayar yapılmaz: GridSearchCV, make_cv, iç CV, early stopping ya da başka bir arama yok. Pipeline'ın sabit ayarları baselines.SPECS / frozen.official_spec ile aynıdır; best_params'ın her anahtarı o spec'in grid'inde ve değeri grid'deki bir değerdir. bge_m3'ün train embedding'i Faz 3 önbelleğinden (meta doğrulanarak) okunur. BERTurk modelleri yeniden eğitilmez: Faz 4 final ağırlıkları kullanılır.",
+    "test_access": "load_train_test yalnız bu modülün predict ve v1-diagnosis adımlarında çağrılır. predict ön koşulları: çalışma ağacı temiz; aynı kodla (verify commit'inden bu yana src/ ve requirements.txt değişmemiş) üretilmiş, temiz commit'te geçmiş bir phase5_model_check json'u var; ağırlık sha256'ları yeniden tutuyor. Model fit'leri test metni belleğe alınmadan önce yapılır.",
+    "write_once": "Her aday için outputs/metrics/preds/test_<model>.npz (row_id, y_true, y_pred, scores, meta) bir kez yazılır: geçici dosya + os.link (hedef varsa hata, üzerine yazmaz). predict yeniden çalıştırılırsa var olan npz yeniden üretilmez; yalnız satırları ve önceki manifest'teki sha256'sı denetlenir, eksik modeller üretilir. bge_m3 test embedding'i ayrı önbellekte: emb_bge_m3_TEST_<rev>_<maxlen>.npz, meta side='test' ve test_row_ids_sha256 ile; load_embeddings side='test' dosyasını reddeder."
+  }
+}

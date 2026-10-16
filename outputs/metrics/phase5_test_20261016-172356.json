@@ -1,0 +1,642 @@
+{
+  "experiment": "phase5_test",
+  "phase": 5,
+  "timestamp": "2026-10-16T17:23:56+00:00",
+  "git_commit": "b50f134",
+  "split": "split_v2",
+  "n_test": 908,
+  "test_group_structure": {
+    "n_groups": 850,
+    "group_size_hist": {
+      "1": 800,
+      "2": 44,
+      "3": 5,
+      "5": 1
+    }
+  },
+  "preds": {
+    "char_lr": {
+      "file": "test_char_lr.npz",
+      "sha256": "a39afae367540ec43383cc7de50c11ee0cadc3fca762b235b41f67325f0f6704",
+      "git_commit": "b50f134"
+    },
+    "char_lr_c1clean": {
+      "file": "test_char_lr_c1clean.npz",
+      "sha256": "bf1449aabd8dc2cada4958a1bf40c0931bc9ddb9ffffa3b202522e48ee836a55",
+      "git_commit": "b50f134"
+    },
+    "word_lr": {
+      "file": "test_word_lr.npz",
+      "sha256": "d0f5180ba4af97fac4fe5b9350d2ecafffbc459e8cc0aca71b8cc073a25e7a7a",
+      "git_commit": "b50f134"
+    },
+    "word_svc": {
+      "file": "test_word_svc.npz",
+      "sha256": "52644a903e60fcccd15c9c5a9e77da42170357ba5a7be5d514935cc8e46db2ef",
+      "git_commit": "b50f134"
+    },
+    "word_cnb": {
+      "file": "test_word_cnb.npz",
+      "sha256": "e6d400e9ffd9d14a9feb82ce565ea929bc318dc02df68c4a92282f1bcc1ca076",
+      "git_commit": "b50f134"
+    },
+    "bge_m3": {
+      "file": "test_bge_m3.npz",
+      "sha256": "56c97518c67e610e030370d4a738f36ba9331d785a3be9fc0c4647f9e1183108",
+      "git_commit": "b50f134"
+    },
+    "berturk_ft": {
+      "file": "test_berturk_ft.npz",
+      "sha256": "592ee9ab46be80aa22bdf0f8d00d21bfccb08afcc902088e1e9ae9f48db4aa3e",
+      "git_commit": "b50f134"
+    },
+    "berturk_ft_s43": {
+      "file": "test_berturk_ft_s43.npz",
+      "sha256": "8c3810500eab77284f6e6b8d7d3099afe173f3b645e5f839c766bfcf24a94c9c",
+      "git_commit": "b50f134"
+    },
+    "berturk_ft_s44": {
+      "file": "test_berturk_ft_s44.npz",
+      "sha256": "dc229c600e71ce10189aaefc976a2dab4f559445205809c86e9e47e1444b2fb0",
+      "git_commit": "b50f134"
+    }
+  },
+  "bootstrap": {
+    "B": 10000,
+    "seed": 42,
+    "unit": "split_v2 components (test_groups)"
+  },
+  "models": {
+    "char_lr": {
+      "macro_f1": 0.913202083851902,
+      "accuracy": 0.9129955947136564,
+      "per_class_f1": {
+        "siyaset": 0.9395017793594306,
+        "dunya": 0.8872180451127819,
+        "ekonomi": 0.8840579710144928,
+        "kultur": 0.9298245614035088,
+        "saglik": 0.924901185770751,
+        "spor": 0.9652509652509652,
+        "teknoloji": 0.8616600790513834
+      },
+      "macro_f1_ci95": [
+        0.893142925860311,
+        0.9308032214740146
+      ],
+      "accuracy_ci95": [
+        0.8933182246026327,
+        0.9309967141292442
+      ]
+    },
+    "char_lr_c1clean": {
+      "macro_f1": 0.9037019376268197,
+      "accuracy": 0.9030837004405287,
+      "per_class_f1": {
+        "siyaset": 0.9280575539568345,
+        "dunya": 0.8847583643122676,
+        "ekonomi": 0.851985559566787,
+        "kultur": 0.9251101321585903,
+        "saglik": 0.924901185770751,
+        "spor": 0.9652509652509652,
+        "teknoloji": 0.8458498023715415
+      },
+      "macro_f1_ci95": [
+        0.8829181676204634,
+        0.9223064551986974
+      ],
+      "accuracy_ci95": [
+        0.8826135105204873,
+        0.9222343921139102
+      ]
+    },
+    "word_lr": {
+      "macro_f1": 0.9091977441762064,
+      "accuracy": 0.9085903083700441,
+      "per_class_f1": {
+        "siyaset": 0.9309090909090909,
+        "dunya": 0.8773234200743495,
+        "ekonomi": 0.8644688644688645,
+        "kultur": 0.9344978165938864,
+        "saglik": 0.9212598425196851,
+        "spor": 0.9731800766283525,
+        "teknoloji": 0.8627450980392157
+      },
+      "macro_f1_ci95": [
+        0.8893792528351797,
+        0.9271411092636321
+      ],
+      "accuracy_ci95": [
+        0.8890121781658963,
+        0.926992337346652
+      ]
+    },
+    "word_svc": {
+      "macro_f1": 0.9122527269590692,
+      "accuracy": 0.9118942731277533,
+      "per_class_f1": {
+        "siyaset": 0.9381818181818182,
+        "dunya": 0.8847583643122676,
+        "ekonomi": 0.8708487084870848,
+        "kultur": 0.9344978165938864,
+        "saglik": 0.921875,
+        "spor": 0.9694656488549618,
+        "teknoloji": 0.8661417322834646
+      },
+      "macro_f1_ci95": [
+        0.8925167291087202,
+        0.9298806250047392
+      ],
+      "accuracy_ci95": [
+        0.8925884062315257,
+        0.9300546448087431
+      ]
+    },
+    "word_cnb": {
+      "macro_f1": 0.9043344452430105,
+      "accuracy": 0.9041850220264317,
+      "per_class_f1": {
+        "siyaset": 0.9154929577464789,
+        "dunya": 0.859375,
+        "ekonomi": 0.8634686346863468,
+        "kultur": 0.9396551724137931,
+        "saglik": 0.9207547169811321,
+        "spor": 0.9545454545454546,
+        "teknoloji": 0.8770491803278688
+      },
+      "macro_f1_ci95": [
+        0.8841302102075818,
+        0.9225422092832406
+      ],
+      "accuracy_ci95": [
+        0.8844884488448845,
+        0.922566371681416
+      ]
+    },
+    "bge_m3": {
+      "macro_f1": 0.9057832563521916,
+      "accuracy": 0.9052863436123348,
+      "per_class_f1": {
+        "siyaset": 0.9175627240143369,
+        "dunya": 0.8764044943820225,
+        "ekonomi": 0.8727272727272727,
+        "kultur": 0.911504424778761,
+        "saglik": 0.9365079365079365,
+        "spor": 0.9498069498069498,
+        "teknoloji": 0.875968992248062
+      },
+      "macro_f1_ci95": [
+        0.8850778855491788,
+        0.9244927827764903
+      ],
+      "accuracy_ci95": [
+        0.8850315876006492,
+        0.9244249726177437
+      ]
+    },
+    "berturk_ft": {
+      "macro_f1": 0.9290876206385759,
+      "accuracy": 0.9273127753303965,
+      "per_class_f1": {
+        "siyaset": 0.948905109489051,
+        "dunya": 0.8840579710144928,
+        "ekonomi": 0.8754448398576512,
+        "kultur": 0.9734513274336283,
+        "saglik": 0.9349593495934959,
+        "spor": 0.980544747081712,
+        "teknoloji": 0.90625
+      },
+      "macro_f1_ci95": [
+        0.9114400454189582,
+        0.9450609686535781
+      ],
+      "accuracy_ci95": [
+        0.9094921533650617,
+        0.9439560439560439
+      ]
+    },
+    "berturk_ft_s43": {
+      "macro_f1": 0.9278466983753375,
+      "accuracy": 0.9262114537444934,
+      "per_class_f1": {
+        "siyaset": 0.9424460431654677,
+        "dunya": 0.8888888888888888,
+        "ekonomi": 0.8613138686131386,
+        "kultur": 0.9734513274336283,
+        "saglik": 0.9473684210526315,
+        "spor": 0.9806949806949807,
+        "teknoloji": 0.9007633587786259
+      },
+      "macro_f1_ci95": [
+        0.9102179533709317,
+        0.9436811225219038
+      ],
+      "accuracy_ci95": [
+        0.9083967359250459,
+        0.9428899060014283
+      ]
+    },
+    "berturk_ft_s44": {
+      "macro_f1": 0.9249913385113518,
+      "accuracy": 0.9229074889867841,
+      "per_class_f1": {
+        "siyaset": 0.9454545454545454,
+        "dunya": 0.8857142857142857,
+        "ekonomi": 0.8455882352941176,
+        "kultur": 0.972972972972973,
+        "saglik": 0.9473684210526315,
+        "spor": 0.96875,
+        "teknoloji": 0.9090909090909091
+      },
+      "macro_f1_ci95": [
+        0.9067165673743782,
+        0.9416597262733452
+      ],
+      "accuracy_ci95": [
+        0.9042901502988137,
+        0.9404117009750813
+      ]
+    }
+  },
+  "families": {
+    "primary": {
+      "m": 1,
+      "comparisons": [
+        {
+          "a": "berturk_ft",
+          "b": "char_lr",
+          "n10": 38,
+          "n01": 25,
+          "n_discordant": 63,
+          "p": 0.12991792302255253,
+          "macro_f1_a": 0.9290876206385759,
+          "macro_f1_b": 0.913202083851902,
+          "macro_f1_a_ci95": [
+            0.9114400454189582,
+            0.9450609686535781
+          ],
+          "macro_f1_b_ci95": [
+            0.893142925860311,
+            0.9308032214740146
+          ],
+          "diff": 0.015885536786673815,
+          "diff_ci95": [
+            -0.0004413954901319046,
+            0.0327563879306762
+          ],
+          "diff_se_boot": 0.008494287249849066,
+          "p_holm": 0.12991792302255253,
+          "p_holm_below_alpha": false,
+          "ci_excludes_zero": false,
+          "directions_consistent": false,
+          "distinguished": false,
+          "verdict": "ayırt edilemedi",
+          "direction": null,
+          "acc_diff": 0.014317180616740033,
+          "acc_diff_ci95": [
+            -0.002209944751381146,
+            0.03166025365690699
+          ]
+        }
+      ]
+    },
+    "secondary": {
+      "m": 4,
+      "comparisons": [
+        {
+          "a": "char_lr",
+          "b": "word_lr",
+          "n10": 19,
+          "n01": 15,
+          "n_discordant": 34,
+          "p": 0.6075913612730801,
+          "macro_f1_a": 0.913202083851902,
+          "macro_f1_b": 0.9091977441762064,
+          "macro_f1_a_ci95": [
+            0.893142925860311,
+            0.9308032214740146
+          ],
+          "macro_f1_b_ci95": [
+            0.8893792528351797,
+            0.9271411092636321
+          ],
+          "diff": 0.0040043396756956895,
+          "diff_ci95": [
+            -0.008585833886789998,
+            0.01621833153423138
+          ],
+          "diff_se_boot": 0.006368460562938733,
+          "p_holm": 1.0,
+          "p_holm_below_alpha": false,
+          "ci_excludes_zero": false,
+          "directions_consistent": false,
+          "distinguished": false,
+          "verdict": "ayırt edilemedi",
+          "direction": null,
+          "acc_diff": 0.004405286343612369,
+          "acc_diff_ci95": [
+            -0.00783874580067179,
+            0.01664816870144281
+          ]
+        },
+        {
+          "a": "char_lr",
+          "b": "word_svc",
+          "n10": 17,
+          "n01": 16,
+          "n_discordant": 33,
+          "p": 1.0,
+          "macro_f1_a": 0.913202083851902,
+          "macro_f1_b": 0.9122527269590692,
+          "macro_f1_a_ci95": [
+            0.893142925860311,
+            0.9308032214740146
+          ],
+          "macro_f1_b_ci95": [
+            0.8925167291087202,
+            0.9298806250047392
+          ],
+          "diff": 0.00094935689283282,
+          "diff_ci95": [
+            -0.011633673318603347,
+            0.012867008191414692
+          ],
+          "diff_se_boot": 0.0062730204441012235,
+          "p_holm": 1.0,
+          "p_holm_below_alpha": false,
+          "ci_excludes_zero": false,
+          "directions_consistent": false,
+          "distinguished": false,
+          "verdict": "ayırt edilemedi",
+          "direction": null,
+          "acc_diff": 0.0011013215859031478,
+          "acc_diff_ci95": [
+            -0.011880014929249871,
+            0.013215859030836996
+          ]
+        },
+        {
+          "a": "char_lr",
+          "b": "word_cnb",
+          "n10": 30,
+          "n01": 22,
+          "n_discordant": 52,
+          "p": 0.3317497633694906,
+          "macro_f1_a": 0.913202083851902,
+          "macro_f1_b": 0.9043344452430105,
+          "macro_f1_a_ci95": [
+            0.893142925860311,
+            0.9308032214740146
+          ],
+          "macro_f1_b_ci95": [
+            0.8841302102075818,
+            0.9225422092832406
+          ],
+          "diff": 0.008867638608891504,
+          "diff_ci95": [
+            -0.006603981983821116,
+            0.024090296010523336
+          ],
+          "diff_se_boot": 0.007880385167970835,
+          "p_holm": 1.0,
+          "p_holm_below_alpha": false,
+          "ci_excludes_zero": false,
+          "directions_consistent": false,
+          "distinguished": false,
+          "verdict": "ayırt edilemedi",
+          "direction": null,
+          "acc_diff": 0.008810572687224738,
+          "acc_diff_ci95": [
+            -0.006622699498737726,
+            0.02399127589967287
+          ]
+        },
+        {
+          "a": "bge_m3",
+          "b": "char_lr",
+          "n10": 24,
+          "n01": 31,
+          "n_discordant": 55,
+          "p": 0.4187541882690154,
+          "macro_f1_a": 0.9057832563521916,
+          "macro_f1_b": 0.913202083851902,
+          "macro_f1_a_ci95": [
+            0.8850778855491788,
+            0.9244927827764903
+          ],
+          "macro_f1_b_ci95": [
+            0.893142925860311,
+            0.9308032214740146
+          ],
+          "diff": -0.007418827499710456,
+          "diff_ci95": [
+            -0.02393509413470168,
+            0.008438147214846288
+          ],
+          "diff_se_boot": 0.008317948129465142,
+          "p_holm": 1.0,
+          "p_holm_below_alpha": false,
+          "ci_excludes_zero": false,
+          "directions_consistent": false,
+          "distinguished": false,
+          "verdict": "ayırt edilemedi",
+          "direction": null,
+          "acc_diff": -0.00770925110132159,
+          "acc_diff_ci95": [
+            -0.024255788313120252,
+            0.008630222203582907
+          ]
+        }
+      ]
+    }
+  },
+  "descriptive": [
+    {
+      "a": "char_lr",
+      "b": "char_lr_c1clean",
+      "inference": "betimsel; p hesaplanmaz",
+      "macro_f1_a": 0.913202083851902,
+      "macro_f1_b": 0.9037019376268197,
+      "macro_f1_a_ci95": [
+        0.893142925860311,
+        0.9308032214740146
+      ],
+      "macro_f1_b_ci95": [
+        0.8829181676204634,
+        0.9223064551986974
+      ],
+      "diff": 0.009500146225082329,
+      "diff_ci95": [
+        0.001959201864971569,
+        0.01817414332101996
+      ],
+      "diff_se_boot": 0.004137754102593935,
+      "acc_diff": 0.009911894273127775,
+      "acc_diff_ci95": [
+        0.002200220022002153,
+        0.018701870187018743
+      ]
+    },
+    {
+      "a": "berturk_ft",
+      "b": "bge_m3",
+      "inference": "betimsel; p hesaplanmaz",
+      "macro_f1_a": 0.9290876206385759,
+      "macro_f1_b": 0.9057832563521916,
+      "macro_f1_a_ci95": [
+        0.9114400454189582,
+        0.9450609686535781
+      ],
+      "macro_f1_b_ci95": [
+        0.8850778855491788,
+        0.9244927827764903
+      ],
+      "diff": 0.02330436428638427,
+      "diff_ci95": [
+        0.007915818256583391,
+        0.039687742830865354
+      ],
+      "diff_se_boot": 0.008044393538498883,
+      "acc_diff": 0.022026431718061623,
+      "acc_diff_ci95": [
+        0.0066006600660065695,
+        0.03829426518486914
+      ]
+    },
+    {
+      "a": "berturk_ft_s43",
+      "b": "char_lr",
+      "inference": "betimsel; p hesaplanmaz",
+      "macro_f1_a": 0.9278466983753375,
+      "macro_f1_b": 0.913202083851902,
+      "macro_f1_a_ci95": [
+        0.9102179533709317,
+        0.9436811225219038
+      ],
+      "macro_f1_b_ci95": [
+        0.893142925860311,
+        0.9308032214740146
+      ],
+      "diff": 0.014644614523435462,
+      "diff_ci95": [
+        -0.0017093143118460828,
+        0.03168322639906967
+      ],
+      "diff_se_boot": 0.008503014096080164,
+      "acc_diff": 0.013215859030836996,
+      "acc_diff_ci95": [
+        -0.0033039647577092213,
+        0.030133928571428603
+      ]
+    },
+    {
+      "a": "berturk_ft_s44",
+      "b": "char_lr",
+      "inference": "betimsel; p hesaplanmaz",
+      "macro_f1_a": 0.9249913385113518,
+      "macro_f1_b": 0.913202083851902,
+      "macro_f1_a_ci95": [
+        0.9067165673743782,
+        0.9416597262733452
+      ],
+      "macro_f1_b_ci95": [
+        0.893142925860311,
+        0.9308032214740146
+      ],
+      "diff": 0.0117892546594498,
+      "diff_ci95": [
+        -0.007233895396120683,
+        0.030815439074060258
+      ],
+      "diff_se_boot": 0.009658333537118896,
+      "acc_diff": 0.009911894273127664,
+      "acc_diff_ci95": [
+        -0.009761388286333994,
+        0.028888888888888964
+      ]
+    }
+  ],
+  "seed_summary": {
+    "models": [
+      "berturk_ft",
+      "berturk_ft_s43",
+      "berturk_ft_s44"
+    ],
+    "macro_f1": {
+      "berturk_ft": 0.9290876206385759,
+      "berturk_ft_s43": 0.9278466983753375,
+      "berturk_ft_s44": 0.9249913385113518
+    },
+    "mean": 0.9273085525084217,
+    "std_ddof1": 0.0021004957860021097,
+    "note": "seed değişkenliği (3 eğitim); test örneklemesi belirsizliği değil"
+  },
+  "sentences": {
+    "aileler": {
+      "primary": [
+        "berturk_ft ile char_lr test setinde ayırt edilemedi: fark +0.0159 (%95 grup bootstrap CI [-0.0004, +0.0328]); exact McNemar n10/n01 = 38/25, Holm p = 0.13 (birincil aile, m=1). Sağlanan koşullar: hiçbiri; sağlanmayanlar: Holm p < 0.05, CI 0'ı dışlıyor, McNemar ve CI yönleri tutarlı (CI 0'ı içerdiği için değerlendirilemez). Bu bir eşdeğerlik iddiası değildir (eşdeğerlik marjı tanımlanmadı). Test öncesi güç analizi: α = 0.05: güç 0.30, accuracy MDE 0.025, macro-F1 MDE (kaba) 0.025 (test_power_20261015-215451.json; train OOF'tan yaklaşık: OOF modelleri ~2904 satırla, BERT ~2323 satırla eğitildi; güç, gerçek farkın OOF accuracy farkına (+0.0135) eşit olduğu varsayımıyla; bu fark çok küçükse güç I. tip hata düzeyine yaklaşır ve MDE daha bilgilendiricidir; birincil çiftte OOF farkı kazananın laneti açısından aşağı yanlıdır, kazanan char_lr b tarafındadır). Birincil iddia bu tek eğitilmiş modele koşuludur: McNemar ve bootstrap test örneklemesinin belirsizliğini ölçer, seed'den (eğitimden) gelen belirsizliği ölçmez. Diğer seed'lerle tutarlılık (betimsel, karara girmez): birincil farkın %95 CI'ı işaretsiz (0'ı içeriyor); berturk_ft_s43 − char_lr fark +0.0146 [-0.0017, +0.0317]: CI 0'ı içeriyor; berturk_ft_s44 − char_lr fark +0.0118 [-0.0072, +0.0308]: CI 0'ı içeriyor. Birincil karar bu satırdan bağımsızdır; satır yalnız sonucun tek eğitime ne kadar bağlı olduğunu gösterir."
+      ],
+      "secondary": [
+        "char_lr ile word_lr test setinde ayırt edilemedi: fark +0.0040 (%95 grup bootstrap CI [-0.0086, +0.0162]); exact McNemar n10/n01 = 19/15, Holm p = 1 (ikincil aile, m=4). Sağlanan koşullar: hiçbiri; sağlanmayanlar: Holm p < 0.05, CI 0'ı dışlıyor, McNemar ve CI yönleri tutarlı (CI 0'ı içerdiği için değerlendirilemez). Bu bir eşdeğerlik iddiası değildir (eşdeğerlik marjı tanımlanmadı). Test öncesi güç analizi: α/4 = 0.0125 (Holm'un en kötü adımı): güç 0.05, accuracy MDE 0.026, macro-F1 MDE (kaba) 0.025; α = 0.05 (Holm'un en iyi adımı): güç 0.15, accuracy MDE 0.022, macro-F1 MDE (kaba) 0.021 (test_power_20261015-215451.json; train OOF'tan yaklaşık: OOF modelleri ~2904 satırla, BERT ~2323 satırla eğitildi; güç, gerçek farkın OOF accuracy farkına (+0.0079) eşit olduğu varsayımıyla; bu fark çok küçükse güç I. tip hata düzeyine yaklaşır ve MDE daha bilgilendiricidir).",
+        "char_lr ile word_svc test setinde ayırt edilemedi: fark +0.0009 (%95 grup bootstrap CI [-0.0116, +0.0129]); exact McNemar n10/n01 = 17/16, Holm p = 1 (ikincil aile, m=4). Sağlanan koşullar: hiçbiri; sağlanmayanlar: Holm p < 0.05, CI 0'ı dışlıyor, McNemar ve CI yönleri tutarlı (CI 0'ı içerdiği için değerlendirilemez). Bu bir eşdeğerlik iddiası değildir (eşdeğerlik marjı tanımlanmadı). Test öncesi güç analizi: α/4 = 0.0125 (Holm'un en kötü adımı): güç 0.02, accuracy MDE 0.025, macro-F1 MDE (kaba) 0.025; α = 0.05 (Holm'un en iyi adımı): güç 0.06, accuracy MDE 0.022, macro-F1 MDE (kaba) 0.021 (test_power_20261015-215451.json; train OOF'tan yaklaşık: OOF modelleri ~2904 satırla, BERT ~2323 satırla eğitildi; güç, gerçek farkın OOF accuracy farkına (+0.0037) eşit olduğu varsayımıyla; bu fark çok küçükse güç I. tip hata düzeyine yaklaşır ve MDE daha bilgilendiricidir).",
+        "char_lr ile word_cnb test setinde ayırt edilemedi: fark +0.0089 (%95 grup bootstrap CI [-0.0066, +0.0241]); exact McNemar n10/n01 = 30/22, Holm p = 1 (ikincil aile, m=4). Sağlanan koşullar: hiçbiri; sağlanmayanlar: Holm p < 0.05, CI 0'ı dışlıyor, McNemar ve CI yönleri tutarlı (CI 0'ı içerdiği için değerlendirilemez). Bu bir eşdeğerlik iddiası değildir (eşdeğerlik marjı tanımlanmadı). Test öncesi güç analizi: α/4 = 0.0125 (Holm'un en kötü adımı): güç 0.08, accuracy MDE 0.029, macro-F1 MDE (kaba) 0.030; α = 0.05 (Holm'un en iyi adımı): güç 0.19, accuracy MDE 0.025, macro-F1 MDE (kaba) 0.025 (test_power_20261015-215451.json; train OOF'tan yaklaşık: OOF modelleri ~2904 satırla, BERT ~2323 satırla eğitildi; güç, gerçek farkın OOF accuracy farkına (+0.0105) eşit olduğu varsayımıyla; bu fark çok küçükse güç I. tip hata düzeyine yaklaşır ve MDE daha bilgilendiricidir).",
+        "bge_m3 ile char_lr test setinde ayırt edilemedi: fark -0.0074 (%95 grup bootstrap CI [-0.0239, +0.0084]); exact McNemar n10/n01 = 24/31, Holm p = 1 (ikincil aile, m=4). Sağlanan koşullar: hiçbiri; sağlanmayanlar: Holm p < 0.05, CI 0'ı dışlıyor, McNemar ve CI yönleri tutarlı (CI 0'ı içerdiği için değerlendirilemez). Bu bir eşdeğerlik iddiası değildir (eşdeğerlik marjı tanımlanmadı). Test öncesi güç analizi: α/4 = 0.0125 (Holm'un en kötü adımı): güç 0.01, accuracy MDE 0.031, macro-F1 MDE (kaba) 0.031; α = 0.05 (Holm'un en iyi adımı): güç 0.04, accuracy MDE 0.026, macro-F1 MDE (kaba) 0.026 (test_power_20261015-215451.json; train OOF'tan yaklaşık: OOF modelleri ~2904 satırla, BERT ~2323 satırla eğitildi; güç, gerçek farkın OOF accuracy farkına (+0.0017) eşit olduğu varsayımıyla; bu fark çok küçükse güç I. tip hata düzeyine yaklaşır ve MDE daha bilgilendiricidir)."
+      ]
+    },
+    "betimsel": [
+      "char_lr − char_lr_c1clean (betimsel, p yok): macro-F1 0.9132 vs 0.9037, fark +0.0095 (%95 grup bootstrap CI [+0.0020, +0.0182]). Hiçbir Holm ailesine girmez; çıkarım için kullanılmaz.",
+      "berturk_ft − bge_m3 (betimsel, p yok): macro-F1 0.9291 vs 0.9058, fark +0.0233 (%95 grup bootstrap CI [+0.0079, +0.0397]). Hiçbir Holm ailesine girmez; çıkarım için kullanılmaz.",
+      "berturk_ft_s43 − char_lr (betimsel, p yok): macro-F1 0.9278 vs 0.9132, fark +0.0146 (%95 grup bootstrap CI [-0.0017, +0.0317]). Hiçbir Holm ailesine girmez; çıkarım için kullanılmaz.",
+      "berturk_ft_s44 − char_lr (betimsel, p yok): macro-F1 0.9250 vs 0.9132, fark +0.0118 (%95 grup bootstrap CI [-0.0072, +0.0308]). Hiçbir Holm ailesine girmez; çıkarım için kullanılmaz."
+    ],
+    "seed": "BERTurk fine-tuning test macro-F1'i (3 seed, betimsel): berturk_ft 0.9291, berturk_ft_s43 0.9278, berturk_ft_s44 0.9250; ortalama 0.9273 ± 0.0021 (std, ddof=1; aralık 0.9250–0.9291). Bu 3 eğitimin yayılımıdır, ortalamanın güven aralığı değildir; std 3 değerden kestirildiği için çok kabadır ve ortalama birincil modeli de içerir. Birincil karar yalnız berturk_ft (seed 42) modeline dayanır; seed std'si eğitim değişkenliğidir, test örneklemesi belirsizliği değildir.",
+    "seed_tutarlilik": "Diğer seed'lerle tutarlılık (betimsel, karara girmez): birincil farkın %95 CI'ı işaretsiz (0'ı içeriyor); berturk_ft_s43 − char_lr fark +0.0146 [-0.0017, +0.0317]: CI 0'ı içeriyor; berturk_ft_s44 − char_lr fark +0.0118 [-0.0072, +0.0308]: CI 0'ı içeriyor. Birincil karar bu satırdan bağımsızdır; satır yalnız sonucun tek eğitime ne kadar bağlı olduğunu gösterir.",
+    "cv_test": "Test skorlarının CV skorlarından farklı çıkması tek başına anomali değildir: final modeller 3630 satırla (CV'de ~2904, BERT'te ~2323) eğitildi ve seçilen klasik modelin CV skoru adayların maksimumudur (kazananın laneti; TEST_PLAN['expectation_note']).",
+    "sinirliliklar": "Sınırlılıklar: exact McNemar test satırlarını bağımsız sayar ve test içi yakın-tekrar bağımlılığını yok sayar, bu yüzden p iyimser olabilir (accuracy farkının grup bootstrap CI'ı bunu denetlemek için sonuç json'unda acc_diff_ci95 olarak betimsel verildi; karar kuralına girmez). Raporlanan %95 CI'lar marjinaldir, eşzamanlı değildir. Sınıf bazlı F1'ler CI'sızdır ve gürültülüdür (sınıf başına 114–138 test satırı). Test tahminleri yerel CPU'da fp32 ile, CV/OOF tahminleri Colab'da fp16 ile üretildi; sınırdaki satırlarda bu küçük bir oynama yaratabilir."
+  },
+  "test_plan": {
+    "status": "test açılmadan donduruldu; test sonucuna göre hiçbir alan değiştirilmez",
+    "families": {
+      "primary": {
+        "m": 1,
+        "comparisons": [
+          "berturk_ft - char_lr"
+        ],
+        "note": "BERTurk fine-tuning final modeli (seed 42, önceden seçildi) vs birincil klasik baseline"
+      },
+      "secondary": {
+        "m": 4,
+        "comparisons": [
+          "char_lr - word_lr",
+          "char_lr - word_svc",
+          "char_lr - word_cnb",
+          "bge_m3 - char_lr"
+        ],
+        "note": "Faz 2'nin 3 klasik karşılaştırması + Faz 3'ün teste taşınan encoder'ı (frozen.RULES['test_transfer']). m=4 kesin: berturk_ft - bge_m3 bu aileye girmez (DESCRIPTIVE)"
+      }
+    },
+    "descriptive": [
+      "char_lr - char_lr_c1clean",
+      "berturk_ft - bge_m3",
+      "berturk_ft_s43 - char_lr",
+      "berturk_ft_s44 - char_lr"
+    ],
+    "membership_note": "Birincil aile m=1, ikincil aile m=4; ikisi de kesin (Faz 5a, test açılmadan). Karar: berturk_ft - bge_m3 hiçbir Holm ailesine girmez, yalnız betimsel raporlanır (fark ve grup bootstrap CI'ı; p yok). İkincil aile büyümediği için α/m ve güç json'u değişmez. Bu karardan sonra FAMILIES ve DESCRIPTIVE değişmez.",
+    "descriptive_note": "Betimsel çiftler (DESCRIPTIVE) hiçbir Holm ailesine girmez: yalnız iki modelin skorları ve farkın grup bootstrap %95 CI'ı (effect ile aynı ayarlar, aynı w'ler; paired_test.describe_pair). char_lr - char_lr_c1clean: sensitivity_c1. berturk_ft - bge_m3: membership_note. berturk_ft_s43 - char_lr ve berturk_ft_s44 - char_lr: primary_seed_rule'daki diğer seed'lerin betimsel test skorlarının referansa göre farkı; birincil karara girmez.",
+    "primary": "BERTurk fine-tuning (seed 42 final modeli; istisna: primary_seed_rule) vs char_lr; ayrı aile, m=1",
+    "primary_seed_rule": "McNemar ve bootstrap'e giren BERTurk modeli seed 42 final modelidir; bu seçim eğitimden önce yapıldı, test (ya da validation) skoruna göre değiştirilmez. Tek önceden tanımlı istisna finetune.FINAL_RULES['final_collapse']: seed 42 final modeli train üzerinde çökmüş çıkarsa (in-sample macro-F1 < 0.5) seed 42+100 ile bir kez yeniden eğitilir ve birincil model odur. Diğer seed'lerin final modellerinin test macro-F1'i betimsel raporlanır (ortalama ± std, her biri için bootstrap CI; p yok, Holm yok). Birincil iddia bu tek eğitilmiş modele koşulludur: McNemar ve bootstrap test örneklemesi belirsizliğini ölçer, seed (eğitim) belirsizliğini ölçmez; seed değişkenliği CV'deki 3 seed ve betimsel test skorlarıyla verilir.",
+    "secondary": "Dört klasik modelin donmuş final.best_params konfigürasyonları betimsel raporlanır; char_lr'ye karşı 3 klasik karşılaştırma + bge_m3 - char_lr ayrı bir Holm ailesi (m=4)",
+    "p_value": "Exact binom McNemar, her n için: n10 = A doğru & B yanlış, n01 = A yanlış & B doğru; H0 altında n10 ~ Binom(n01 + n10, 1/2); iki yönlü p = scipy.stats.binomtest(n10, n01 + n10, 0.5).pvalue. Süreklilik düzeltmesi yok, χ² yaklaşımı kullanılmaz. n01 + n10 = 0 ise p = 1.",
+    "multiplicity": "Holm, her aile içinde ayrı, yalnızca exact McNemar p'leri üzerinde; α = 0.05. Birincil aile m=1 (düzeltme yok). Aileler ayrı ayrı α'da tutulur; aileler arası toplam hata kontrolü yapılmaz (bilinçli seçim: birincil soru ikincillerden bağımsızdır). Raporlanan %95 CI'lar marjinaldir (eşzamanlı değil).",
+    "effect": "Etki büyüklüğü: macro-F1 farkı (A - B; 7 sınıf, zero_division=0). Belirsizlik: eşleştirilmiş grup (cluster) bootstrap. Gruplar split_v2 'components' yakın-tekrar bileşenleridir (tekil satır = kendi grubu; data.test_groups). Gruplar iadeli örneklenir, iki model aynı yeniden örneklemde ölçülür. B = 10000, np.random.default_rng(42), yüzdelik yöntemle %95 CI (2.5. ve 97.5. yüzdelikler). Tek model skorları da aynı bootstrap'ten CI ile verilir. Tekrarlanabilirlik ayrıntısı: grup ağırlıkları w = rng.multinomial(G, [1/G]*G), 1000'lik parçalar halinde; gruplar np.unique sıralı id düzeninde; replikat karışıklık matrisi Σ_g w_g C_g (paired_test.cluster_bootstrap).",
+    "decision_rule": "'Ayırt edildi' ⇔ Holm-düzeltilmiş p < 0.05 VE macro-F1 farkının %95 CI'ı 0'ı dışlıyor VE iki yön tutarlı: sign(n10 - n01) = CI'ın işareti. McNemar accuracy'yi, CI macro-F1'i ölçtüğü için yönler ayrışabilir; ayrışırsa sonuç 'ayırt edilemedi (yön çelişkisi)' olur. Koşullardan biri sağlanmazsa sonuç 'ayırt edilemedi'dir ve hangi koşulların sağlandığı ayrıca yazılır. 'Ayırt edilemedi' eşdeğerlik demek değildir (eşdeğerlik marjı tanımlanmadı).",
+    "limitations": "McNemar test satırlarını bağımsız sayar; test içindeki yakın-tekrar grup bağımlılığını yok sayar, bu yüzden p iyimser olabilir (testte satırların küçük bir kısmı çok satırlı gruplarda: 908 satırın 108'i, 50 grup; etkinin büyüklüğü ölçülmedi). Bootstrap CI grupları hesaba katar. İki koşul farklı büyüklükleri ölçer: McNemar doğru/yanlış (accuracy) uyuşmazlıklarını, CI macro-F1 farkını. Karar kuralı koşulların kesişimi olduğu için gücü her birinin tek başına gücünden yüksek olamaz.",
+    "power": "Güç analizi yalnızca train OOF tahminlerinden (paired_test --power -> outputs/metrics/test_power_<ts>.json): model çifti başına uyuşmazlık oranı psi ve test boyutuyla %80 güçteki MDE (exact McNemar, psi alternatif altında sabit tutulur; birincil için α = 0.05, ikincil için Holm'un en kötü adımı α/4 ile en iyi adımı α arasında). Birincil çiftin gücü, Faz 4'ün seed 42 OOF tahminlerinden (char_lr'nin 1. tekrar dış fold'larıyla aynı fold'lar, phase4_berturk_ft_<ts>.json + preds npz; tek tekrar, R=1) aynı CLI ile hesaplandı (Faz 4c); donmuş encoder vekilleri yalnız karşılaştırma için kalır. Küçük farkların yakalanması beklenmez; anlamsız sonuç eşdeğerlik kanıtı sayılmaz.",
+    "sensitivity_c1": "C1 duyarlılık analizi (kural CV'den ÖNCE donduruldu): birincil klasik baseline ham char_lr olarak KALIR. U+0091-U+0094 silinmiş char_lr_c1clean yalnızca duyarlılık analizidir; final.best_params ile teste ikincil/betimsel olarak taşınır ve ham char_lr ile birlikte raporlanır. İkisi arasında test (ya da CV) sonucuna göre seçim YAPILMAZ; BERTurk karşılaştırmasındaki referans değişmez. Testte bu çift için p hesaplanmaz: yalnızca iki modelin skorları ve farkın grup düzeyinde paired bootstrap %95 CI'ı (effect ile aynı ayarlar; paired_test.describe_pair) betimsel raporlanır (hiçbir Holm ailesine girmez).",
+    "expectation_note": "CV skoru 2904 satırla eğitimi ölçer (BERT fine-tuning CV'sinde validation ayrıldığı için ~2323), final model 3630 satırla eğitilir; ayrıca seçilen klasik modelin CV skoru 4 adayın maksimumudur (kazananın laneti). Test skorunun CV'den farklı çıkması tek başına anomali değildir."
+  },
+  "rules": {
+    "evaluate": "Yalnız test npz'leri okunur (metin yok). Tüm modeller için aynı grup bootstrap ağırlıkları (paired_test.cluster_bootstrap, B=10000, seed 42). Birincil ve ikincil aile paired_test.compare_family ile; betimsel çiftler aynı replikatlardan fark ve CI (p yok). BERT seed özeti: 3 seed'in test macro-F1'i ortalama ± std (ddof=1). Cümleler test_plan.SENTENCES şablonlarından, karar decide() çıktısına göre seçilir.",
+    "commits": "Test koşusundan (predict + evaluate) sonra tahmin npz'leri, manifest ve sonuç json'u YORUMSUZ ayrı bir commit'e girer; yorum ve belge güncellemeleri sonraki commit'tedir."
+  },
+  "power_source": "test_power_20261015-215451.json"
+}
