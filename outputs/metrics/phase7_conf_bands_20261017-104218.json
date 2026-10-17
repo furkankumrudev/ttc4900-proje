@@ -1,0 +1,168 @@
+{
+  "experiment": "phase7_conf_bands",
+  "phase": 7,
+  "timestamp": "2026-10-17T10:42:18+00:00",
+  "git_commit": "02ed923",
+  "split": "split_v2",
+  "label": "sonradan, betimsel",
+  "note": "7b sonuçları görüldükten sonra, kullanıcı onayıyla: (1) yüksek güvenli hata payının paydası için güven bantları (confidence_bands; sonradan, betimsel): model başına tahminlerin kaçı ≥ 0.90 ve ≥ 0.95 bandında, bant içi ve altı doğruluk; aynı grup bootstrap'i, n < 20'de CI yok. (2) Belge metin kuralı sıkılaştı: lisans 'unknown' olduğu için doğrudan alıntı yerine kısa özet cümle + row_id; doğrudan alıntı gerekirse kategori başına en çok 1 ve çok kısa. Diğer maddeler değişmedi.",
+  "sources": {
+    "manifest": "phase5_test_preds_20261016-171044.json",
+    "preds_sha256": {
+      "berturk_ft": "592ee9ab46be80aa22bdf0f8d00d21bfccb08afcc902088e1e9ae9f48db4aa3e",
+      "char_lr": "a39afae367540ec43383cc7de50c11ee0cadc3fca762b235b41f67325f0f6704"
+    },
+    "train_calibration": "phase6_train_calibration_20261016-224639.json",
+    "error_analysis": "phase7_error_analysis_20261017-102723.json",
+    "T_final": {
+      "berturk_ft": 1.2825900131784889,
+      "char_lr": 0.9160599019850609
+    }
+  },
+  "bootstrap": {
+    "B": 10000,
+    "seed": 42,
+    "unit": "split_v2 components (test_groups)",
+    "min_n_ci": 20
+  },
+  "bands": {
+    "berturk_ft": {
+      "n": 908,
+      "conf_ge_0.90": {
+        "share_of_predictions": {
+          "k": 848,
+          "n": 908,
+          "rate": 0.933920704845815,
+          "ci95": [
+            0.9169435215946844,
+            0.9500556430928374
+          ],
+          "n_dropped_replicates": 0
+        },
+        "accuracy_in_band": {
+          "k": 803,
+          "n": 848,
+          "rate": 0.9469339622641509,
+          "ci95": [
+            0.9307956412945636,
+            0.9614922132028021
+          ],
+          "n_dropped_replicates": 0
+        },
+        "accuracy_below_band": {
+          "k": 39,
+          "n": 60,
+          "rate": 0.65,
+          "ci95": [
+            0.5245901639344263,
+            0.7719298245614035
+          ],
+          "n_dropped_replicates": 0
+        },
+        "mean_conf_in_band": 0.9825695214567949
+      },
+      "conf_ge_0.95": {
+        "share_of_predictions": {
+          "k": 815,
+          "n": 908,
+          "rate": 0.8975770925110133,
+          "ci95": [
+            0.8766351959674376,
+            0.9177635233918129
+          ],
+          "n_dropped_replicates": 0
+        },
+        "accuracy_in_band": {
+          "k": 779,
+          "n": 815,
+          "rate": 0.9558282208588957,
+          "ci95": [
+            0.9406674907292955,
+            0.9695863746958637
+          ],
+          "n_dropped_replicates": 0
+        },
+        "accuracy_below_band": {
+          "k": 63,
+          "n": 93,
+          "rate": 0.6774193548387096,
+          "ci95": [
+            0.5779765545361876,
+            0.7727389878163072
+          ],
+          "n_dropped_replicates": 0
+        },
+        "mean_conf_in_band": 0.9848195301146007
+      }
+    },
+    "char_lr": {
+      "n": 908,
+      "conf_ge_0.90": {
+        "share_of_predictions": {
+          "k": 716,
+          "n": 908,
+          "rate": 0.788546255506608,
+          "ci95": [
+            0.7599118942731278,
+            0.8163722254461048
+          ],
+          "n_dropped_replicates": 0
+        },
+        "accuracy_in_band": {
+          "k": 697,
+          "n": 716,
+          "rate": 0.973463687150838,
+          "ci95": [
+            0.9613180515759312,
+            0.9844418506620638
+          ],
+          "n_dropped_replicates": 0
+        },
+        "accuracy_below_band": {
+          "k": 132,
+          "n": 192,
+          "rate": 0.6875,
+          "ci95": [
+            0.6137536075036075,
+            0.7537707769617318
+          ],
+          "n_dropped_replicates": 0
+        },
+        "mean_conf_in_band": 0.984403840302158
+      },
+      "conf_ge_0.95": {
+        "share_of_predictions": {
+          "k": 633,
+          "n": 908,
+          "rate": 0.697136563876652,
+          "ci95": [
+            0.6641384721371709,
+            0.7289421862644431
+          ],
+          "n_dropped_replicates": 0
+        },
+        "accuracy_in_band": {
+          "k": 621,
+          "n": 633,
+          "rate": 0.981042654028436,
+          "ci95": [
+            0.9697452229299363,
+            0.9905808477237049
+          ],
+          "n_dropped_replicates": 0
+        },
+        "accuracy_below_band": {
+          "k": 208,
+          "n": 275,
+          "rate": 0.7563636363636363,
+          "ci95": [
+            0.7007575757575758,
+            0.8071450086058519
+          ],
+          "n_dropped_replicates": 0
+        },
+        "mean_conf_in_band": 0.991721322609138
+      }
+    }
+  }
+}
