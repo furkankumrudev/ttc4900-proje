@@ -92,6 +92,7 @@ konudan değil, bu veri kümesini toplayan kaynağın alışkanlıklarından gel
 - Tersi de geçerli: metne "cihan" ya da "aa" eklemek tahmini dünya sınıfına itebilir. Bu bir
   modelleme hatası değil, verideki kısayolun görünür hale gelmesidir. Demo açıklamasında
   belirtilmeli.
-- Veri kümesi tek bir kaynaktan ve belirli bir dönemden geliyor. Model, o dönemin gündemine
-  ait kişi ve kurum adlarını da (ör. `kılıçdaroğlu`, `bdp`) güçlü özellik olarak kullanıyor.
-  Güncel haberlerde bu sinyaller değişir.
+- Veri kümesi tek bir derlemeden geliyor (dataset card: Kemik grubu, Türk çevrimiçi haber
+  siteleri); derleme dönemi card'da belirtilmiyor. Model, belirli bir gündeme ait kişi ve kurum
+  adlarını da (ör. `kılıçdaroğlu`, `bdp`) güçlü özellik olarak kullanıyor. Güncel haberlerde bu
+  sinyaller değişebilir.

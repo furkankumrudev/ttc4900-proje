@@ -157,7 +157,7 @@ Bunu bir AST testi denetler.
 - **Sayısal ortam:** OOF logit'leri Colab'da fp16 ile (float32 olarak kaydedildi), test
   logit'leri CPU'da fp32 ile üretildi.
 - **Bootstrap:** CI'lar sabit T'ye koşulludur. T belirsizliği ayrı verilir.
-- **Dağılım:** kalibrasyon yalnızca bu veri dağılımı için geçerlidir (tek kaynak, tek dönem,
+- **Dağılım:** kalibrasyon yalnızca bu veri dağılımı için geçerlidir (tek derleme,
   kısayol artefaktları; `docs/shortcut_learning.md`). Başka kaynaklardan gelen metinlerde (demoya
   yazılan metinler dahil) olasılıklar kalibre olmayabilir.
 

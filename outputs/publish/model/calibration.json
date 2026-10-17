@@ -1,0 +1,14 @@
+{
+  "method": "temperature scaling: p = softmax(logits / temperature)",
+  "temperature": 1.2825900131784889,
+  "temperature_ci95_data_sampling": [
+    1.239223157977511,
+    1.3251819618776255
+  ],
+  "source": {
+    "file": "phase6_train_calibration_20261016-224639.json",
+    "sha256": "d0616c716d4d16b1f1b5343e233b019ed2a1f07ba0379cb8f7c11d3c7acb0c2d"
+  },
+  "test_ece15_after": 0.041415013514863375,
+  "note": "Yalnız bu veri dağılımı için kalibre edildi; ayrıntı docs/faz6_sonuclar.md."
+}

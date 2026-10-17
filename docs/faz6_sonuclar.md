@@ -196,8 +196,8 @@ edilmedi. **Testte başka bir T denenmedi**; T̂_final dondurulmuş kurala göre
 - Demo açıklamasında yer alacak sınırlılıklar:
   - **Kalan kalibrasyon hatası:** testte kalibrasyondan sonra ECE 0.041. En yüksek güven
     bandında model hâlâ biraz aşırı emin (güven 0.98, accuracy 0.95).
-  - **Veri dağılımı:** kalibrasyon yalnızca bu veri dağılımı için geçerli (tek kaynak, tek
-    dönem). Demoya yazılan metinler farklı bir dağılımdan gelebilir; olasılıklar orada kalibre
+  - **Veri dağılımı:** kalibrasyon yalnızca bu veri dağılımı için geçerli (tek derleme;
+    dönemi card'da belirtilmiyor). Demoya yazılan metinler farklı bir dağılımdan gelebilir; olasılıklar orada kalibre
     olmayabilir.
   - **Kısayollar:** bozuk tırnaklar, ajans künyeleri ve dönem adları tahmini etkileyebilir
     (`docs/shortcut_learning.md`).

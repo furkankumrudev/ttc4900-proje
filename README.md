@@ -184,8 +184,10 @@ Ayrıntı: [`docs/faz7_sonuclar.md`](docs/faz7_sonuclar.md),
   Seed değişkenliği yalnızca betimsel verildi.
 - **İyimser p:** McNemar, test içindeki yakın-tekrar gruplarını (108 satır) yok sayar; p
   iyimser olabilir. CI'lar marjinaldir.
-- **Tek kaynak ve dönem:** veri tek bir kaynaktan ve belirli bir dönemden geliyor. O dönemin
-  kişi ve kurum adları güçlü özellikler.
+- **Tek derleme:** veri tek bir derlemeden geliyor (dataset card: Kemik grubu, Türk çevrimiçi
+  haber siteleri). Derleme dönemi card'da belirtilmiyor. Modelin güçlü özellikleri arasında
+  belirli kişi ve kurum adları var (Faz 2 özellik denetimi); güncel haberlerde bu işaretler
+  değişebilir.
 - **Kalibrasyon yalnız bu dağılım için geçerli.** T, CV modellerinden öğrenildi ve farklı
   eğitilen final modele uygulandı. Başka kaynaklardan gelen metinlerde olasılıklar kalibre
   olmayabilir.
@@ -221,7 +223,9 @@ outputs/         metrics/ (json + tahmin npz'leri), splits/, figures/
 ```
 
 ## Planlanan
-- **Faz 8:** Hugging Face Hub'a model yükleme ve Gradio Space demosu.
+- **Faz 8:** Hugging Face Hub'a model yükleme ve Gradio Space demosu
+  ([`docs/faz8_protokol.md`](docs/faz8_protokol.md)).
+  - Veri lisansı netleşene kadar model reposu private, demo Space'i public olacak.
   - Demo, seed 42 BERTurk modelini T = 1.283 ile kalibre edilmiş olasılıklarla gösterecek.
   - BERTurk bir dağıtım tercihidir: testte char_lr'den ayırt edilemedi.
   - Kalan kalibrasyon hatası (ECE 0.041), veri dağılımı sınırlılığı ve kısayol notları demo
