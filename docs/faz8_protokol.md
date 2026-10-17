@@ -81,6 +81,18 @@ geçerlidir. Kurallar 8a commit'inde, ağa hiçbir şey yazılmadan donduruldu.
    - Uçtan uca bir istekle denenir.
 4. **8d:** README'ye bağlantılar eklenir; leakage-reviewer ve stats-reviewer denetler; commit.
 
+## Kayıt (`outputs/publish/hub_record.json`)
+- **8b (2026-10-17), tamam.**
+  - `FurkanHug/berturk-ttc4900-haber` private olarak oluşturuldu.
+  - Hub commit sha'sı `8c649303eea44ba049b171f08b25b500bddb6c71`.
+  - Hub'dan geri indirilen 6 dosyanın sha256'ları yerel kayıtla aynı.
+- **8c (2026-10-17), başarısız.**
+  - Gradio Space oluşturma isteği `402 Payment Required` ile reddedildi.
+  - Hub'ın mesajı: ücretsiz cpu-basic üzerinde Gradio ve Docker Space'leri PRO gerektiriyor;
+    static Space'ler ücretsiz.
+  - Space oluşmadı, model reposu private kaldı.
+  - Kullanıcı kararı: 8c şimdilik bırakıldı.
+
 ## Not: belgelerde düzeltilen ifade
 8a sırasında, README'de ve Faz 6 ile kısayol belgelerinde "tek kaynak / tek dönem" ifadesinin
 dataset card'la doğrulanamadığı görüldü. Card, verinin Kemik grubundan alındığını ve kaynağının

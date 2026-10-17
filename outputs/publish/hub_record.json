@@ -1,0 +1,32 @@
+{
+  "phase_8b": {
+    "date": "2026-10-17",
+    "model_repo": "FurkanHug/berturk-ttc4900-haber",
+    "visibility": "private",
+    "hub_commit_sha": "8c649303eea44ba049b171f08b25b500bddb6c71",
+    "local_code_commit": "57a46dc",
+    "performed_by": "publisher agent, kullanıcının o turdaki açık onayıyla",
+    "steps": ["git status temiz", "hf auth whoami = FurkanHug", "publish check-local", "publish upload-model --confirm", "publish verify-remote", "model_info: private True"],
+    "verified_sha256_after_download": {
+      "config.json": "1fba8b2f8126e01ce5e33fbd45b98b5fa3fb53e9b3828c2005a82c7599017927",
+      "model.safetensors": "72cbeb438a89fd9fa592391703a1d5aa836e9546d170d405cc4b302709fb2648",
+      "tokenizer.json": "65ef5a17a6dd815398d703d17a66a3ca5e1c87dd89baf69cba64f108f16a3cbd",
+      "tokenizer_config.json": "4e5738ad97f034b944ce8b7b8c3165f7a6333b524b7b77044f7e9e9b963f4dea",
+      "README.md": "db746b001915f1f1b643397319e9100d35cd0697fdc66e5b8a2c8ed988d873d9",
+      "calibration.json": "0162e98a3d68d28dec7f9bdfcf4ee2e6f8c98404c1c5a9c3b266a2f7e7206088"
+    },
+    "note": "İlk dört dosya Faz 5 phase5_model_check json'undaki model_files_sha256 ile aynı; README.md ve calibration.json outputs/publish/model/ ile aynı. Repo private ve dosya listesi ayrıca salt okunur model_info ile doğrulandı."
+  },
+  "phase_8c": {
+    "date": "2026-10-17",
+    "space_repo": "FurkanHug/berturk-ttc4900-haber-demo",
+    "result": "başarısız: Space oluşmadı; ağa yazan hiçbir işlem başarılı olmadı",
+    "failed_call": "publish.create_space -> api.create_repo(repo_type='space', space_sdk='gradio', private=False)",
+    "error": "HfHubHTTPError: Client error '402 Payment Required' for url 'https://huggingface.co/api/repos/create'",
+    "request_id": "Root=1-6ad36de8-381b7f3e4773716e3ef9e9aa;c8c628aa-95a2-4c77-b79a-dbd7b6ab15e1",
+    "hub_message": "Static Spaces are free for everyone, but hosting Gradio and Docker Spaces on free cpu-basic requires a PRO subscription. Subscribe at https://huggingface.co/pro",
+    "source": "Hata metni publisher agent'ının raporundan (agent'ın ilk raporu boştu, sorulunca aktardı). Space'in yokluğu salt okunur space_info ile doğrulandı (404). İstek yeniden gönderilmedi.",
+    "model_repo_after": "private (değişmedi)",
+    "decision": "8c şimdilik bırakıldı (kullanıcı kararı); yerel demo ve ZeroGPU seçeneği değerlendiriliyor"
+  }
+}
