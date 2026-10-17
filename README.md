@@ -208,6 +208,9 @@ uv pip install --python .venv -r requirements.txt
   v1-diagnosis, exploratory}` ([`docs/faz5_protokol.md`](docs/faz5_protokol.md)).
 - Kalibrasyon: `python -m ttc4900.calibration {train, folds, test}`
   ([`docs/faz6_protokol.md`](docs/faz6_protokol.md)).
+- Yerel demo (Gradio, ağ yok): `python space/app.py --model-dir outputs/models/42
+  --calibration outputs/publish/model/calibration.json`, ardından `http://127.0.0.1:7860`
+  ([`docs/faz8_protokol.md`](docs/faz8_protokol.md)).
 - Hata analizi: `python -m ttc4900.error_analysis [bands]`
   ([`docs/faz7_protokol.md`](docs/faz7_protokol.md)).
 - Bütün metrikler `outputs/metrics/*.json` altında. Her json, üretildiği commit'i ve kullandığı

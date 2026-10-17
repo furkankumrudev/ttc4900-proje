@@ -228,3 +228,33 @@ def test_app_offline_matches_direct_forward(monkeypatch, tmp_path):
     out = app.classify(texts[0], (tok, model, T, labels))
     assert set(out) == set(labels) and sum(out.values()) == pytest.approx(1.0, abs=1e-5)
     assert app.classify("   ", (tok, model, T, labels)) == {}
+
+
+def test_app_main_requires_calibration_with_model_dir():
+    app = _load_app()
+    with pytest.raises(SystemExit, match="--calibration"):
+        app.main(["--model-dir", "herhangi"])
+
+
+@pytest.mark.skipif(not pub.MODEL_DIR.exists(), reason="yerel final model yok")
+def test_app_main_local_demo_offline(monkeypatch, tmp_path):
+    monkeypatch.setenv("HF_HUB_OFFLINE", "1")
+    monkeypatch.setenv("TRANSFORMERS_OFFLINE", "1")
+    pub.bundle(tmp_path)
+    app = _load_app()
+    seen = {}
+
+    class FakeUI:
+        def launch(self, **kw):
+            seen["launch"] = kw
+
+    def fake_build(state):
+        seen["state"] = state
+        return FakeUI()
+
+    monkeypatch.setattr(app, "build_ui", fake_build)
+    app.main(["--model-dir", str(pub.MODEL_DIR),
+              "--calibration", str(tmp_path / "model" / "calibration.json")])  # fmt: skip
+    tok, model, T, labels = seen["state"]
+    assert T == pytest.approx(1.28259, abs=1e-4) and len(labels) == 7
+    assert seen["launch"] == {"share": False}

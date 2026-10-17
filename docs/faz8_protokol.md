@@ -93,6 +93,21 @@ geçerlidir. Kurallar 8a commit'inde, ağa hiçbir şey yazılmadan donduruldu.
   - Space oluşmadı, model reposu private kaldı.
   - Kullanıcı kararı: 8c şimdilik bırakıldı.
 
+## Yerel demo (8c'nin yerine, kullanıcı kararı)
+`space/app.py` yerel model klasörüyle de çalışır. Argümansız çalıştığında Hub yolu eskisi gibi
+kullanılır (Space). Yerel modda ağ ve token kullanılmaz; `share=False` olduğu için yalnızca
+`127.0.0.1` üzerinde açılır.
+
+PowerShell, proje kökünde:
+```powershell
+.venv\Scripts\python -m ttc4900.publish check-local      # dosyalar = Faz 5 kaydı
+$env:HF_HUB_OFFLINE = "1"                                 # ağa hiç çıkılmaz
+.venv\Scripts\python spacepp.py --model-dir outputs\models" --calibration outputs\publish\model\calibration.json
+```
+Ardından tarayıcıda `http://127.0.0.1:7860` açılır.
+
+`--model-dir` verilip `--calibration` verilmezse uygulama durur.
+
 ## Not: belgelerde düzeltilen ifade
 8a sırasında, README'de ve Faz 6 ile kısayol belgelerinde "tek kaynak / tek dönem" ifadesinin
 dataset card'la doğrulanamadığı görüldü. Card, verinin Kemik grubundan alındığını ve kaynağının

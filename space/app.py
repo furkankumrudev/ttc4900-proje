@@ -78,7 +78,31 @@ def build_ui(state):
     return demo
 
 
+def parse_args(argv=None):
+    import argparse
+
+    ap = argparse.ArgumentParser(description="BERTurk TTC4900 demo")
+    ap.add_argument(
+        "--model-dir",
+        help="yerel model klasörü (ör. outputs/models/42); verilmezse "
+        "space_config.json'daki Hub reposu ve commit'i kullanılır",
+    )
+    ap.add_argument("--calibration", help="yerel calibration.json (--model-dir ile zorunlu)")
+    return ap.parse_args(argv)
+
+
+def main(argv=None):
+    a = parse_args(argv)
+    if a.model_dir:  # yerel demo: ağ yok, token yok
+        if not a.calibration:
+            raise SystemExit("--model-dir ile --calibration da verilmeli "
+                             "(ör. outputs/publish/model/calibration.json)")  # fmt: skip
+        state = load(a.model_dir, calibration_path=a.calibration)
+    else:  # Space: Hub'dan sabit commit; HF_TOKEN = salt okunur Space secret'ı
+        cfg = json.loads(Path(__file__).with_name("space_config.json").read_text(encoding="utf-8"))
+        state = load(cfg["model_repo"], cfg["model_revision"], token=os.environ.get("HF_TOKEN"))
+    build_ui(state).launch(share=False)  # yalnız 127.0.0.1; public paylaşım bağlantısı yok
+
+
 if __name__ == "__main__":
-    cfg = json.loads(Path(__file__).with_name("space_config.json").read_text(encoding="utf-8"))
-    state = load(cfg["model_repo"], cfg["model_revision"], token=os.environ.get("HF_TOKEN"))
-    build_ui(state).launch()
+    main()
