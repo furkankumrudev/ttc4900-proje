@@ -34,6 +34,14 @@ SPACE_SRC = PROJECT_ROOT / "space"
 MODEL_FILES = ("config.json", "model.safetensors", "tokenizer.json", "tokenizer_config.json")
 BUNDLE_FILES = ("README.md", "calibration.json")  # modele eşlik eden, üretilen dosyalar
 SPACE_FILES = ("app.py", "requirements.txt")  # space/ içinde, elle yazılmış
+SPACE_HARDWARE = "zero-a10g"  # ZeroGPU (huggingface_hub SpaceHardware); kullanıcı kararı
+COMPAT_N = 64  # ortam karşılaştırması: train satırı sayısı (test değil)
+COMPAT_SEED = 42
+GPU_NOTE = (
+    "Demo ZeroGPU üzerinde GPU ile çalışır. Raporlanan test sonuçları CPU'da (fp32) "
+    "hesaplandı; GPU'daki olasılıklar bunlardan çok küçük sayısal farklarla ayrılabilir ve "
+    "sınırdaki metinlerde son ondalıklar değişebilir. T değişmez."
+)
 BANNED = ("neredeyse", "eğilim", "eşdeğer", "char_lr'den iyi", "daha iyi kalibre", "2010",
           "tek bir kaynak", "tek kaynak")  # fmt: skip
 DATA_ATTRIBUTION = (
@@ -92,7 +100,16 @@ PUBLISH_RULES = {
     "space": (
         "Space: Gradio; model Hub'dan sabit commit'le yüklenir; olasılık softmax(z / T), "
         "T = calibration.json; ilk 3 sınıf gösterilir; girdi üstünde doğrulanabilir kısa "
-        "uyarı (SPACE_NOTICE). Örnek metin olarak veri setinden haber konulmaz."
+        "uyarı (SPACE_NOTICE). Örnek metin olarak veri setinden haber konulmaz. Donanım "
+        f"ZeroGPU ({SPACE_HARDWARE}), Space oluşturulurken verilir; app.py @spaces.GPU "
+        "kullanır, Python 3.12, torch ZeroGPU'nun desteklediği listeden (2.13.0). GPU/CPU "
+        "sayısal fark notu Space açıklamasında (GPU_NOTE)."
+    ),
+    "compat": (
+        "ZeroGPU sürümleri (torch 2.13.0 + transformers 5.19.0) ayrı bir yerel ortamda, "
+        f"{COMPAT_N} train satırında (test değil; seed {COMPAT_SEED}) mevcut ortamla "
+        "karşılaştırılır: aynı app.load/predict_proba, tek tek metin. argmax birebir aynı "
+        "olmalı; en büyük mutlak olasılık farkı raporlanır. Tutmazsa create-space yapılmaz."
     ),
     "commits": (
         "8a: kurallar, kod, testler, Space şablonu, protokol, publisher agent, üretilmiş card "
@@ -258,6 +275,7 @@ colorFrom: blue
 colorTo: gray
 sdk: gradio
 sdk_version: 6.30.0
+python_version: "3.12"
 app_file: app.py
 pinned: false
 license: other
@@ -271,6 +289,7 @@ models:
 
 - Olasılıklar T = {nums["T"]:.3f} ile kalibre edildi (yalnız bu veri dağılımı için). Testte
   kalan ECE {nums["calib_test"]["ece15"]["after"]:.3f}.
+- {GPU_NOTE}
 - BERTurk'ün kullanılması bir dağıtım tercihidir. Testte karakter TF-IDF + LR baseline'ından
   ayırt edilemedi (macro-F1 farkı {nums["primary"]["diff"]:+.4f}, %95 CI
   {_ci(nums["primary"]["diff_ci95"])}).
@@ -391,7 +410,8 @@ def create_space(user: str, model_revision: str, confirm: bool, api=None,
     cfg = json.dumps({"model_repo": rid, "model_revision": model_revision}, indent=2)
     from huggingface_hub import CommitOperationAdd
 
-    api.create_repo(sid, repo_type="space", space_sdk="gradio", private=False, exist_ok=True)
+    api.create_repo(sid, repo_type="space", space_sdk="gradio", space_hardware=SPACE_HARDWARE,
+                    private=False, exist_ok=True)  # fmt: skip
     ops = [CommitOperationAdd(f, str(Path(space_src, f))) for f in SPACE_FILES]
     ops += [CommitOperationAdd("README.md", readme.encode("utf-8")),
             CommitOperationAdd("space_config.json", cfg.encode("utf-8"))]  # fmt: skip
@@ -399,11 +419,52 @@ def create_space(user: str, model_revision: str, confirm: bool, api=None,
     return info.oid
 
 
+# --------------------------------------------------------------------------- ortam karşılaştırması
+def compat_texts(out: Path, n: int = COMPAT_N, seed: int = COMPAT_SEED, load_data=None) -> list:
+    """RULES['compat']: n train satırı (row_id, metin) geçici bir dosyaya; test okunmaz.
+    Dosya repo dışında (scratch) tutulur ve commit'lenmez."""
+    import numpy as np
+
+    from ttc4900.data import load_train
+
+    train = (load_data or load_train)()
+    rng = np.random.default_rng(seed)
+    idx = np.sort(rng.choice(len(train), size=n, replace=False))
+    rows = [{"row_id": int(train["row_id"].iloc[i]), "text": train["text"].iloc[i]} for i in idx]
+    Path(out).write_text(json.dumps(rows, ensure_ascii=False), encoding="utf-8")
+    return [r["row_id"] for r in rows]
+
+
+def compare_compat(ref_npz: Path, new_npz: Path) -> dict:
+    """İki ortamın kalibre olasılıkları: argmax birebir aynı mı, en büyük mutlak fark."""
+    import numpy as np
+
+    with np.load(ref_npz, allow_pickle=False) as a, np.load(new_npz, allow_pickle=False) as b:
+        if not (
+            np.array_equal(a["row_id"], b["row_id"]) and np.array_equal(a["labels"], b["labels"])
+        ):
+            raise ValueError("iki ortamın satırları/etiketleri aynı değil")
+        pa, pb = a["probs"], b["probs"]
+        n_diff = int((pa.argmax(1) != pb.argmax(1)).sum())
+        return {
+            "n_rows": int(len(pa)),
+            "row_ids": a["row_id"].tolist(),
+            "argmax_identical": n_diff == 0,
+            "n_argmax_diff": n_diff,
+            "max_abs_prob_diff": float(np.abs(pa - pb).max()),
+            "ref_env": {"torch": str(a["torch"]), "transformers": str(a["transformers"])},
+            "new_env": {"torch": str(b["torch"]), "transformers": str(b["transformers"])},
+        }
+
+
 # --------------------------------------------------------------------------- CLI
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("cmd", choices=["bundle", "check-local", "upload-model", "verify-remote",
-                                    "create-space"])  # fmt: skip
+                                    "create-space", "compat-texts", "compat-compare"])  # fmt: skip
+    ap.add_argument("--out")
+    ap.add_argument("--ref")
+    ap.add_argument("--new")
     ap.add_argument("--user")
     ap.add_argument("--revision")
     ap.add_argument("--model-revision")
@@ -418,8 +479,22 @@ def main() -> None:
         print("commit:", upload_model(a.user, a.confirm))
     elif a.cmd == "verify-remote":
         print(json.dumps(verify_remote(a.user, a.revision), indent=1))
-    else:
+    elif a.cmd == "create-space":
         print("space commit:", create_space(a.user, a.model_revision, a.confirm))
+    elif a.cmd == "compat-texts":
+        print(len(compat_texts(Path(a.out))), "train satırı yazıldı:", a.out)
+    else:
+        res = compare_compat(Path(a.ref), Path(a.new))
+        from ttc4900 import report
+
+        res = {"experiment": "zerogpu_compat", "git_commit": report.git_commit(),
+               "split": "split_v2", "rule": PUBLISH_RULES["compat"]} | res  # fmt: skip
+        p = BUNDLE_DIR / "zerogpu_compat.json"
+        p.write_text(json.dumps(res, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        print(p, "argmax aynı:", res["argmax_identical"],
+              "en büyük fark:", res["max_abs_prob_diff"])  # fmt: skip
+        if not res["argmax_identical"]:
+            raise SystemExit("argmax farklı: create-space yapılmaz")
 
 
 if __name__ == "__main__":

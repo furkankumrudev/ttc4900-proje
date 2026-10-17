@@ -258,3 +258,58 @@ def test_app_main_local_demo_offline(monkeypatch, tmp_path):
     tok, model, T, labels = seen["state"]
     assert T == pytest.approx(1.28259, abs=1e-4) and len(labels) == 7
     assert seen["launch"] == {"share": False}
+
+
+# --------------------------------------------------------------------------- ZeroGPU
+def test_zerogpu_rules_and_requirements():
+    assert pub.SPACE_HARDWARE == "zero-a10g"
+    assert "ZeroGPU" in pub.PUBLISH_RULES["space"] and "argmax" in pub.PUBLISH_RULES["compat"]
+    req = (PROJECT_ROOT / "space" / "requirements.txt").read_text(encoding="utf-8").split()
+    assert "torch==2.13.0" in req and "transformers==5.19.0" in req and "spaces" in req
+
+
+def test_create_space_requests_zerogpu(fake):
+    api = FakeApi("ali")
+    pub.create_space("ali", "c" * 40, True, api, bundle_dir=fake["bundle"])
+    create = next(c for c in api.calls if c[0] == "create_repo")
+    assert create[2]["space_hardware"] == "zero-a10g" and create[2]["private"] is False
+
+
+def test_space_readme_has_python_and_gpu_note(tmp_path):
+    pub.bundle(tmp_path)
+    space = (tmp_path / "space" / "README.md").read_text(encoding="utf-8")
+    assert 'python_version: "3.12"' in space and pub.GPU_NOTE in space
+    pub.check_text(space)
+
+
+def test_app_gpu_wrapper_noop_without_spaces():
+    app = _load_app()
+    assert app.spaces is None  # yerelde paket yok
+    assert app.gpu(app.predict_proba) is app.predict_proba
+
+
+def test_compat_texts_train_only(tmp_path):
+    import pandas as pd
+
+    train = pd.DataFrame({"row_id": range(100, 300), "text": [f"metin {i}" for i in range(200)]})
+    ids = pub.compat_texts(tmp_path / "t.json", n=10, seed=0, load_data=lambda: train)
+    rows = json.loads((tmp_path / "t.json").read_text(encoding="utf-8"))
+    assert len(rows) == 10 and ids == sorted(ids) and set(ids) <= set(range(100, 300))
+    assert pub.compat_texts(tmp_path / "u.json", n=10, seed=0, load_data=lambda: train) == ids
+
+
+def test_compare_compat(tmp_path):
+    import numpy as np
+
+    def save(p, probs, torch="x"):
+        np.savez(p, row_id=np.arange(3), probs=np.array(probs), labels=np.array(["a", "b"]),
+                 torch=np.array(torch), transformers=np.array("5.19.0"))  # fmt: skip
+
+    save(tmp_path / "a.npz", [[0.9, 0.1], [0.2, 0.8], [0.6, 0.4]], "2.14.1")
+    save(tmp_path / "b.npz", [[0.89, 0.11], [0.2, 0.8], [0.6, 0.4]], "2.13.0")
+    r = pub.compare_compat(tmp_path / "a.npz", tmp_path / "b.npz")
+    assert r["argmax_identical"] and r["max_abs_prob_diff"] == pytest.approx(0.01)
+    assert r["new_env"]["torch"] == "2.13.0"
+    save(tmp_path / "c.npz", [[0.4, 0.6], [0.2, 0.8], [0.6, 0.4]])
+    r = pub.compare_compat(tmp_path / "a.npz", tmp_path / "c.npz")
+    assert not r["argmax_identical"] and r["n_argmax_diff"] == 1

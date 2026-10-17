@@ -5,6 +5,7 @@ colorFrom: blue
 colorTo: gray
 sdk: gradio
 sdk_version: 6.30.0
+python_version: "3.12"
 app_file: app.py
 pinned: false
 license: other
@@ -18,6 +19,7 @@ Model yalnızca `savasy/ttc4900` veri setindeki haber metinleriyle ince ayarland
 
 - Olasılıklar T = 1.283 ile kalibre edildi (yalnız bu veri dağılımı için). Testte
   kalan ECE 0.041.
+- Demo ZeroGPU üzerinde GPU ile çalışır. Raporlanan test sonuçları CPU'da (fp32) hesaplandı; GPU'daki olasılıklar bunlardan çok küçük sayısal farklarla ayrılabilir ve sınırdaki metinlerde son ondalıklar değişebilir. T değişmez.
 - BERTurk'ün kullanılması bir dağıtım tercihidir. Testte karakter TF-IDF + LR baseline'ından
   ayırt edilemedi (macro-F1 farkı +0.0159, %95 CI
   [-0.0004, 0.0328]).

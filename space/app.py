@@ -15,8 +15,14 @@ from pathlib import Path
 import torch
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
+try:  # Hugging Face ZeroGPU: GPU yalnız @spaces.GPU ile işaretli çağrıda bağlanır
+    import spaces
+except ImportError:  # yerel: paket yok; dekoratör sonucu değiştirmez
+    spaces = None
+
 MAX_LENGTH = 512  # eğitimle aynı: baştan kesme
 TOP_K = 3
+GPU_DURATION = 20  # saniye; BERT-base tek metin için kısa tutulur (ziyaretçi kotası)
 NOTICE = (
     "Model yalnızca `savasy/ttc4900` veri setindeki haber metinleriyle ince ayarlandı. Başka "
     "türden ya da başka kaynaklardan gelen metinlerde tahminler ve olasılıklar güvenilir "
@@ -32,6 +38,8 @@ def load(source: str, revision: str | None = None, token: str | None = None,
     model = AutoModelForSequenceClassification.from_pretrained(
         source, revision=revision, token=token
     ).eval()
+    # ZeroGPU: model başlangıçta (kök düzeyde) cuda'ya taşınır; yerelde GPU yoksa CPU
+    model.to("cuda" if torch.cuda.is_available() else "cpu")
     if calibration_path is None:
         if Path(source).is_dir():
             calibration_path = str(Path(source) / "calibration.json")
@@ -49,16 +57,25 @@ def load(source: str, revision: str | None = None, token: str | None = None,
 def predict_proba(texts: list[str], tok, model, T: float) -> torch.Tensor:
     """Kalibre olasılıklar: softmax(logits / T)."""
     enc = tok(texts, truncation=True, max_length=MAX_LENGTH, padding=True, return_tensors="pt")
+    enc = {k: v.to(model.device) for k, v in enc.items()}
     with torch.inference_mode():
         logits = model(**enc).logits.float()
-    return torch.softmax(logits / T, dim=-1)
+    return torch.softmax(logits / T, dim=-1).cpu()
+
+
+def gpu(fn):
+    """ZeroGPU'da @spaces.GPU(duration=GPU_DURATION); yerelde fonksiyonun kendisi."""
+    return spaces.GPU(duration=GPU_DURATION)(fn) if spaces is not None else fn
+
+
+gpu_predict_proba = gpu(predict_proba)
 
 
 def classify(text: str, state) -> dict[str, float]:
     tok, model, T, labels = state
     if not text or not text.strip():
         return {}
-    p = predict_proba([text], tok, model, T)[0]
+    p = gpu_predict_proba([text], tok, model, T)[0]
     return {labels[i]: float(p[i]) for i in range(len(labels))}
 
 

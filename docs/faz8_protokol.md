@@ -108,6 +108,32 @@ Ardından tarayıcıda `http://127.0.0.1:7860` açılır.
 
 `--model-dir` verilip `--calibration` verilmezse uygulama durur.
 
+## ZeroGPU (8c yeniden, kullanıcı kararı)
+- **Kaynak:** HF belgesi `huggingface.co/docs/hub/spaces-zerogpu`.
+  - Ücretsiz kişisel hesaplar en fazla 2 ZeroGPU Space barındırabilir. Koşul: e-postası
+    doğrulanmış ve 30 günden eski hesap. Kullanıcı ikisini de doğruladı.
+  - Yalnız Gradio desteklenir. Python 3.12.12 ya da 3.10.13.
+  - PyTorch listesi 2.8.0 ile 2.13.0 arası.
+- **Kod (`PUBLISH_RULES['space']`):**
+  - Space oluşturulurken donanım `space_hardware="zero-a10g"` olarak verilir.
+  - `space/app.py` `spaces` paketini import eder; yerelde paket yoksa dekoratör davranışı
+    değiştirmez. Tahmin `@spaces.GPU(duration=20)` ile işaretlidir. Model başlangıçta GPU
+    varsa `cuda`'ya taşınır.
+  - Space README'si `python_version: "3.12"` belirtir.
+  - `space/requirements.txt`: `torch==2.13.0`, `transformers==5.19.0`, `spaces`.
+  - Private model, yalnız model reposunu okuyan fine-grained secret ve Space'te yazma yetkili
+    token olmaması kuralları değişmedi.
+- **Sayısal not (`GPU_NOTE`, Space açıklamasında):** demo GPU'da çalışır; raporlanan test
+  sonuçları CPU'da (fp32) hesaplandı. Olasılıklar çok küçük farklarla ayrılabilir; T değişmez.
+- **Ortam karşılaştırması (`PUBLISH_RULES['compat']`):**
+  - ZeroGPU sürümleri (torch 2.13.0 + transformers 5.19.0) ayrı bir yerel ortamda, 64 train
+    satırında (test değil, seed 42) mevcut ortamla karşılaştırılır.
+  - Komutlar: `space/compat_check.py` ve `publish compat-texts` / `compat-compare`.
+  - argmax birebir aynı olmalı; en büyük mutlak olasılık farkı raporlanır. Tutmazsa
+    create-space yapılmaz.
+  - Sonuç `outputs/publish/zerogpu_compat.json`'a yazılır. Train metinleri yalnız geçici
+    olarak repo dışında tutulur.
+
 ## Not: belgelerde düzeltilen ifade
 8a sırasında, README'de ve Faz 6 ile kısayol belgelerinde "tek kaynak / tek dönem" ifadesinin
 dataset card'la doğrulanamadığı görüldü. Card, verinin Kemik grubundan alındığını ve kaynağının
