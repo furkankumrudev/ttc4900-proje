@@ -195,3 +195,18 @@ def test_change_log_and_bands_run_gate(monkeypatch):
     monkeypatch.setattr(ea.report, "git_commit", lambda: "abc1234-dirty")
     with pytest.raises(RuntimeError, match="temiz"):
         ea.bands_run()
+
+
+def test_example_texts_verifies_sha_before_reading(tmp_path, monkeypatch):
+    opened = {"n": 0}
+
+    def load(path):
+        opened["n"] += 1
+        return None, None
+
+    monkeypatch.setattr(ea, "latest_metrics", lambda *a, **k: {"files": {}})
+    monkeypatch.setattr(ea, "verify_preds", lambda *a, **k: (_ for _ in ()).throw(
+        ValueError("analiz durdu")))  # fmt: skip
+    with pytest.raises(ValueError, match="durdu"):
+        ea.example_texts([1], load_data=load)
+    assert opened["n"] == 0

@@ -493,15 +493,27 @@ def bands_run(
 
 
 # --------------------------------------------------------------------------- belge yardımcıları
-def example_texts(row_ids, path: Path = SPLIT_PATH, load_data=load_train_test) -> dict[int, str]:
-    """7c belgesinin özet cümlelerini yazmak için (yalnız okuma; çıktı dosyaya yazılmaz)."""
+def example_texts(
+    row_ids,
+    path: Path = SPLIT_PATH,
+    load_data=load_train_test,
+    metrics_dir: Path = METRICS_DIR,
+    preds_dir: Path = PREDS_DIR,
+) -> dict[int, str]:
+    """7c belgesinin konu özetlerini yazmak için (yalnız okuma; çıktı dosyaya yazılmaz). run()
+    ile aynı kapı: metin okunmadan önce npz sha256'ları Faz 5 manifest'iyle doğrulanır."""
+    manifest = latest_metrics("test_preds", metrics_dir, phase=5)
+    if manifest is None:
+        raise RuntimeError("Faz 5 manifest'i yok")
+    verify_preds(manifest, preds_dir)
     _, test = load_data(path)
     t = test.set_index("row_id")["text"]
     return {int(r): t.loc[int(r)] for r in row_ids}
 
 
 def excerpt(text: str, n: int = EXCERPT_CHARS) -> str:
-    """7c belgesi için: boşlukları sadeleştirir, C1'i görünür işaretle değiştirir, ≤ n karakter."""
+    """Boşlukları sadeleştirir, C1'i görünür işaretle değiştirir, ≤ n karakter. Not: change_log
+    (2) ile belgede alıntı yerine konu özeti kullanıldı; bu fonksiyon 7c'de kullanılmadı."""
     t = " ".join(C1_QUOTES.sub("¤", text).split())
     return t if len(t) <= n else t[: n - 1].rstrip() + "…"
 
@@ -540,6 +552,8 @@ def _oof_preds(metrics_dir: Path) -> dict[str, dict[int, int]]:
     out = {}
     for n, (name, phase) in TRAIN_OOF.items():
         m = latest_metrics(name, metrics_dir, phase=phase)
+        if n == "berturk_ft" and m.get("seed") != 42:
+            raise ValueError(f"{m['_file']}: BERT OOF seed 42 değil ({m.get('seed')})")
         with np.load(Path(metrics_dir, m["preds_file"]), allow_pickle=False) as z:
             out[n] = dict(zip(z["row_id"].tolist(), z["y_pred"][0].tolist(), strict=True))
     return out
