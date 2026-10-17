@@ -169,3 +169,29 @@ def test_run_requires_clean_tree(monkeypatch):
     monkeypatch.setattr(ea.report, "git_commit", lambda: "abc1234-dirty")
     with pytest.raises(RuntimeError, match="temiz"):
         ea.run()
+
+
+# --------------------------------------------------------------------------- güven bantları
+def test_confidence_bands_denominator():
+    y = np.array([0] * 30 + [1] * 30)
+    pred = {"berturk_ft": y.copy(), "char_lr": y.copy()}
+    pred["berturk_ft"][:5] = 1  # 5 hata, hepsi yüksek güvenli
+    conf = {"berturk_ft": np.r_[np.full(40, 0.97), np.full(20, 0.5)],
+            "char_lr": np.full(60, 0.6)}  # fmt: skip
+    rates = ea.Rates(np.arange(60), B=30, seed=0)
+    out = ea.confidence_bands(y, pred, conf, rates)
+    b = out["berturk_ft"]["conf_ge_0.90"]
+    assert b["share_of_predictions"]["k"] == 40 and b["share_of_predictions"]["n"] == 60
+    assert b["accuracy_in_band"]["k"] == 35 and b["accuracy_in_band"]["n"] == 40
+    assert b["accuracy_below_band"]["n"] == 20 and b["accuracy_below_band"]["ci95"] is not None
+    c = out["char_lr"]["conf_ge_0.95"]
+    assert c["share_of_predictions"]["k"] == 0 and c["accuracy_in_band"]["n"] == 0
+    assert c["accuracy_in_band"]["ci95"] is None and c["mean_conf_in_band"] is None
+
+
+def test_change_log_and_bands_run_gate(monkeypatch):
+    assert "sonradan, betimsel" in ea.ERROR_RULES["change_log"]
+    assert "kategori başına en çok 1" in ea.ERROR_RULES["change_log"]
+    monkeypatch.setattr(ea.report, "git_commit", lambda: "abc1234-dirty")
+    with pytest.raises(RuntimeError, match="temiz"):
+        ea.bands_run()

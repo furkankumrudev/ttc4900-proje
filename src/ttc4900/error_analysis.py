@@ -6,7 +6,8 @@ manifest'iyle doğrulanır; tutmazsa durur), 6b'nin T̂_final değerlerini, spli
 test metnini okur. Test metni yalnız sayısal özellikler (C1 varlığı, uzunluk) için kullanılır;
 sonuç json'una metin yazılmaz, yalnız row_id yazılır. p hesaplanmaz.
 
-    python -m ttc4900.error_analysis   # 7b: temiz commit'te, tek koşu
+    python -m ttc4900.error_analysis         # 7b: temiz commit'te, tek koşu
+    python -m ttc4900.error_analysis bands   # sonradan, betimsel: güven bantları (payda)
 """
 
 from __future__ import annotations
@@ -106,6 +107,14 @@ ERROR_RULES = {
     "commits": (
         "7a: kurallar + kod + testler + protokol (sayı yok). 7b: temiz commit'te koşu, json + "
         "figür, yorumsuz. 7c: yorum, README, denetçiler (kullanıcı onayıyla)."
+    ),
+    "change_log": (
+        "7b sonuçları görüldükten sonra, kullanıcı onayıyla: (1) yüksek güvenli hata payının "
+        "paydası için güven bantları (confidence_bands; sonradan, betimsel): model başına "
+        "tahminlerin kaçı ≥ 0.90 ve ≥ 0.95 bandında, bant içi ve altı doğruluk; aynı grup "
+        "bootstrap'i, n < 20'de CI yok. (2) Belge metin kuralı sıkılaştı: lisans 'unknown' "
+        "olduğu için doğrudan alıntı yerine kısa özet cümle + row_id; doğrudan alıntı "
+        "gerekirse kategori başına en çok 1 ve çok kısa. Diğer maddeler değişmedi."
     ),
 }
 
@@ -401,7 +410,96 @@ def analyze(
     }
 
 
-# --------------------------------------------------------------------------- belge yardımcısı
+# --------------------------------------------------------------------------- güven bantları
+def confidence_bands(y, preds: dict[str, np.ndarray], conf: dict[str, np.ndarray],
+                     rates: Rates) -> dict:  # fmt: skip
+    """Sonradan, betimsel (ERROR_RULES['change_log']): yüksek güvenli hata payının paydası."""
+    y = np.asarray(y)
+    every = np.ones(len(y), dtype=bool)
+    out = {}
+    for n in PRIMARY:
+        correct = np.asarray(preds[n]) == y
+        per = {"n": len(y)}
+        for thr in (HIGH_CONF, HIGH_CONF_SENS):
+            band = conf[n] >= thr
+            per[f"conf_ge_{thr:.2f}"] = {
+                "share_of_predictions": rates.rate(band, every),
+                "accuracy_in_band": rates.rate(correct, band),
+                "accuracy_below_band": rates.rate(correct, ~band),
+                "mean_conf_in_band": float(conf[n][band].mean()) if band.any() else None,
+            }
+        out[n] = per
+    return out
+
+
+def bands_run(
+    metrics_dir: Path = METRICS_DIR,
+    preds_dir: Path = PREDS_DIR,
+    out_dir: Path = METRICS_DIR,
+    path: Path = SPLIT_PATH,
+    B: int = BOOTSTRAP_B,
+    seed: int = BOOTSTRAP_SEED,
+) -> tuple[Path, dict]:
+    """Yalnız npz skorları ve row_id'ler; test metni okunmaz."""
+    head = report.git_commit()
+    if head == "unknown" or head.endswith("-dirty"):
+        raise RuntimeError(f"çalışma ağacı temiz değil ({head}); güven bantları temiz commit'te")
+    if _untracked_inputs():
+        raise RuntimeError("izlenmeyen girdi dosyaları var; güven bantları koşmaz")
+    manifest = latest_metrics("test_preds", metrics_dir, phase=5)
+    main_res = latest_metrics("test", metrics_dir, phase=5)
+    six_b = latest_metrics("train_calibration", metrics_dir, phase=6)
+    seven_b = latest_metrics("error_analysis", metrics_dir, phase=7)
+    for m in (manifest, main_res, six_b, seven_b):
+        if m is None or not _is_tracked(Path(metrics_dir, m["_file"])):
+            raise RuntimeError("Faz 5 manifest/sonuç, 6b ve 7b json'ları commit'li olmalı")
+    shas = verify_preds(manifest, preds_dir, PRIMARY)
+    preds = load_preds(preds_dir, PRIMARY)
+    rid, y = preds["berturk_ft"]["row_id"], preds["berturk_ft"]["y_true"]
+    for n, p in preds.items():
+        if not (np.array_equal(p["row_id"], rid) and np.array_equal(p["y_true"], y)):
+            raise ValueError(f"{n}: npz satırları/etiketleri aynı değil")
+    T = {n: six_b["models"][n]["T_final"] for n in PRIMARY}
+    conf = {n: calibrated_conf(n, preds[n]["scores"], T[n]) for n in PRIMARY}
+    rates = Rates(test_groups(pd.DataFrame({"row_id": rid}), path), B, seed)
+    for n in PRIMARY:  # aynı w'ler: Faz 5 accuracy CI'ları birebir çıkmalı
+        r = rates.rate(preds[n]["y_pred"] == y, np.ones(len(y), dtype=bool))
+        if not np.allclose(r["ci95"], main_res["models"][n]["accuracy_ci95"]):
+            raise ValueError(f"{n}: bootstrap ağırlıkları Faz 5 ile aynı değil")
+    out = {
+        "experiment": "phase7_conf_bands",
+        "phase": 7,
+        "timestamp": report.now().isoformat(timespec="seconds"),
+        "git_commit": head,
+        "split": SPLIT_NAME,
+        "label": "sonradan, betimsel",
+        "note": ERROR_RULES["change_log"],
+        "sources": {
+            "manifest": manifest["_file"],
+            "preds_sha256": shas,
+            "train_calibration": six_b["_file"],
+            "error_analysis": seven_b["_file"],
+            "T_final": T,
+        },  # fmt: skip
+        "bootstrap": {
+            "B": B,
+            "seed": seed,
+            "unit": "split_v2 components (test_groups)",
+            "min_n_ci": MIN_N_CI,
+        },  # fmt: skip
+        "bands": confidence_bands(y, {n: preds[n]["y_pred"] for n in PRIMARY}, conf, rates),
+    }
+    return report.write_metrics(out, "phase7_conf_bands", out_dir), out
+
+
+# --------------------------------------------------------------------------- belge yardımcıları
+def example_texts(row_ids, path: Path = SPLIT_PATH, load_data=load_train_test) -> dict[int, str]:
+    """7c belgesinin özet cümlelerini yazmak için (yalnız okuma; çıktı dosyaya yazılmaz)."""
+    _, test = load_data(path)
+    t = test.set_index("row_id")["text"]
+    return {int(r): t.loc[int(r)] for r in row_ids}
+
+
 def excerpt(text: str, n: int = EXCERPT_CHARS) -> str:
     """7c belgesi için: boşlukları sadeleştirir, C1'i görünür işaretle değiştirir, ≤ n karakter."""
     t = " ".join(C1_QUOTES.sub("¤", text).split())
@@ -513,8 +611,13 @@ def run(
 
 
 def main() -> None:
-    argparse.ArgumentParser(description=__doc__.splitlines()[0]).parse_args()
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("cmd", nargs="?", default="run", choices=["run", "bands"])
+    args = ap.parse_args()
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    if args.cmd == "bands":  # sonradan, betimsel (ERROR_RULES['change_log'])
+        print(bands_run()[0])
+        return
     p, out = run()
     print(p)
     print(json.dumps({k: out[k] for k in ("n_test", "sources")}, ensure_ascii=False, indent=1))

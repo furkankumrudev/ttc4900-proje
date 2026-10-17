@@ -109,6 +109,19 @@ geçerlidir. Kurallar 7a commit'inde, analiz koşulmadan donduruldu. Komut:
   - Bu yüzden belgede yalnız kısa alıntılar kullanılır ve kaynak belirtilir. Card'daki atıf
     isteği de belgeye eklenir: Kaggle sayfası ve Yıldırım & Yıldız (2018).
 
+## Değişiklik notu (7b'den sonra; `ERROR_RULES['change_log']`)
+7b sonuçları görüldükten sonra, kullanıcı onayıyla iki değişiklik yapıldı:
+1. **Güven bantları** (`python -m ttc4900.error_analysis bands`): **sonradan, betimsel**.
+   - Yüksek güvenli hata payının bir paydaya ihtiyacı var. Bu adım, her modelin tahminlerinin
+     kaçının ≥ 0.90 ve ≥ 0.95 bandında olduğunu ve bant içi ile bant altı doğruluğu verir.
+   - Aynı grup bootstrap'i kullanılır; n < 20'de CI yok.
+   - Test metni okunmaz.
+2. **Metin kuralı sıkılaştı.** Lisans `unknown` olduğu için belgede doğrudan alıntı yerine
+   kısa özet cümle ve row_id kullanılır. Doğrudan alıntı gerekirse kategori başına en çok 1 ve
+   çok kısa olur.
+
+Diğer maddeler değişmedi.
+
 ## Commit düzeni
 1. **7a:** kurallar, kod, testler ve bu belge. Hiçbir analiz sayısı hesaplanmamış olur.
 2. **7b:** temiz commit'te koşu; json ve figür, yorumsuz.
