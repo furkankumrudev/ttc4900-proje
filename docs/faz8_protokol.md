@@ -102,7 +102,7 @@ PowerShell, proje kökünde:
 ```powershell
 .venv\Scripts\python -m ttc4900.publish check-local      # dosyalar = Faz 5 kaydı
 $env:HF_HUB_OFFLINE = "1"                                 # ağa hiç çıkılmaz
-.venv\Scripts\python spacepp.py --model-dir outputs\models" --calibration outputs\publish\model\calibration.json
+.venv\Scripts\python space\app.py --model-dir outputs\models\42 --calibration outputs\publish\model\calibration.json
 ```
 Ardından tarayıcıda `http://127.0.0.1:7860` açılır.
 
