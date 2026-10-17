@@ -30,6 +30,13 @@ Kurallar:
   lisans `unknown` ve veri atfı; kısayol ve veri dağılımı sınırlılıkları. Dataset card'da
   olmayan kaynak ya da dönem iddiası yazma.
 - Haber metni alıntılama yapma.
+- Bir komut ya da ağ işlemi hata verirse ham hata mesajını (exception türü, HTTP durum kodu,
+  Hub'ın açıklaması ve request id dahil; token hariç) aynen raporla. Çıktıyı kesme
+  (`tail`/`head` gerekiyorsa hatanın tamamı görünür olmalı). Hatadan sonra yeni bir ağ işlemi
+  deneme; dur ve raporla.
+- Asla boş, yer tutucu ("PLACEHOLDER", "TODO", "...") ya da kısmi bir rapor verme. Raporu
+  ancak her adımın gerçek çıktısını yazdıktan sonra gönder; bir adım çalışmadıysa bunu ve
+  nedenini açıkça yaz.
 
 Rapor:
 1. Üretilen/değişen dosyalar
