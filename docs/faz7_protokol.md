@@ -92,6 +92,9 @@ geçerlidir. Kurallar 7a commit'inde, analiz koşulmadan donduruldu. Komut:
   beklenir; hiçbiri karar olarak okunmaz.
 
 ## Örnekler ve metin (`ERROR_RULES['examples']`, `['text']`)
+> **Not:** Metin kuralı 7b'den sonra sıkılaştırıldı; aşağıdaki "Değişiklik notu" bölümüne
+> bakın. Geçerli kural: belgede alıntı yerine genel konu özeti ve row_id.
+
 - **Seçim:** her kategoriden en çok 2 row_id, deterministik bir kuralla.
   - Sıra: yanılan modelin kalibre güveni azalan; eşitlikte row_id artan.
   - Karışık etiketli test satırlarında row_id artan.

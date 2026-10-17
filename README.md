@@ -1,7 +1,7 @@
 # TTC4900 Türkçe Haber Sınıflandırma
 
-> **Taslak.** Faz 6 (kalibrasyon) sonrası güncellendi. Hata analizi, Hugging Face Hub ve Gradio
-> demosu henüz yapılmadı; ilgili bölümler eklendikçe güncellenecek.
+> **Taslak.** Faz 7 (hata analizi) sonrası güncellendi. Hugging Face Hub ve Gradio demosu
+> henüz yapılmadı; ilgili bölümler eklendikçe güncellenecek.
 
 7 sınıflı Türkçe haber metinlerinde klasik yöntemleri (TF-IDF + doğrusal modeller) BERTurk
 fine-tuning ile karşılaştıran bir proje. Projenin odağı en yüksek skoru kovalamak değil;
@@ -91,6 +91,48 @@ anlamlı olan yalnızca T'nin 1'e göre yönü.
 Ayrıntı: [`docs/faz6_sonuclar.md`](docs/faz6_sonuclar.md),
 [`docs/faz6_protokol.md`](docs/faz6_protokol.md).
 
+## Hata analizi (Faz 7, betimsel)
+- **Kapsam:** BERTurk seed 42 final modeli ve char_lr. Tamamen betimseldir: p yok, modeller
+  arasında doğruluk ya da kalibrasyon sıralaması yok.
+- **Kurallar:** Faz 1–6 kuralları değişmedi. Güven bantları adımı 7b sonuçları görüldükten
+  sonra, betimsel olarak eklendi.
+- **Örnekler:** veri setinin lisansı belirsiz olduğu için haber metni alıntılanmadı. Örnekler
+  genel konu etiketi ve row_id ile verildi.
+
+**Karışan sınıf çiftleri.** 21 çiftin tamamı sıralandı.
+- char_lr'de birinci çift ekonomi↔teknoloji (13 hata).
+- BERT'te birinci çift, önceden adı konmamış dünya↔ekonomi (11 hata). Bu çift, çiftlerin
+  tamamı sıralandığı için görünür oldu.
+- Sıralar kararsız: farklar 1–2 satır ve beraberlikler var.
+
+**Yüksek güvenli hatalar paydayla okunmalı.**
+- Güven eşiği (kalibre güven ≥ 0.90) iki modelde farklı ölçekli olasılıklara uygulandığı için
+  modeller arasında karşılaştırılmaz.
+- Model içinde: BERT'in tahminlerinin %93'ü bu bantta, hatalarının ise %68'i. Hatalar bant
+  dışında yoğunlaşıyor; güven bilgi taşıyor. char_lr'de aynı oranlar %79 ve %24.
+
+**Olası etiket gürültüsü adayları (hipotez).**
+- 14 satırda iki model birlikte yüksek güvenle yanılıyor ve aynı yanlış etikete gidiyor. Ortak
+  hatalardaki taban oran hesaplanmadı.
+- 247 çok satırlı yakın-tekrar grubunun 8'inde farklı etiketli satırlar var.
+- Etiketlere hüküm verilmedi.
+
+**Bozuk tırnaklar (C1) bir karıştırıcı değişken gibi davranıyor.**
+- C1 içeren test satırlarında hata oranı farkı:
+  - char_lr: +0.056 [+0.015, +0.100].
+  - C1'i silen char_lr_c1clean: +0.070 [+0.027, +0.116].
+  - BERT (C1'i görmüyor): +0.028 [−0.009, +0.067], CI 0'ı içeriyor.
+- C1 silindikten sonra da fark sürdüğü için C1, kaynak ya da konu farkının bir işareti
+  olabilir. Yüksek hata tek başına artefakta atfedilmez.
+- char_lr ile char_lr_c1clean'in ayrıştığı 13 satırın 8'i C1 içeriyor (%62; testte %34).
+  Ama C1'siz 5 satırda da ayrışma var, çünkü model yeniden eğitildi. Sayılar çok küçük.
+
+**Çok hücre uyarısı.** Onlarca hücrede ayrı CI var ve çoklu karşılaştırma düzeltmesi
+yapılmadı. Bazı CI'ların 0'ı dışlaması şans eseri de beklenir.
+
+Ayrıntı: [`docs/faz7_sonuclar.md`](docs/faz7_sonuclar.md),
+[`docs/faz7_protokol.md`](docs/faz7_protokol.md).
+
 ## Yöntem
 ### Veri ve split
 - **Kaynak:** Hugging Face `savasy/ttc4900`, sabit commit SHA ile yükleniyor. 4900 haber,
@@ -147,6 +189,10 @@ Ayrıntı: [`docs/faz6_sonuclar.md`](docs/faz6_sonuclar.md),
 - **Kalibrasyon yalnız bu dağılım için geçerli.** T, CV modellerinden öğrenildi ve farklı
   eğitilen final modele uygulandı. Başka kaynaklardan gelen metinlerde olasılıklar kalibre
   olmayabilir.
+- **Veri lisansı belirsiz.** Dataset card'da `license: unknown`. Veri Kemik grubundan
+  (Yıldız Teknik Üniversitesi), kaynağı Türk haber siteleri. Atıf:
+  <https://www.kaggle.com/savasy/ttc4900> ve Yıldırım & Yıldız (2018), Pamukkale Univ Muh
+  Bilim Derg 24(5), 879–886, doi:10.5505/pajes.2018.15931.
 
 ## Yeniden üretme
 ```powershell
@@ -160,6 +206,8 @@ uv pip install --python .venv -r requirements.txt
   v1-diagnosis, exploratory}` ([`docs/faz5_protokol.md`](docs/faz5_protokol.md)).
 - Kalibrasyon: `python -m ttc4900.calibration {train, folds, test}`
   ([`docs/faz6_protokol.md`](docs/faz6_protokol.md)).
+- Hata analizi: `python -m ttc4900.error_analysis [bands]`
+  ([`docs/faz7_protokol.md`](docs/faz7_protokol.md)).
 - Bütün metrikler `outputs/metrics/*.json` altında. Her json, üretildiği commit'i ve kullandığı
   split'i kaydeder. Model ağırlıkları git'te değil.
 
@@ -173,8 +221,7 @@ outputs/         metrics/ (json + tahmin npz'leri), splits/, figures/
 ```
 
 ## Planlanan
-- **Faz 7:** betimsel hata analizi. Model, ayar ve kural değişmeyecek.
-- Hugging Face Hub'a model yükleme ve Gradio Space demosu.
+- **Faz 8:** Hugging Face Hub'a model yükleme ve Gradio Space demosu.
   - Demo, seed 42 BERTurk modelini T = 1.283 ile kalibre edilmiş olasılıklarla gösterecek.
   - BERTurk bir dağıtım tercihidir: testte char_lr'den ayırt edilemedi.
   - Kalan kalibrasyon hatası (ECE 0.041), veri dağılımı sınırlılığı ve kısayol notları demo
