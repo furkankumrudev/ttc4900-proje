@@ -225,7 +225,9 @@ def test_load_train_test_only_in_allowed_modules():
     """Kod düzeyinde (AST: ad/öznitelik/import; metinlerdeki geçişler sayılmaz) kullanım."""
     import ast
 
-    allowed = {"data.py", "eda.py", "final_eval.py"}  # eda: Faz 1 veri raporu (tarihî)
+    # eda: Faz 1 veri raporu (tarihî); error_analysis: Faz 7, kullanıcı onayıyla tek istisna
+    # (model fit etmez, tahmin üretmez; ERROR_RULES['access'])
+    allowed = {"data.py", "eda.py", "final_eval.py", "error_analysis.py"}
     users = set()
     for f in (PROJECT_ROOT / "src" / "ttc4900").glob("*.py"):
         for node in ast.walk(ast.parse(f.read_text(encoding="utf-8"))):
